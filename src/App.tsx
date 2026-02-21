@@ -12,12 +12,9 @@ const queryClient = new QueryClient();
 
 const copilotKitUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/copilotkit`;
 
-const copilotProps: Record<string, unknown> = {
+const copilotProps = {
   runtimeUrl: copilotKitUrl,
   showDevConsole: false,
-  agents__unsafe_dev_only: {
-    default: { agentId: "default" },
-  },
 };
 
 const App = () => (
