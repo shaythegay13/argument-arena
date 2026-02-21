@@ -15,6 +15,7 @@
   "dependencies": {
     "@copilotkit/react-core": "^1.51.4",
     "@copilotkit/react-ui": "^1.51.4",
+    "@elevenlabs/react": "^0.14.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
