@@ -1,0 +1,138 @@
+import { useState } from "react";
+import { Persona } from "@/types/debate";
+import { PERSONAS } from "@/data/personas";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Play, SkipForward, Scale } from "lucide-react";
+
+interface ControlPanelProps {
+  topic: string;
+  onTopicChange: (topic: string) => void;
+  selectedPersonas: Persona[];
+  onTogglePersona: (persona: Persona) => void;
+  onStartDebate: () => void;
+  onNextRound: () => void;
+  onJudgeSummary: () => void;
+  hasStarted: boolean;
+  currentRound: number;
+  maxRounds: number;
+  isGenerating: boolean;
+  isGeneratingSummary: boolean;
+}
+
+const personaColorClasses: Record<string, { bg: string; text: string; border: string }> = {
+  angel: { bg: "bg-persona-angel", text: "text-persona-angel", border: "persona-glow-angel" },
+  vc: { bg: "bg-persona-vc", text: "text-persona-vc", border: "persona-glow-vc" },
+  customer: { bg: "bg-persona-customer", text: "text-persona-customer", border: "persona-glow-customer" },
+  operator: { bg: "bg-persona-operator", text: "text-persona-operator", border: "persona-glow-operator" },
+  skeptic: { bg: "bg-persona-skeptic", text: "text-persona-skeptic", border: "persona-glow-skeptic" },
+  quant: { bg: "bg-persona-quant", text: "text-persona-quant", border: "persona-glow-quant" },
+  insider: { bg: "bg-persona-insider", text: "text-persona-insider", border: "persona-glow-insider" },
+  visionary: { bg: "bg-persona-visionary", text: "text-persona-visionary", border: "persona-glow-visionary" },
+};
+
+export default function ControlPanel({
+  topic,
+  onTopicChange,
+  selectedPersonas,
+  onTogglePersona,
+  onStartDebate,
+  onNextRound,
+  onJudgeSummary,
+  hasStarted,
+  currentRound,
+  maxRounds,
+  isGenerating,
+  isGeneratingSummary,
+}: ControlPanelProps) {
+  const isSelected = (p: Persona) => selectedPersonas.some((s) => s.id === p.id);
+  const canStart = topic.trim().length > 0 && selectedPersonas.length >= 2;
+
+  return (
+    <div className="space-y-5">
+      {/* Topic input */}
+      <div>
+        <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
+          Debate Topic / Startup Idea
+        </label>
+        <Textarea
+          placeholder="e.g. Should I build a B2B tool for automating sales outreach with AI?"
+          value={topic}
+          onChange={(e) => onTopicChange(e.target.value)}
+          disabled={hasStarted}
+          className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground min-h-[80px] resize-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+
+      {/* Persona picker */}
+      <div>
+        <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
+          Select 2–4 Personas
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {PERSONAS.map((persona) => {
+            const selected = isSelected(persona);
+            const colors = personaColorClasses[persona.colorKey];
+            const disabled = !selected && selectedPersonas.length >= 4;
+
+            return (
+              <button
+                key={persona.id}
+                onClick={() => !hasStarted && !disabled && onTogglePersona(persona)}
+                disabled={hasStarted || disabled}
+                className={`
+                  px-3 py-1.5 rounded-md text-sm font-medium border transition-all
+                  ${selected
+                    ? `${colors.bg} ${colors.text} ${colors.border} border`
+                    : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                  }
+                  ${(hasStarted || disabled) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+                `}
+              >
+                {persona.subtitle}
+              </button>
+            );
+          })}
+        </div>
+        {selectedPersonas.length > 0 && selectedPersonas.length < 2 && (
+          <p className="text-xs text-muted-foreground mt-1">Pick at least 2 personas</p>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-3 flex-wrap">
+        {!hasStarted ? (
+          <Button
+            onClick={onStartDebate}
+            disabled={!canStart || isGenerating}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+          >
+            <Play className="w-4 h-4 mr-2" />
+            Start Debate
+          </Button>
+        ) : (
+          <>
+            <Button
+              onClick={onNextRound}
+              disabled={isGenerating || currentRound >= maxRounds}
+              variant="outline"
+              className="border-primary/40 text-primary hover:bg-primary/10"
+            >
+              <SkipForward className="w-4 h-4 mr-2" />
+              Next Round {currentRound < maxRounds && `(${currentRound + 1}/${maxRounds})`}
+            </Button>
+            <Button
+              onClick={onJudgeSummary}
+              disabled={isGenerating || isGeneratingSummary}
+              variant="outline"
+              className="border-muted-foreground/30 text-foreground hover:bg-muted"
+            >
+              <Scale className="w-4 h-4 mr-2" />
+              Judge's Summary
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,94 @@
+import { Persona, Round } from "@/types/debate";
+
+const personaColorClasses: Record<string, { bg: string; text: string; border: string }> = {
+  angel: { bg: "bg-persona-angel", text: "text-persona-angel", border: "persona-glow-angel" },
+  vc: { bg: "bg-persona-vc", text: "text-persona-vc", border: "persona-glow-vc" },
+  customer: { bg: "bg-persona-customer", text: "text-persona-customer", border: "persona-glow-customer" },
+  operator: { bg: "bg-persona-operator", text: "text-persona-operator", border: "persona-glow-operator" },
+  skeptic: { bg: "bg-persona-skeptic", text: "text-persona-skeptic", border: "persona-glow-skeptic" },
+  quant: { bg: "bg-persona-quant", text: "text-persona-quant", border: "persona-glow-quant" },
+  insider: { bg: "bg-persona-insider", text: "text-persona-insider", border: "persona-glow-insider" },
+  visionary: { bg: "bg-persona-visionary", text: "text-persona-visionary", border: "persona-glow-visionary" },
+};
+
+interface PersonaStageProps {
+  personas: Persona[];
+  currentRound: Round | undefined;
+  generatingPersonaIds: string[];
+}
+
+export default function PersonaStage({
+  personas,
+  currentRound,
+  generatingPersonaIds,
+}: PersonaStageProps) {
+  if (personas.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground text-sm font-mono">
+        Select personas and start the debate to see the stage
+      </div>
+    );
+  }
+
+  const gridCols =
+    personas.length === 2
+      ? "grid-cols-1 sm:grid-cols-2"
+      : personas.length === 3
+      ? "grid-cols-1 sm:grid-cols-3"
+      : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+
+  return (
+    <div className={`grid ${gridCols} gap-4`}>
+      {personas.map((persona) => {
+        const colors = personaColorClasses[persona.colorKey];
+        const message = currentRound?.messages.find(
+          (m) => m.personaId === persona.id
+        );
+        const isThinking = generatingPersonaIds.includes(persona.id);
+
+        return (
+          <div
+            key={persona.id}
+            className={`
+              rounded-lg border-2 ${colors.border} bg-card p-5 flex flex-col gap-3
+              transition-all duration-300
+              ${isThinking ? "animate-pulse" : ""}
+            `}
+          >
+            {/* Header */}
+            <div>
+              <h3 className={`font-semibold text-base ${colors.text}`}>
+                {persona.name}
+              </h3>
+              <p className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
+                {persona.subtitle}
+              </p>
+            </div>
+
+            {/* Divider */}
+            <div className={`h-px w-full opacity-30`} style={{ background: `currentColor` }} />
+
+            {/* Content */}
+            <div className="flex-1 min-h-[80px]">
+              {isThinking ? (
+                <div className="space-y-2">
+                  <div className="h-3 bg-muted rounded w-full" />
+                  <div className="h-3 bg-muted rounded w-4/5" />
+                  <div className="h-3 bg-muted rounded w-3/5" />
+                </div>
+              ) : message ? (
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  {message.text}
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground/50 italic">
+                  Awaiting round start…
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
