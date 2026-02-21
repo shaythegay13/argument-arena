@@ -56,7 +56,8 @@ function buildRoundNPrompt(
   roundNumber: number,
   previousRound: Round,
   allPersonas: Persona[],
-  userResponse: string
+  userResponse: string,
+  personaMemory?: string
 ): string {
   const prevMessages = previousRound.messages
     .map((m) => {
@@ -65,8 +66,12 @@ function buildRoundNPrompt(
     })
     .join("\n\n");
 
-  return `Topic/Idea: "${topic}"
+  const memoryBlock = personaMemory
+    ? `\nMEMORY (your past notes on this founder):\n${personaMemory}\n`
+    : "";
 
+  return `Topic/Idea: "${topic}"
+${memoryBlock}
 Previous round statements:
 ${prevMessages}
 
@@ -79,8 +84,12 @@ function buildFinalRatingPrompt(
   topic: string,
   allRounds: Round[],
   allPersonas: Persona[],
-  userResponse: string
+  userResponse: string,
+  personaMemory?: string
 ): string {
+  const memoryBlock = personaMemory
+    ? `\nMEMORY (your past notes on this founder):\n${personaMemory}\n`
+    : "";
   const roundsText = allRounds
     .map((round) => {
       const msgs = round.messages
@@ -94,6 +103,7 @@ function buildFinalRatingPrompt(
     .join("\n\n");
 
   return `Topic/Idea: "${topic}"
+${memoryBlock}
 
 Full debate transcript:
 ${roundsText}
@@ -131,14 +141,16 @@ export async function generateNextRound(
   personas: Persona[],
   previousRound: Round,
   userResponse: string,
-  onPersonaComplete: (personaId: string, text: string) => void
+  onPersonaComplete: (personaId: string, text: string) => void,
+  getMemory?: (personaId: string) => string
 ): Promise<RoundMessage[]> {
   const messages: RoundMessage[] = [];
 
   await Promise.all(
     personas.map(async (persona) => {
       const system = enrichSystemPrompt(persona, topic);
-      const userPrompt = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse);
+      const memory = getMemory?.(persona.id);
+      const userPrompt = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
       const text = await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
@@ -154,7 +166,8 @@ export async function generateFinalRatings(
   personas: Persona[],
   allRounds: Round[],
   userResponse: string,
-  onPersonaComplete: (personaId: string, text: string) => void
+  onPersonaComplete: (personaId: string, text: string) => void,
+  getMemory?: (personaId: string) => string
 ): Promise<{ messages: RoundMessage[]; ratings: PersonaRating[] }> {
   const messages: RoundMessage[] = [];
   const ratings: PersonaRating[] = [];
@@ -163,7 +176,8 @@ export async function generateFinalRatings(
   await Promise.all(
     personas.map(async (persona) => {
       const system = enrichSystemPrompt(persona, topic) + "\n\nIMPORTANT: You MUST end your response with exactly: RATING: [number]/10 | [reason]";
-      const userPrompt = buildFinalRatingPrompt(topic, allRounds, personas, userResponse);
+      const memory = getMemory?.(persona.id);
+      const userPrompt = buildFinalRatingPrompt(topic, allRounds, personas, userResponse, memory);
       const text = await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
