@@ -3,6 +3,7 @@ import { Persona, DebateState, Round } from "@/types/debate";
 import { generateRound1, generateNextRound, generateFinalRatings } from "@/lib/ai";
 import { PERSONAS } from "@/data/personas";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
+import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw } from "lucide-react";
@@ -40,9 +41,13 @@ const initialState: DebateState = {
 
 const Index = () => {
   const [state, setState] = useState<DebateState>(initialState);
+  const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } = useRedisMemory();
 
   // Expose state to CopilotKit agent + debug console
   useDebateAgentState(state);
+
+  // Log memory status
+  console.log("[RedisMemory] Session:", sessionId, "| Mock:", usingMock);
 
   const currentRound = state.rounds.find(
     (r) => r.roundNumber === state.currentRoundNumber
@@ -87,13 +92,21 @@ const Index = () => {
       }
     );
 
+    // Store Round 1 memories
+    const responseMap: Record<string, string> = {};
+    messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+    await storeRoundMemories(
+      personas.map((p) => p.id),
+      state.topic, 1, "", responseMap
+    );
+
     setState((prev) => ({
       ...prev,
       isGenerating: false,
       generatingPersonaIds: [],
       rounds: [{ roundNumber: 1, messages }],
     }));
-  }, [state.topic, state.selectedPersonas]);
+  }, [state.topic, state.selectedPersonas, storeRoundMemories]);
 
   // Show follow-up textarea when all personas have responded and not final round
   const allResponsesReady = currentRound && currentRound.messages.length === state.selectedPersonas.length && !state.isGenerating;
@@ -142,7 +155,16 @@ const Index = () => {
               rounds: updatedRounds,
             };
           });
-        }
+        },
+        getRecentMemories
+      );
+
+      // Store round memories
+      const responseMap: Record<string, string> = {};
+      messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+      await storeRoundMemories(
+        state.selectedPersonas.map((p) => p.id),
+        state.topic, nextRoundNum, userResponse, responseMap
       );
 
       setState((prev) => {
@@ -178,7 +200,16 @@ const Index = () => {
               rounds: updatedRounds,
             };
           });
-        }
+        },
+        getRecentMemories
+      );
+
+      // Store round memories
+      const responseMap: Record<string, string> = {};
+      messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+      await storeRoundMemories(
+        state.selectedPersonas.map((p) => p.id),
+        state.topic, nextRoundNum, userResponse, responseMap
       );
 
       setState((prev) => {
@@ -193,7 +224,7 @@ const Index = () => {
         };
       });
     }
-  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse]);
+  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories]);
 
   const handleReset = useCallback(() => {
     setState(initialState);
