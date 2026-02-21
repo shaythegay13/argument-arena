@@ -1,18 +1,24 @@
+import { supabase } from "@/integrations/supabase/client";
 import { Persona, Round, RoundMessage } from "@/types/debate";
 
-/**
- * Stub AI call — replace the body of this function with a real API call
- * (e.g., OpenAI, Anthropic, Lovable AI) when ready.
- */
 async function callCompletion(
   systemPrompt: string,
   userPrompt: string
 ): Promise<string> {
-  // Simulate network delay + varied response length
-  await new Promise((r) => setTimeout(r, 1200 + Math.random() * 1800));
+  const { data, error } = await supabase.functions.invoke("debate-ai", {
+    body: { systemPrompt, userPrompt },
+  });
 
-  // Return a placeholder that echoes enough context to feel real during dev
-  return `[AI response placeholder] — This persona would respond to the topic based on their unique perspective. In production, this will be replaced with a real AI completion. The system prompt guides the tone and the user prompt provides the debate context.`;
+  if (error) {
+    console.error("Edge function error:", error);
+    throw new Error(error.message || "AI call failed");
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data?.content ?? "No response generated.";
 }
 
 function inferIndustry(topic: string): string {
@@ -42,6 +48,14 @@ function inferIndustry(topic: string): string {
   return "technology";
 }
 
+function enrichSystemPrompt(persona: Persona, topic: string): string {
+  const industry = inferIndustry(topic);
+  return persona.systemPrompt.replace(
+    /\[(?:auto-detect industry from idea|insert industry from idea)\]/gi,
+    industry
+  );
+}
+
 function buildRound1Prompt(topic: string): string {
   return `Topic/Idea: "${topic}"
 
@@ -69,14 +83,6 @@ ${prevMessages}
 This is Round ${roundNumber}. Respond briefly (2–4 sentences) to the idea and to 1–2 key points made by the others in the last round. Refer to them by role (e.g., "the angel investor", "the skeptic"). Be direct and specific.`;
 }
 
-function enrichSystemPrompt(persona: Persona, topic: string): string {
-  const industry = inferIndustry(topic);
-  return persona.systemPrompt.replace(
-    /\[(?:auto-detect industry from idea|insert industry from idea)\]/gi,
-    industry
-  );
-}
-
 export async function generateRound1(
   topic: string,
   personas: Persona[],
@@ -85,7 +91,6 @@ export async function generateRound1(
   const userPrompt = buildRound1Prompt(topic);
   const messages: RoundMessage[] = [];
 
-  // Generate in parallel
   await Promise.all(
     personas.map(async (persona) => {
       const system = enrichSystemPrompt(persona, topic);
@@ -111,12 +116,7 @@ export async function generateNextRound(
   await Promise.all(
     personas.map(async (persona) => {
       const system = enrichSystemPrompt(persona, topic);
-      const userPrompt = buildRoundNPrompt(
-        topic,
-        roundNumber,
-        previousRound,
-        personas
-      );
+      const userPrompt = buildRoundNPrompt(topic, roundNumber, previousRound, personas);
       const text = await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
