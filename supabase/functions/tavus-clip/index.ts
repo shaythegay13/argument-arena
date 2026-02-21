@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const TAVUS_BASE = "https://tavusapi.com/v2/videos";
+const TAVUS_BASE = "https://tavusapi.com/v2";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -22,10 +22,35 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const videoId = url.searchParams.get("video_id");
+    const listReplicas = url.searchParams.get("list_replicas");
+
+    // GET with list_replicas → return available replicas
+    if (req.method === 'GET' && listReplicas === 'true') {
+      const res = await fetch(`${TAVUS_BASE}/replicas`, {
+        headers: { 'x-api-key': TAVUS_API_KEY },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error(`[Tavus] List replicas error [${res.status}]:`, JSON.stringify(data));
+        return new Response(JSON.stringify({ error: 'Failed to list replicas', details: data }), {
+          status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      // Return simplified list
+      const replicas = (data.data || []).map((r: any) => ({
+        replica_id: r.replica_id,
+        replica_name: r.replica_name,
+        thumbnail_video_url: r.thumbnail_video_url || null,
+        status: r.status,
+      }));
+      return new Response(JSON.stringify({ replicas }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // GET with video_id param → poll status
     if (req.method === 'GET' && videoId) {
-      const res = await fetch(`${TAVUS_BASE}/${videoId}`, {
+      const res = await fetch(`${TAVUS_BASE}/videos/${videoId}`, {
         headers: { 'x-api-key': TAVUS_API_KEY },
       });
       const data = await res.json();
@@ -45,11 +70,17 @@ serve(async (req) => {
       });
     }
 
-    // POST → create video (returns immediately with video_id)
+    // POST → create video
     if (req.method === 'POST') {
       const { script, replica_id } = await req.json();
 
-      const res = await fetch(TAVUS_BASE, {
+      if (!replica_id) {
+        return new Response(JSON.stringify({ error: 'replica_id is required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const res = await fetch(`${TAVUS_BASE}/videos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,7 +88,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           script,
-          replica_id: replica_id || undefined,
+          replica_id,
           video_name: `debate-recap-${Date.now()}`,
         }),
       });

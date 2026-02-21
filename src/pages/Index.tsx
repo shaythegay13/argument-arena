@@ -15,6 +15,7 @@ import RatingsOverview from "@/components/RatingsOverview";
 import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
+import ReplicaSelector from "@/components/ReplicaSelector";
 
 const MAX_ROUNDS = 4;
 
@@ -47,6 +48,7 @@ const initialState: DebateState = {
 
 const Index = () => {
   const [state, setState] = useState<DebateState>(initialState);
+  const [selectedReplicaId, setSelectedReplicaId] = useState("");
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } = useRedisMemory();
   const { clips, isGenerating: isGeneratingClip, generateClip } = useTavusClips();
 
@@ -106,8 +108,8 @@ const Index = () => {
       rounds: [{ roundNumber: 1, messages }],
     }));
 
-    generateClip(1, personas, { roundNumber: 1, messages });
-  }, [state.topic, state.selectedPersonas, storeRoundMemories, generateClip]);
+    generateClip(1, personas, { roundNumber: 1, messages }, undefined, selectedReplicaId || undefined);
+  }, [state.topic, state.selectedPersonas, storeRoundMemories, generateClip, selectedReplicaId]);
 
   const allResponsesReady = currentRound && currentRound.messages.length === state.selectedPersonas.length && !state.isGenerating;
   const showFollowUp = allResponsesReady && state.currentRoundNumber < MAX_ROUNDS && state.phase === "debating";
@@ -157,7 +159,7 @@ const Index = () => {
         return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds, ratings, phase: "final-ratings" };
       });
 
-      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
+      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse, selectedReplicaId || undefined);
     } else {
       const messages = await generateNextRound(
         state.topic, nextRoundNum, state.selectedPersonas, previousRound, userResponse,
@@ -185,9 +187,9 @@ const Index = () => {
         return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds };
       });
 
-      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
+      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse, selectedReplicaId || undefined);
     }
-  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip]);
+  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, selectedReplicaId]);
 
   const handleJudge = useCallback(async () => {
     setState((prev) => ({ ...prev, phase: "judge", isGeneratingJudge: true }));
@@ -202,7 +204,7 @@ const Index = () => {
       generateClip(MAX_ROUNDS + 1, state.selectedPersonas, {
         roundNumber: MAX_ROUNDS + 1,
         messages: [{ personaId: "judge", text: script }],
-      });
+      }, undefined, selectedReplicaId || undefined);
     } catch (err) {
       console.error("[Judge] Error:", err);
       setState((prev) => ({
@@ -211,7 +213,7 @@ const Index = () => {
         judgeVerdict: { lean: "more data", reasons: ["Judge encountered an error.", "Please try again."] },
       }));
     }
-  }, [state.topic, state.rounds, state.selectedPersonas, state.ratings, generateClip]);
+  }, [state.topic, state.rounds, state.selectedPersonas, state.ratings, generateClip, selectedReplicaId]);
 
   const handleReset = useCallback(() => setState(initialState), []);
 
@@ -279,7 +281,8 @@ const Index = () => {
                     </button>
                   );
                 })}
-              </div>
+            </div>
+            <ReplicaSelector value={selectedReplicaId} onChange={setSelectedReplicaId} />
             </div>
             <Button onClick={handleStartDebate} disabled={!canStart || state.isGenerating} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
               {state.isGenerating ? (
