@@ -548,7 +548,7 @@ const Index = () => {
 
                 {clips[state.currentRoundNumber] && (
                   <HostVideoPlayer
-                    clipUrl={clips[state.currentRoundNumber].clipUrl}
+                    clipUrl={clips[state.currentRoundNumber].conversationUrl}
                     script={clips[state.currentRoundNumber].script}
                     isLoading={clips[state.currentRoundNumber].isLoading}
                     roundNumber={state.currentRoundNumber}
@@ -593,7 +593,7 @@ const Index = () => {
                 />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer
-                    clipUrl={clips[MAX_ROUNDS + 1].clipUrl}
+                    clipUrl={clips[MAX_ROUNDS + 1].conversationUrl}
                     script={clips[MAX_ROUNDS + 1].script}
                     isLoading={clips[MAX_ROUNDS + 1].isLoading}
                     roundNumber={MAX_ROUNDS + 1}

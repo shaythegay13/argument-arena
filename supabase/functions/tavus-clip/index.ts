@@ -21,11 +21,11 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const videoId = url.searchParams.get("video_id");
 
-    // GET with video_id param → poll status
-    if (req.method === 'GET' && videoId) {
-      const res = await fetch(`${TAVUS_BASE}/videos/${videoId}`, {
+    // GET with conversation_id → get conversation status
+    const conversationId = url.searchParams.get("conversation_id");
+    if (req.method === 'GET' && conversationId) {
+      const res = await fetch(`${TAVUS_BASE}/conversations/${conversationId}`, {
         headers: { 'x-api-key': TAVUS_API_KEY },
       });
       const data = await res.json();
@@ -36,19 +36,45 @@ serve(async (req) => {
         });
       }
       return new Response(JSON.stringify({
+        conversation_id: data.conversation_id,
         status: data.status,
-        hosted_url: data.hosted_url || null,
-        stream_url: data.stream_url || null,
-        download_url: data.download_url || null,
+        conversation_url: data.conversation_url || null,
       }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // POST → create video
+    // POST → create conversation
     if (req.method === 'POST') {
-      const { script } = await req.json();
+      const { script, action, persona_id } = await req.json();
 
+      // Action: create persona
+      if (action === 'create-persona') {
+        const res = await fetch(`${TAVUS_BASE}/personas`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': TAVUS_API_KEY,
+          },
+          body: JSON.stringify({
+            persona_name: `debate-host-${Date.now()}`,
+            system_prompt: `You are the host of a startup debate panel called "Startup Jury". You deliver concise round recaps summarizing what the expert panelists said. Be energetic, professional, and brief. Speak directly to the founder/viewer. Here is the recap you should deliver:\n\n${script}`,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          console.error(`[Tavus] Create persona error [${res.status}]:`, JSON.stringify(data));
+          return new Response(JSON.stringify({ error: 'Tavus persona creation failed', details: data }), {
+            status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        console.log(`[Tavus] Persona created: ${data.persona_id}`);
+        return new Response(JSON.stringify({ persona_id: data.persona_id }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Default action: create conversation
       const replica_id = Deno.env.get('TAVUS_REPLICA_ID');
       if (!replica_id) {
         return new Response(JSON.stringify({ error: 'TAVUS_REPLICA_ID is not configured' }), {
@@ -56,33 +82,46 @@ serve(async (req) => {
         });
       }
 
-      const requestBody = {
-        script,
+      
+      // Build conversation request
+      const conversationBody: Record<string, unknown> = {
         replica_id,
-        video_name: `debate-recap-${Date.now()}`,
+        conversation_name: `debate-recap-${Date.now()}`,
+        conversational_context: script,
+        properties: {
+          max_call_duration: 120,
+        },
       };
-      console.log(`[Tavus] Creating video with replica_id=${replica_id}, script length=${script.length}`);
-      console.log(`[Tavus] API key starts with: ${TAVUS_API_KEY.substring(0, 8)}...`);
 
-      const res = await fetch(`${TAVUS_BASE}/videos`, {
+      // Add persona_id if provided
+      if (persona_id) {
+        conversationBody.persona_id = persona_id;
+      }
+
+      console.log(`[Tavus] Creating conversation with replica_id=${replica_id}`);
+
+      const res = await fetch(`${TAVUS_BASE}/conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': TAVUS_API_KEY,
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify(conversationBody),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        console.error(`[Tavus] Create error [${res.status}]:`, JSON.stringify(data));
-        return new Response(JSON.stringify({ error: 'Tavus create failed', details: data }), {
+        console.error(`[Tavus] Create conversation error [${res.status}]:`, JSON.stringify(data));
+        return new Response(JSON.stringify({ error: 'Tavus conversation creation failed', details: data }), {
           status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
+      console.log(`[Tavus] Conversation created: ${data.conversation_id}, url: ${data.conversation_url}`);
+
       return new Response(JSON.stringify({
-        video_id: data.video_id,
+        conversation_id: data.conversation_id,
+        conversation_url: data.conversation_url,
         status: data.status,
       }), {
         status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
