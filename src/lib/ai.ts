@@ -201,6 +201,71 @@ export async function generateFinalRatings(
   return { messages, ratings };
 }
 
+export async function generateJudgeVerdict(
+  topic: string,
+  rounds: Round[],
+  personas: Persona[],
+  ratings: PersonaRating[]
+): Promise<{ lean: "yes" | "no" | "more data"; reasons: [string, string]; script: string }> {
+  const systemPrompt = `You are a neutral, impartial judge summarizing a structured startup debate. You have no stake in the outcome. Your job is to weigh the arguments from all panelists and deliver a clear verdict.
+
+You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
+{"lean":"yes","reasons":["First reason","Second reason"]}
+
+"lean" must be exactly one of: "yes", "no", "more data"
+"reasons" must be an array of exactly 2 concise sentences.`;
+
+  const roundsText = rounds
+    .map((round) => {
+      const msgs = round.messages
+        .map((m) => {
+          const p = personas.find((p) => p.id === m.personaId);
+          return `  ${p?.subtitle ?? "Expert"}: "${m.text}"`;
+        })
+        .join("\n");
+      return `Round ${round.roundNumber}:\n${msgs}`;
+    })
+    .join("\n\n");
+
+  const ratingsText = ratings
+    .map((r) => {
+      const p = personas.find((p) => p.id === r.personaId);
+      return `${p?.subtitle ?? "Expert"}: ${r.rating}/10 — ${r.reason}`;
+    })
+    .join("\n");
+
+  const userPrompt = `Topic/Idea: "${topic}"
+
+Full debate transcript:
+${roundsText}
+
+Final ratings:
+${ratingsText}
+
+Deliver your verdict as JSON.`;
+
+  const raw = await callCompletion(systemPrompt, userPrompt);
+
+  // Parse JSON from response
+  let parsed: { lean: string; reasons: string[] };
+  try {
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    parsed = JSON.parse(jsonMatch?.[0] ?? raw);
+  } catch {
+    parsed = { lean: "more data", reasons: ["Could not parse judge response.", raw.slice(0, 100)] };
+  }
+
+  const lean = (["yes", "no", "more data"].includes(parsed.lean) ? parsed.lean : "more data") as "yes" | "no" | "more data";
+  const reasons: [string, string] = [
+    parsed.reasons?.[0] ?? "No reason provided.",
+    parsed.reasons?.[1] ?? "No reason provided.",
+  ];
+
+  const script = `The judge has deliberated. The verdict is: lean ${lean}. Reason one: ${reasons[0]} Reason two: ${reasons[1]}`;
+
+  return { lean, reasons, script };
+}
+
 export async function generateSummary(
   topic: string,
   rounds: Round[],

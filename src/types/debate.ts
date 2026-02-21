@@ -22,6 +22,11 @@ export interface PersonaRating {
   reason: string;
 }
 
+export interface JudgeVerdict {
+  lean: "yes" | "no" | "more data";
+  reasons: [string, string];
+}
+
 export interface DebateState {
   topic: string;
   selectedPersonas: Persona[];
@@ -33,5 +38,7 @@ export interface DebateState {
   userResponse: string;
   ratings: PersonaRating[];
   isGeneratingRatings: boolean;
-  phase: "setup" | "debating" | "final-ratings";
+  phase: "setup" | "debating" | "final-ratings" | "judge";
+  judgeVerdict: JudgeVerdict | null;
+  isGeneratingJudge: boolean;
 }
