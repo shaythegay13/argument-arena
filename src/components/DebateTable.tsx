@@ -104,7 +104,7 @@ export default function DebateTable({
               {rating && (
                 <div className={`flex items-center gap-1 shrink-0 ${colors.text}`}>
                   <Star className="w-3.5 h-3.5" />
-                  <span className="text-sm font-bold">{rating.rating}</span>
+                  <span className="text-sm font-bold">{rating.score}</span>
                 </div>
               )}
             </button>
@@ -153,8 +153,8 @@ export default function DebateTable({
                         transition={{ delay: 0.15 }}
                       >
                         <Star className={`w-4 h-4 ${colors.text}`} />
-                        <span className={`text-lg font-bold ${colors.text}`}>{rating.rating}/10</span>
-                        <span className="text-xs text-muted-foreground ml-1">{rating.reason}</span>
+                        <span className={`text-lg font-bold ${colors.text}`}>{rating.score}/10</span>
+                        <span className="text-xs text-muted-foreground ml-1">{rating.verdict}</span>
                       </motion.div>
                     )}
                   </div>

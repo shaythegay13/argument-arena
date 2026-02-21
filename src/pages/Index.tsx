@@ -1,13 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Persona, DebateState, Round } from "@/types/debate";
-import { generateRound1, generateNextRound, generateFinalRatings, generateJudgeVerdict } from "@/lib/ai";
+import {
+  generateRound1,
+  generateNextRound,
+  generateFinalRatings,
+  generateJudgeVerdict,
+  generateAutoResponse,
+} from "@/lib/ai";
 import { PERSONAS } from "@/data/personas";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useTavusClips } from "@/hooks/useTavusClips";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Play, RotateCcw, Loader2 } from "lucide-react";
+import { Play, RotateCcw, Loader2, Zap, Users } from "lucide-react";
 import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
 import UserResponsePanel from "@/components/UserResponsePanel";
@@ -47,7 +53,12 @@ const initialState: DebateState = {
 
 const Index = () => {
   const [state, setState] = useState<DebateState>(initialState);
-  const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } = useRedisMemory();
+  const [useAllPersonas, setUseAllPersonas] = useState(true);
+  const [autoDebate, setAutoDebate] = useState(false);
+  const [isAutoResponding, setIsAutoResponding] = useState(false);
+
+  const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
+    useRedisMemory();
   const { clips, isGenerating: isGeneratingClip, generateClip } = useTavusClips();
 
   useDebateAgentState(state);
@@ -63,26 +74,38 @@ const Index = () => {
         ...prev,
         selectedPersonas: exists
           ? prev.selectedPersonas.filter((p) => p.id !== persona.id)
-          : prev.selectedPersonas.length < 4
+          : prev.selectedPersonas.length < 8
           ? [...prev.selectedPersonas, persona]
           : prev.selectedPersonas,
       };
     });
   }, []);
 
-  const handleStartDebate = useCallback(async () => {
+  // When useAllPersonas toggles, sync selectedPersonas
+  useEffect(() => {
+    if (state.phase !== "setup") return;
     setState((prev) => ({
       ...prev,
+      selectedPersonas: useAllPersonas ? PERSONAS : [],
+    }));
+  }, [useAllPersonas, state.phase]);
+
+  const handleStartDebate = useCallback(async () => {
+    const personas = useAllPersonas ? PERSONAS : state.selectedPersonas;
+    if (!personas.length) return;
+
+    setState((prev) => ({
+      ...prev,
+      selectedPersonas: personas,
       phase: "debating",
       isGenerating: true,
-      generatingPersonaIds: prev.selectedPersonas.map((p) => p.id),
+      generatingPersonaIds: personas.map((p) => p.id),
       rounds: [],
       currentRoundNumber: 1,
       ratings: [],
       judgeVerdict: null,
     }));
 
-    const personas = state.selectedPersonas;
     const messages = await generateRound1(
       state.topic,
       personas,
@@ -107,98 +130,167 @@ const Index = () => {
     }));
 
     generateClip(1, personas, { roundNumber: 1, messages });
-  }, [state.topic, state.selectedPersonas, storeRoundMemories, generateClip]);
+  }, [state.topic, state.selectedPersonas, useAllPersonas, storeRoundMemories, generateClip]);
 
-  const allResponsesReady = currentRound && currentRound.messages.length === state.selectedPersonas.length && !state.isGenerating;
-  const showFollowUp = allResponsesReady && state.currentRoundNumber < MAX_ROUNDS && state.phase === "debating";
+  const allResponsesReady =
+    currentRound &&
+    currentRound.messages.length === state.selectedPersonas.length &&
+    !state.isGenerating;
+  const showFollowUp =
+    allResponsesReady &&
+    state.currentRoundNumber < MAX_ROUNDS &&
+    state.phase === "debating";
 
-  const handleUserSubmit = useCallback(async () => {
-    const nextRoundNum = state.rounds.length + 1;
-    const isFinalRound = nextRoundNum >= MAX_ROUNDS;
-    const previousRound = state.rounds[state.rounds.length - 1];
-    const userResponse = state.userResponse;
+  const handleUserSubmit = useCallback(
+    async (overrideResponse?: string) => {
+      const nextRoundNum = state.rounds.length + 1;
+      const isFinalRound = nextRoundNum >= MAX_ROUNDS;
+      const previousRound = state.rounds[state.rounds.length - 1];
+      const userResponse = overrideResponse ?? state.userResponse;
 
-    emitAgUIEvent({ type: "user_response", content: userResponse, round: state.currentRoundNumber });
+      emitAgUIEvent({ type: "user_response", content: userResponse, round: state.currentRoundNumber });
 
-    setState((prev) => ({
-      ...prev,
-      isGenerating: true,
-      generatingPersonaIds: prev.selectedPersonas.map((p) => p.id),
-      currentRoundNumber: nextRoundNum,
-      expandedPersonaId: null,
-      phase: "debating",
-      userResponse: "",
-    }));
+      setState((prev) => ({
+        ...prev,
+        isGenerating: true,
+        generatingPersonaIds: prev.selectedPersonas.map((p) => p.id),
+        currentRoundNumber: nextRoundNum,
+        expandedPersonaId: null,
+        phase: "debating",
+        userResponse: "",
+      }));
 
-    if (isFinalRound) {
-      const { messages, ratings } = await generateFinalRatings(
-        state.topic, state.selectedPersonas, state.rounds, userResponse,
-        (personaId, text) => {
-          setState((prev) => {
-            const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
-            const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
-            const updatedRounds = existingRound
-              ? prev.rounds.map((r) => r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r)
-              : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
-            return { ...prev, generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId), rounds: updatedRounds };
-          });
-        },
-        getRecentMemories
-      );
+      if (isFinalRound) {
+        const { messages, ratings } = await generateFinalRatings(
+          state.topic,
+          state.selectedPersonas,
+          state.rounds,
+          userResponse,
+          (personaId, text) => {
+            setState((prev) => {
+              const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
+              const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
+              const updatedRounds = existingRound
+                ? prev.rounds.map((r) =>
+                    r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r
+                  )
+                : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
+              return {
+                ...prev,
+                generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
+                rounds: updatedRounds,
+              };
+            });
+          },
+          getRecentMemories
+        );
 
-      const responseMap: Record<string, string> = {};
-      messages.forEach((m) => { responseMap[m.personaId] = m.text; });
-      await storeRoundMemories(state.selectedPersonas.map((p) => p.id), state.topic, nextRoundNum, userResponse, responseMap);
+        const responseMap: Record<string, string> = {};
+        messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+        await storeRoundMemories(
+          state.selectedPersonas.map((p) => p.id),
+          state.topic,
+          nextRoundNum,
+          userResponse,
+          responseMap
+        );
 
-      setState((prev) => {
-        const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
-          ? prev.rounds.map((r) => r.roundNumber === nextRoundNum ? { ...r, messages } : r)
-          : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
-        return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds, ratings, phase: "final-ratings" };
+        setState((prev) => {
+          const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
+            ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
+            : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
+          return {
+            ...prev,
+            isGenerating: false,
+            generatingPersonaIds: [],
+            rounds: updatedRounds,
+            ratings,
+            phase: "final-ratings",
+          };
+        });
+
+        generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
+      } else {
+        const messages = await generateNextRound(
+          state.topic,
+          nextRoundNum,
+          state.selectedPersonas,
+          previousRound,
+          userResponse,
+          (personaId, text) => {
+            setState((prev) => {
+              const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
+              const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
+              const updatedRounds = existingRound
+                ? prev.rounds.map((r) =>
+                    r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r
+                  )
+                : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
+              return {
+                ...prev,
+                generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
+                rounds: updatedRounds,
+              };
+            });
+          },
+          getRecentMemories
+        );
+
+        const responseMap: Record<string, string> = {};
+        messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+        await storeRoundMemories(
+          state.selectedPersonas.map((p) => p.id),
+          state.topic,
+          nextRoundNum,
+          userResponse,
+          responseMap
+        );
+
+        setState((prev) => {
+          const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
+            ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
+            : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
+          return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds };
+        });
+
+        generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
+      }
+    },
+    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip]
+  );
+
+  // Auto-debate: when responses are ready and it's not the last round, auto-generate and submit
+  useEffect(() => {
+    if (!autoDebate || !showFollowUp || isAutoResponding) return;
+
+    let cancelled = false;
+    setIsAutoResponding(true);
+
+    generateAutoResponse(state.topic, currentRound!, state.selectedPersonas)
+      .then((autoResponse) => {
+        if (cancelled) return;
+        handleUserSubmit(autoResponse);
+      })
+      .catch(console.error)
+      .finally(() => {
+        if (!cancelled) setIsAutoResponding(false);
       });
 
-      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
-    } else {
-      const messages = await generateNextRound(
-        state.topic, nextRoundNum, state.selectedPersonas, previousRound, userResponse,
-        (personaId, text) => {
-          setState((prev) => {
-            const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
-            const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
-            const updatedRounds = existingRound
-              ? prev.rounds.map((r) => r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r)
-              : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
-            return { ...prev, generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId), rounds: updatedRounds };
-          });
-        },
-        getRecentMemories
-      );
-
-      const responseMap: Record<string, string> = {};
-      messages.forEach((m) => { responseMap[m.personaId] = m.text; });
-      await storeRoundMemories(state.selectedPersonas.map((p) => p.id), state.topic, nextRoundNum, userResponse, responseMap);
-
-      setState((prev) => {
-        const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
-          ? prev.rounds.map((r) => r.roundNumber === nextRoundNum ? { ...r, messages } : r)
-          : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
-        return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds };
-      });
-
-      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
-    }
-  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip]);
+    return () => { cancelled = true; };
+  }, [autoDebate, showFollowUp, isAutoResponding, state.topic, currentRound, state.selectedPersonas, handleUserSubmit]);
 
   const handleJudge = useCallback(async () => {
     setState((prev) => ({ ...prev, phase: "judge", isGeneratingJudge: true }));
 
     try {
-      const { lean, reasons, script } = await generateJudgeVerdict(
-        state.topic, state.rounds, state.selectedPersonas, state.ratings
+      const { judgeVerdict, script } = await generateJudgeVerdict(
+        state.topic,
+        state.rounds,
+        state.selectedPersonas,
+        state.ratings
       );
-      setState((prev) => ({ ...prev, judgeVerdict: { lean, reasons }, isGeneratingJudge: false }));
+      setState((prev) => ({ ...prev, judgeVerdict, isGeneratingJudge: false }));
 
-      // Generate Tavus recap for judge verdict
       generateClip(MAX_ROUNDS + 1, state.selectedPersonas, {
         roundNumber: MAX_ROUNDS + 1,
         messages: [{ personaId: "judge", text: script }],
@@ -208,25 +300,65 @@ const Index = () => {
       setState((prev) => ({
         ...prev,
         isGeneratingJudge: false,
-        judgeVerdict: { lean: "more data", reasons: ["Judge encountered an error.", "Please try again."] },
+        judgeVerdict: {
+          verdict: "MAYBE",
+          overallScore: 5,
+          why: "Judge encountered an error. Please try again.",
+          strengths: ["Unable to determine", "Unable to determine", "Unable to determine"],
+          risks: ["Unable to determine", "Please try again"],
+          nextStep: "Retry the judge verdict.",
+        },
       }));
     }
   }, [state.topic, state.rounds, state.selectedPersonas, state.ratings, generateClip]);
 
-  const handleReset = useCallback(() => setState(initialState), []);
+  const handleReset = useCallback(() => {
+    setState(initialState);
+    setAutoDebate(false);
+    setIsAutoResponding(false);
+  }, []);
+
+  const handleRefine = useCallback(() => {
+    setState((prev) => ({ ...initialState, topic: prev.topic, phase: "setup" }));
+    setAutoDebate(false);
+    setIsAutoResponding(false);
+  }, []);
 
   const isSetup = state.phase === "setup";
-  const canStart = state.topic.trim().length > 0 && state.selectedPersonas.length >= 2;
+  const effectivePersonas = useAllPersonas ? PERSONAS : state.selectedPersonas;
+  const canStart = state.topic.trim().length > 0 && effectivePersonas.length >= 2;
+  const isLiveDebating = state.phase === "debating" && state.isGenerating;
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center gap-3">
           <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30" />
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">Argument Theater</h1>
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
           <span className="text-xs font-mono text-muted-foreground ml-1">/ debate stage</span>
+
+          {/* Live debate indicator */}
+          {isLiveDebating && (
+            <span className="flex items-center gap-1.5 ml-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-xs font-mono text-red-400 uppercase tracking-widest">Live</span>
+            </span>
+          )}
+
+          {/* Auto-debate badge */}
+          {autoDebate && !isSetup && (
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
+              Auto-Debate
+            </span>
+          )}
+
           {!isSetup && (
-            <Button onClick={handleReset} variant="ghost" size="sm" className="ml-auto text-muted-foreground hover:text-foreground">
+            <Button
+              onClick={handleReset}
+              variant="ghost"
+              size="sm"
+              className="ml-auto text-muted-foreground hover:text-foreground"
+            >
               <RotateCcw className="w-4 h-4 mr-1.5" />
               New Debate
             </Button>
@@ -234,55 +366,133 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Round progress bar */}
+      {!isSetup && (
+        <div className="w-full bg-muted h-1">
+          <div
+            className="bg-primary h-1 transition-all duration-700"
+            style={{ width: `${(state.rounds.length / MAX_ROUNDS) * 100}%` }}
+          />
+        </div>
+      )}
+
       <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {isSetup && (
           <section className="rounded-lg border border-border bg-card p-6 space-y-5">
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                Debate Topic / Startup Idea
+                Startup Idea
               </label>
               <Textarea
-                placeholder="e.g. Should I build a B2B tool for automating sales outreach with AI?"
+                placeholder="e.g. AI personal stylist app using phone camera — describes your outfit and suggests improvements"
                 value={state.topic}
                 onChange={(e) => setState((prev) => ({ ...prev, topic: e.target.value }))}
                 className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground min-h-[80px] resize-none focus:ring-1 focus:ring-primary"
               />
               <VoiceInputButton
-                onTranscript={(text) => setState((prev) => ({ ...prev, topic: prev.topic + (prev.topic ? " " : "") + text }))}
+                onTranscript={(text) =>
+                  setState((prev) => ({ ...prev, topic: prev.topic + (prev.topic ? " " : "") + text }))
+                }
                 className="mt-2"
               />
             </div>
+
+            {/* Panelist mode toggle */}
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                Select 2–4 Panelists
+                Panelists
               </label>
-              <div className="flex flex-wrap gap-2">
-                {PERSONAS.map((persona) => {
-                  const selected = state.selectedPersonas.some((p) => p.id === persona.id);
-                  const colors = personaColorClasses[persona.colorKey];
-                  const disabled = !selected && state.selectedPersonas.length >= 4;
-                  return (
-                    <button
-                      key={persona.id}
-                      onClick={() => togglePersona(persona)}
-                      disabled={disabled}
-                      className={`
-                        px-3 py-1.5 rounded-md text-sm font-medium border transition-all
-                        ${selected
-                          ? `${colors.bg} ${colors.text} ${colors.border} border`
-                          : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
-                        }
-                        ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-                      `}
-                    >
-                      {persona.subtitle}
-                    </button>
-                  );
-                })}
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => setUseAllPersonas(true)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                    useAllPersonas
+                      ? "bg-primary/20 text-primary border-primary/40"
+                      : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  All 8 Panelists
+                </button>
+                <button
+                  onClick={() => setUseAllPersonas(false)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                    !useAllPersonas
+                      ? "bg-primary/20 text-primary border-primary/40"
+                      : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                  }`}
+                >
+                  Custom (2–8)
+                </button>
+              </div>
+
+              {!useAllPersonas && (
+                <div className="flex flex-wrap gap-2">
+                  {PERSONAS.map((persona) => {
+                    const selected = state.selectedPersonas.some((p) => p.id === persona.id);
+                    const colors = personaColorClasses[persona.colorKey];
+                    return (
+                      <button
+                        key={persona.id}
+                        onClick={() => togglePersona(persona)}
+                        className={`
+                          px-3 py-1.5 rounded-md text-sm font-medium border transition-all
+                          ${
+                            selected
+                              ? `${colors.bg} ${colors.text} ${colors.border} border`
+                              : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                          }
+                          cursor-pointer
+                        `}
+                      >
+                        {persona.subtitle}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {useAllPersonas && (
+                <div className="flex flex-wrap gap-1.5">
+                  {PERSONAS.map((persona) => {
+                    const colors = personaColorClasses[persona.colorKey];
+                    return (
+                      <span
+                        key={persona.id}
+                        className={`px-2 py-1 rounded text-xs font-medium ${colors.text} bg-muted/30`}
+                      >
+                        {persona.name.split(" ")[0]}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-            
+
+            {/* Options row */}
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <div
+                  onClick={() => setAutoDebate((v) => !v)}
+                  className={`w-9 h-5 rounded-full transition-colors relative ${
+                    autoDebate ? "bg-primary" : "bg-muted"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-background transition-transform ${
+                      autoDebate ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground font-mono">Auto-debate mode</span>
+              </label>
             </div>
-            <Button onClick={handleStartDebate} disabled={!canStart || state.isGenerating} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+
+            <Button
+              onClick={handleStartDebate}
+              disabled={!canStart || state.isGenerating}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+            >
               {state.isGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -290,8 +500,8 @@ const Index = () => {
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 mr-2" />
-                  Start Debate
+                  <Zap className="w-4 h-4 mr-2" />
+                  Start Jury
                 </>
               )}
             </Button>
@@ -301,7 +511,7 @@ const Index = () => {
         {!isSetup && (
           <>
             <div className="text-center">
-              <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Topic</p>
+              <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Idea</p>
               <p className="text-sm text-foreground/80 max-w-lg mx-auto">{state.topic}</p>
             </div>
 
@@ -309,7 +519,14 @@ const Index = () => {
               totalRounds={state.rounds.length}
               currentRound={state.currentRoundNumber}
               maxRounds={MAX_ROUNDS}
-              onSelectRound={(round) => setState((prev) => ({ ...prev, currentRoundNumber: round, expandedPersonaId: null, ...(prev.phase === "judge" ? {} : {}) }))}
+              onSelectRound={(round) =>
+                setState((prev) => ({
+                  ...prev,
+                  currentRoundNumber: round,
+                  expandedPersonaId: null,
+                  ...(prev.phase === "judge" ? {} : {}),
+                }))
+              }
               phase={state.phase}
               onJudgeClick={handleJudge}
             />
@@ -338,15 +555,22 @@ const Index = () => {
                   />
                 )}
 
-                {showFollowUp && (
+                {showFollowUp && !autoDebate && (
                   <UserResponsePanel
                     userResponse={state.userResponse}
                     onUserResponseChange={(val) => setState((prev) => ({ ...prev, userResponse: val }))}
-                    onSubmit={handleUserSubmit}
+                    onSubmit={() => handleUserSubmit()}
                     isGenerating={state.isGenerating}
                     roundNumber={state.currentRoundNumber}
                     maxRounds={MAX_ROUNDS}
                   />
+                )}
+
+                {showFollowUp && autoDebate && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono px-4 py-3 rounded-lg border border-border bg-muted/20">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Auto-generating founder response…
+                  </div>
                 )}
 
                 {state.phase === "final-ratings" && (
@@ -361,7 +585,12 @@ const Index = () => {
 
             {state.phase === "judge" && (
               <>
-                <JudgeVerdictCard verdict={state.judgeVerdict} isGenerating={state.isGeneratingJudge} />
+                <JudgeVerdictCard
+                  verdict={state.judgeVerdict}
+                  isGenerating={state.isGeneratingJudge}
+                  onReset={handleReset}
+                  onRefine={handleRefine}
+                />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer
                     clipUrl={clips[MAX_ROUNDS + 1].clipUrl}

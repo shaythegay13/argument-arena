@@ -45,10 +45,29 @@ function enrichSystemPrompt(persona: Persona, topic: string): string {
   );
 }
 
+/** Fisher-Yates shuffle — returns a new shuffled array */
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getWordLimit(roundNumber: number): number {
+  if (roundNumber === 1) return 100;
+  if (roundNumber === 2) return 75;
+  if (roundNumber === 3) return 50;
+  return 0;
+}
+
 function buildRound1Prompt(topic: string): string {
   return `Topic/Idea: "${topic}"
 
-You are on a debate stage with other startup experts. This is Round 1. Give a concise 2–4 sentence reaction to this idea, in your own voice. Be specific and direct. End with 1-2 pointed questions for the founder.`;
+You are on a debate stage with other startup experts. This is Round 1. Give a concise reaction to this idea, in your own voice. Be specific and direct. End with 1-2 pointed questions for the founder.
+
+Keep your response under 100 words.`;
 }
 
 function buildRoundNPrompt(
@@ -59,6 +78,7 @@ function buildRoundNPrompt(
   userResponse: string,
   personaMemory?: string
 ): string {
+  const wordLimit = getWordLimit(roundNumber);
   const prevMessages = previousRound.messages
     .map((m) => {
       const p = allPersonas.find((p) => p.id === m.personaId);
@@ -77,7 +97,9 @@ ${prevMessages}
 
 The founder responded: "${userResponse}"
 
-This is Round ${roundNumber}. Respond briefly (2–4 sentences) to the idea, the founder's response, and to 1–2 key points made by the others in the last round. Refer to them by role (e.g., "the angel investor", "the skeptic"). Be direct and specific. End with 1-2 new questions for the founder.`;
+This is Round ${roundNumber}. Respond briefly to the idea, the founder's response, and to 1–2 key points made by the others in the last round. Refer to them by role (e.g., "the angel investor", "the skeptic"). Be direct and specific. End with 1-2 new questions for the founder.
+
+Keep your response under ${wordLimit} words.`;
 }
 
 function buildFinalRatingPrompt(
@@ -85,6 +107,7 @@ function buildFinalRatingPrompt(
   allRounds: Round[],
   allPersonas: Persona[],
   userResponse: string,
+  persona: Persona,
   personaMemory?: string
 ): string {
   const memoryBlock = personaMemory
@@ -102,6 +125,18 @@ function buildFinalRatingPrompt(
     })
     .join("\n\n");
 
+  const weightsBlock = persona.scoringWeights
+    .map((w) => `- ${w.label}: ${Math.round(w.weight * 100)}% weight`)
+    .join("\n");
+
+  const metricsFormat = persona.scoringWeights
+    .map((w) => `${w.label}=[0-10]`)
+    .join(", ");
+
+  const inverseNote = persona.inverseScore
+    ? "\n⚠️ INVERSE SCORING: You score the RISK level (10 = extremely risky idea). Your raw score gets inverted by the system (10 - score) for the final idea rating. Score high if this idea is highly risky."
+    : "";
+
   return `Topic/Idea: "${topic}"
 ${memoryBlock}
 
@@ -110,8 +145,15 @@ ${roundsText}
 
 The founder's latest response: "${userResponse}"
 
-This is the FINAL round. Give your final 2-3 sentence verdict on this business idea, then rate it out of 10 (where 1 = terrible idea, 10 = exceptional opportunity). You MUST end your response with exactly this format on a new line:
-RATING: [number]/10 | [one sentence reason]`;
+YOUR SCORING CRITERIA:
+${weightsBlock}${inverseNote}
+
+This is the FINAL round. Give your final 2-3 sentence verdict on this business idea based on your criteria above, then score it.
+
+You MUST end your response with exactly this format on a new line:
+SCORE: [0-10]/10 | [one-sentence verdict]. METRICS: ${metricsFormat}
+
+EXAMPLE: SCORE: 8/10 | Founder-market fit is strong with clear unfair advantage. METRICS: ${persona.scoringWeights.map((w) => `${w.label}=8`).join(", ")}`;
 }
 
 export async function generateRound1(
@@ -121,9 +163,10 @@ export async function generateRound1(
 ): Promise<RoundMessage[]> {
   const userPrompt = buildRound1Prompt(topic);
   const messages: RoundMessage[] = [];
+  const shuffled = shuffleArray(personas);
 
   await Promise.all(
-    personas.map(async (persona) => {
+    shuffled.map(async (persona) => {
       const system = enrichSystemPrompt(persona, topic);
       const text = await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
@@ -145,9 +188,10 @@ export async function generateNextRound(
   getMemory?: (personaId: string) => string
 ): Promise<RoundMessage[]> {
   const messages: RoundMessage[] = [];
+  const shuffled = shuffleArray(personas);
 
   await Promise.all(
-    personas.map(async (persona) => {
+    shuffled.map(async (persona) => {
       const system = enrichSystemPrompt(persona, topic);
       const memory = getMemory?.(persona.id);
       const userPrompt = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
@@ -171,27 +215,46 @@ export async function generateFinalRatings(
 ): Promise<{ messages: RoundMessage[]; ratings: PersonaRating[] }> {
   const messages: RoundMessage[] = [];
   const ratings: PersonaRating[] = [];
-  const finalRoundNum = allRounds.length + 1;
 
   await Promise.all(
     personas.map(async (persona) => {
-      const system = enrichSystemPrompt(persona, topic) + "\n\nIMPORTANT: You MUST end your response with exactly: RATING: [number]/10 | [reason]";
+      const system =
+        enrichSystemPrompt(persona, topic) +
+        "\n\nIMPORTANT: You MUST end your response with exactly: SCORE: [0-10]/10 | [one-sentence verdict]. METRICS: " +
+        persona.scoringWeights.map((w) => `${w.label}=[0-10]`).join(", ");
       const memory = getMemory?.(persona.id);
-      const userPrompt = buildFinalRatingPrompt(topic, allRounds, personas, userResponse, memory);
+      const userPrompt = buildFinalRatingPrompt(topic, allRounds, personas, userResponse, persona, memory);
       const text = await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
 
-      // Parse rating from response
-      const ratingMatch = text.match(/RATING:\s*(\d+)\/10\s*\|\s*(.+)/i);
-      if (ratingMatch) {
+      // Parse new SCORE line: "SCORE: 8/10 | verdict text. METRICS: Label1=8, Label2=7"
+      const scoreMatch = text.match(/SCORE:\s*(\d+)\/10\s*\|\s*(.+?)\.\s*METRICS:\s*(.+)/i);
+      if (scoreMatch) {
+        let rawScore = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));
+        // Apply inverse scoring for skeptic
+        if (persona.inverseScore) rawScore = 10 - rawScore;
+
+        const verdictText = scoreMatch[2].trim();
+        const metricsStr = scoreMatch[3];
+        const metrics: Record<string, number> = {};
+        metricsStr.split(",").forEach((m) => {
+          const [label, val] = m.split("=").map((s) => s.trim());
+          if (label && val) metrics[label] = parseInt(val) || 0;
+        });
+
+        ratings.push({ personaId: persona.id, score: rawScore, verdict: verdictText, metrics });
+      } else {
+        // Fallback: try old RATING format for resilience
+        const oldMatch = text.match(/RATING:\s*(\d+)\/10\s*\|\s*(.+)/i);
+        let fallbackScore = oldMatch ? Math.min(10, Math.max(0, parseInt(oldMatch[1]))) : 5;
+        if (persona.inverseScore) fallbackScore = 10 - fallbackScore;
         ratings.push({
           personaId: persona.id,
-          rating: Math.min(10, Math.max(1, parseInt(ratingMatch[1]))),
-          reason: ratingMatch[2].trim(),
+          score: fallbackScore,
+          verdict: oldMatch ? oldMatch[2].trim() : "Rating not provided",
+          metrics: {},
         });
-      } else {
-        ratings.push({ personaId: persona.id, rating: 5, reason: "Rating not provided" });
       }
 
       onPersonaComplete(persona.id, text);
@@ -206,14 +269,27 @@ export async function generateJudgeVerdict(
   rounds: Round[],
   personas: Persona[],
   ratings: PersonaRating[]
-): Promise<{ lean: "yes" | "no" | "more data"; reasons: [string, string]; script: string }> {
-  const systemPrompt = `You are a neutral, impartial judge summarizing a structured startup debate. You have no stake in the outcome. Your job is to weigh the arguments from all panelists and deliver a clear verdict.
+): Promise<{ script: string; judgeVerdict: import("@/types/debate").JudgeVerdict }> {
+  const overallScore =
+    ratings.length > 0
+      ? Math.round((ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) * 10) / 10
+      : 5;
+
+  const systemPrompt = `You are the Consensus Judge for a Startup Jury panel. You have reviewed scores from ${ratings.length} expert personas.
+
+The pre-calculated overall average score is ${overallScore}/10.
+
+VERDICT THRESHOLDS:
+- 8.0 or above → "GO"
+- 6.0 to 7.9 → "MAYBE"
+- Below 6.0 → "NO-GO"
 
 You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
-{"lean":"yes","reasons":["First reason","Second reason"]}
+{"verdict":"GO","overallScore":${overallScore},"why":"One crisp sentence explaining the verdict","strengths":["Pattern 1","Pattern 2","Pattern 3"],"risks":["Risk 1","Risk 2"],"nextStep":"One concrete action the founder should take now"}
 
-"lean" must be exactly one of: "yes", "no", "more data"
-"reasons" must be an array of exactly 2 concise sentences.`;
+"verdict" must be exactly one of: "GO", "MAYBE", "NO-GO"
+"strengths" must be an array of exactly 3 strings
+"risks" must be an array of exactly 2 strings`;
 
   const roundsText = rounds
     .map((round) => {
@@ -230,7 +306,10 @@ You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
   const ratingsText = ratings
     .map((r) => {
       const p = personas.find((p) => p.id === r.personaId);
-      return `${p?.subtitle ?? "Expert"}: ${r.rating}/10 — ${r.reason}`;
+      const metricsStr = Object.entries(r.metrics)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(", ");
+      return `${p?.name ?? "Expert"} (${p?.subtitle}): ${r.score}/10 — ${r.verdict}${metricsStr ? ` | ${metricsStr}` : ""}`;
     })
     .join("\n");
 
@@ -239,31 +318,73 @@ You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
 Full debate transcript:
 ${roundsText}
 
-Final ratings:
+Final persona scores:
 ${ratingsText}
+
+Overall average: ${overallScore}/10
 
 Deliver your verdict as JSON.`;
 
   const raw = await callCompletion(systemPrompt, userPrompt);
 
   // Parse JSON from response
-  let parsed: { lean: string; reasons: string[] };
+  let parsed: {
+    verdict?: string;
+    overallScore?: number;
+    why?: string;
+    strengths?: string[];
+    risks?: string[];
+    nextStep?: string;
+  };
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     parsed = JSON.parse(jsonMatch?.[0] ?? raw);
   } catch {
-    parsed = { lean: "more data", reasons: ["Could not parse judge response.", raw.slice(0, 100)] };
+    parsed = {};
   }
 
-  const lean = (["yes", "no", "more data"].includes(parsed.lean) ? parsed.lean : "more data") as "yes" | "no" | "more data";
-  const reasons: [string, string] = [
-    parsed.reasons?.[0] ?? "No reason provided.",
-    parsed.reasons?.[1] ?? "No reason provided.",
-  ];
+  const verdictValue = (["GO", "MAYBE", "NO-GO"].includes(parsed.verdict ?? "")
+    ? parsed.verdict
+    : overallScore >= 8 ? "GO" : overallScore >= 6 ? "MAYBE" : "NO-GO") as "GO" | "MAYBE" | "NO-GO";
 
-  const script = `The judge has deliberated. The verdict is: lean ${lean}. Reason one: ${reasons[0]} Reason two: ${reasons[1]}`;
+  const strengths = parsed.strengths ?? [];
+  const risks = parsed.risks ?? [];
 
-  return { lean, reasons, script };
+  const judgeVerdict: import("@/types/debate").JudgeVerdict = {
+    verdict: verdictValue,
+    overallScore: parsed.overallScore ?? overallScore,
+    why: parsed.why ?? "Verdict based on panel consensus.",
+    strengths: [strengths[0] ?? "Strong concept", strengths[1] ?? "Clear market need", strengths[2] ?? "Motivated founder"],
+    risks: [risks[0] ?? "Execution risk", risks[1] ?? "Market timing uncertainty"],
+    nextStep: parsed.nextStep ?? "Validate with 10 paying customers before building further.",
+  };
+
+  const script = `The Startup Jury has deliberated. Overall score: ${judgeVerdict.overallScore}/10. Verdict: ${judgeVerdict.verdict}. ${judgeVerdict.why} Key strength: ${judgeVerdict.strengths[0]}. Key risk: ${judgeVerdict.risks[0]}. Next step: ${judgeVerdict.nextStep}`;
+
+  return { script, judgeVerdict };
+}
+
+export async function generateAutoResponse(
+  topic: string,
+  currentRound: Round,
+  personas: Persona[]
+): Promise<string> {
+  const expertsBlock = currentRound.messages
+    .map((m) => {
+      const p = personas.find((p) => p.id === m.personaId);
+      return `${p?.subtitle ?? "Expert"}: "${m.text}"`;
+    })
+    .join("\n");
+
+  return callCompletion(
+    "You are a startup founder defending your idea. Be concise and direct. Address the sharpest criticisms raised. Speak in first person.",
+    `Topic: "${topic}"
+
+Experts just said:
+${expertsBlock}
+
+Respond as the founder in 2-3 sentences, addressing the most critical challenges raised.`
+  );
 }
 
 export async function generateSummary(
