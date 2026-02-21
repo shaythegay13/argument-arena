@@ -85,8 +85,7 @@ export function useTavusClips() {
       roundNumber: number,
       personas: Persona[],
       round: Round,
-      userResponse?: string,
-      replicaId?: string
+      userResponse?: string
     ) => {
       const script = buildRoundScript(roundNumber, personas, round, userResponse);
 
@@ -126,7 +125,7 @@ export function useTavusClips() {
             "Content-Type": "application/json",
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({ script, replica_id: replicaId }),
+          body: JSON.stringify({ script }),
         });
 
         if (res.ok) {
