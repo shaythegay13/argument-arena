@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Persona, DebateState, Round } from "@/types/debate";
 import { generateRound1, generateNextRound, generateFinalRatings } from "@/lib/ai";
 import { PERSONAS } from "@/data/personas";
+import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw } from "lucide-react";
@@ -39,6 +40,9 @@ const initialState: DebateState = {
 
 const Index = () => {
   const [state, setState] = useState<DebateState>(initialState);
+
+  // Expose state to CopilotKit agent + debug console
+  useDebateAgentState(state);
 
   const currentRound = state.rounds.find(
     (r) => r.roundNumber === state.currentRoundNumber
@@ -100,6 +104,13 @@ const Index = () => {
     const isFinalRound = nextRoundNum >= MAX_ROUNDS;
     const previousRound = state.rounds[state.rounds.length - 1];
     const userResponse = state.userResponse;
+
+    // Emit AG-UI event
+    emitAgUIEvent({
+      type: "user_response",
+      content: userResponse,
+      round: state.currentRoundNumber,
+    });
 
     setState((prev) => ({
       ...prev,
