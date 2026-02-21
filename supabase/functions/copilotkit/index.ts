@@ -18,6 +18,20 @@ serve(async (req) => {
   }
 
   try {
+    // Handle /info endpoint for CopilotKit agent discovery
+    const body = await req.clone().text();
+    let parsed: any = null;
+    try { parsed = JSON.parse(body); } catch {}
+
+    if (parsed?.method === "info" || req.url.endsWith("/info")) {
+      return new Response(
+        JSON.stringify({
+          agents: [{ name: "default", description: "Default CopilotKit agent" }],
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -35,10 +49,8 @@ serve(async (req) => {
       serviceAdapter: adapter,
     });
 
-    // The handler can accept a standard Request object
     const response = await handler(req);
 
-    // Add CORS headers to response
     const newHeaders = new Headers(response.headers);
     Object.entries(corsHeaders).forEach(([key, value]) => {
       newHeaders.set(key, value);
