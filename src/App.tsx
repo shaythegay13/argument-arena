@@ -18,7 +18,7 @@ const copilotProps = {
 };
 
 const App = () => (
-  <CopilotKit {...(copilotProps as any)}>
+  <CopilotKit {...(copilotProps as any)} runtimeUrl="/copilotkit">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
