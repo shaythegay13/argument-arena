@@ -16,6 +16,12 @@ export interface Round {
   messages: RoundMessage[];
 }
 
+export interface PersonaRating {
+  personaId: string;
+  rating: number;
+  reason: string;
+}
+
 export interface DebateState {
   topic: string;
   selectedPersonas: Persona[];
@@ -25,4 +31,9 @@ export interface DebateState {
   isGenerating: boolean;
   generatingPersonaIds: string[];
   isGeneratingSummary: boolean;
+  expandedPersonaId: string | null;
+  userResponse: string;
+  ratings: PersonaRating[];
+  isGeneratingRatings: boolean;
+  phase: "setup" | "debating" | "user-respond" | "final-ratings";
 }
