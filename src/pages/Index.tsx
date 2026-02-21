@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Persona, DebateState, Round } from "@/types/debate";
-import { generateRound1, generateNextRound, generateSummary, generateFinalRatings } from "@/lib/ai";
+import { generateRound1, generateNextRound, generateFinalRatings } from "@/lib/ai";
 import { PERSONAS } from "@/data/personas";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -28,10 +28,8 @@ const initialState: DebateState = {
   selectedPersonas: [],
   rounds: [],
   currentRoundNumber: 0,
-  summary: null,
   isGenerating: false,
   generatingPersonaIds: [],
-  isGeneratingSummary: false,
   expandedPersonaId: null,
   userResponse: "",
   ratings: [],
@@ -69,7 +67,6 @@ const Index = () => {
       generatingPersonaIds: prev.selectedPersonas.map((p) => p.id),
       rounds: [],
       currentRoundNumber: 1,
-      summary: null,
       ratings: [],
     }));
 
@@ -94,11 +91,9 @@ const Index = () => {
     }));
   }, [state.topic, state.selectedPersonas]);
 
-  const handleSummarize = useCallback(async () => {
-    setState((prev) => ({ ...prev, isGeneratingSummary: true }));
-    const summary = await generateSummary(state.topic, state.rounds, state.selectedPersonas);
-    setState((prev) => ({ ...prev, summary, isGeneratingSummary: false, phase: "user-respond" }));
-  }, [state.topic, state.rounds, state.selectedPersonas]);
+  // Show follow-up textarea when all personas have responded and not final round
+  const allResponsesReady = currentRound && currentRound.messages.length === state.selectedPersonas.length && !state.isGenerating;
+  const showFollowUp = allResponsesReady && state.currentRoundNumber < MAX_ROUNDS && state.phase === "debating";
 
   const handleUserSubmit = useCallback(async () => {
     const nextRoundNum = state.rounds.length + 1;
@@ -111,7 +106,7 @@ const Index = () => {
       isGenerating: true,
       generatingPersonaIds: prev.selectedPersonas.map((p) => p.id),
       currentRoundNumber: nextRoundNum,
-      summary: null,
+      
       expandedPersonaId: null,
       phase: "debating",
       userResponse: "",
@@ -299,9 +294,6 @@ const Index = () => {
               generatingPersonaIds={state.generatingPersonaIds}
               expandedPersonaId={state.expandedPersonaId}
               onExpandPersona={(id) => setState((prev) => ({ ...prev, expandedPersonaId: id }))}
-              onSummarize={handleSummarize}
-              isGeneratingSummary={state.isGeneratingSummary}
-              summary={state.summary}
               roundNumber={state.currentRoundNumber}
               maxRounds={MAX_ROUNDS}
               isGenerating={state.isGenerating}
@@ -309,10 +301,9 @@ const Index = () => {
               phase={state.phase}
             />
 
-            {/* Summary + user response */}
-            {state.summary && state.phase === "user-respond" && (
+            {/* Follow-up textarea below stage */}
+            {showFollowUp && (
               <UserResponsePanel
-                summary={state.summary}
                 userResponse={state.userResponse}
                 onUserResponseChange={(val) => setState((prev) => ({ ...prev, userResponse: val }))}
                 onSubmit={handleUserSubmit}

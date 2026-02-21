@@ -27,13 +27,11 @@ export interface DebateState {
   selectedPersonas: Persona[];
   rounds: Round[];
   currentRoundNumber: number;
-  summary: string | null;
   isGenerating: boolean;
   generatingPersonaIds: string[];
-  isGeneratingSummary: boolean;
   expandedPersonaId: string | null;
   userResponse: string;
   ratings: PersonaRating[];
   isGeneratingRatings: boolean;
-  phase: "setup" | "debating" | "user-respond" | "final-ratings";
+  phase: "setup" | "debating" | "final-ratings";
 }
