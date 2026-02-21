@@ -56,17 +56,21 @@ serve(async (req) => {
         });
       }
 
+      const requestBody = {
+        script,
+        replica_id,
+        video_name: `debate-recap-${Date.now()}`,
+      };
+      console.log(`[Tavus] Creating video with replica_id=${replica_id}, script length=${script.length}`);
+      console.log(`[Tavus] API key starts with: ${TAVUS_API_KEY.substring(0, 8)}...`);
+
       const res = await fetch(`${TAVUS_BASE}/videos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': TAVUS_API_KEY,
         },
-        body: JSON.stringify({
-          script,
-          replica_id,
-          video_name: `debate-recap-${Date.now()}`,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await res.json();
