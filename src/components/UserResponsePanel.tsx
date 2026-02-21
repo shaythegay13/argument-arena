@@ -1,6 +1,6 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 
 interface UserResponsePanelProps {
   userResponse: string;
@@ -19,6 +19,11 @@ export default function UserResponsePanel({
   roundNumber,
   maxRounds,
 }: UserResponsePanelProps) {
+  const isFinal = roundNumber + 1 >= maxRounds;
+  const label = isFinal
+    ? `Send & Get Final Round (${roundNumber + 1}/${maxRounds})`
+    : `Send & Start Round ${roundNumber + 1}`;
+
   return (
     <div className="rounded-lg border border-primary/20 bg-card p-6 stage-glow space-y-4">
       <div className="space-y-3">
@@ -37,10 +42,17 @@ export default function UserResponsePanel({
           disabled={!userResponse.trim() || isGenerating}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
         >
-          <Send className="w-4 h-4 mr-2" />
-          {roundNumber + 1 >= maxRounds
-            ? `Send & Get Final Round (${roundNumber + 1}/${maxRounds})`
-            : `Send & Start Round ${roundNumber + 1}`}
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Generating…
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4 mr-2" />
+              {label}
+            </>
+          )}
         </Button>
       </div>
     </div>

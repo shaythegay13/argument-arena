@@ -7,7 +7,7 @@ import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useTavusClips } from "@/hooks/useTavusClips";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Play, RotateCcw } from "lucide-react";
+import { Play, RotateCcw, Loader2 } from "lucide-react";
 import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
 import UserResponsePanel from "@/components/UserResponsePanel";
@@ -276,9 +276,18 @@ const Index = () => {
                 })}
               </div>
             </div>
-            <Button onClick={handleStartDebate} disabled={!canStart} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
-              <Play className="w-4 h-4 mr-2" />
-              Start Debate
+            <Button onClick={handleStartDebate} disabled={!canStart || state.isGenerating} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+              {state.isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Starting…
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  Start Debate
+                </>
+              )}
             </Button>
           </section>
         )}
