@@ -2,3 +2,6 @@ project_id = "byjqpabkvddcjufbvwvc"
 
 [functions.debate-ai]
 verify_jwt = false
+
+[functions.copilotkit]
+verify_jwt = false
