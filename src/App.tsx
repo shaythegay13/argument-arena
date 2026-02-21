@@ -15,7 +15,9 @@ const copilotKitUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/copilot
 const copilotProps: Record<string, unknown> = {
   runtimeUrl: copilotKitUrl,
   showDevConsole: false,
-  agents__unsafe_dev_only: [{ name: "default" }],
+  agents__unsafe_dev_only: {
+    default: { agentId: "default" },
+  },
 };
 
 const App = () => (
