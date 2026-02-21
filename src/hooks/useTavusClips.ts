@@ -1,8 +1,9 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Persona, Round } from "@/types/debate";
 
 const MOCK_VIDEO_URL = "https://example.com/host-avatar.mp4";
-const TAVUS_API_URL = "https://api.tavus.io/v2/clips";
+
+const TAVUS_EDGE_FN_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/tavus-clip`;
 
 interface TavusClip {
   roundNumber: number;
@@ -34,7 +35,6 @@ function buildRoundScript(
 export function useTavusClips() {
   const [clips, setClips] = useState<Record<number, TavusClip>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const tavusApiKey = useRef<string | null>(null);
 
   const generateClip = useCallback(
     async (
@@ -45,7 +45,6 @@ export function useTavusClips() {
     ) => {
       const script = buildRoundScript(roundNumber, personas, round, userResponse);
 
-      // Set loading state
       setClips((prev) => ({
         ...prev,
         [roundNumber]: { roundNumber, clipUrl: "", script, isLoading: true },
@@ -53,38 +52,34 @@ export function useTavusClips() {
       setIsGenerating(true);
 
       try {
-        // Try Tavus API if key is available
-        const apiKey = tavusApiKey.current;
-        if (apiKey) {
-          const res = await fetch(TAVUS_API_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": apiKey,
-            },
-            body: JSON.stringify({
-              script,
-              voice_id: "professional-mentor",
-              avatar_id: "charismatic-host",
-            }),
-          });
+        const res = await fetch(TAVUS_EDGE_FN_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            script,
+            voice_id: "professional-mentor",
+            avatar_id: "charismatic-host",
+          }),
+        });
 
-          if (res.ok) {
-            const data = await res.json();
-            const clipUrl = data.clip_url || data.video_url || MOCK_VIDEO_URL;
-            setClips((prev) => ({
-              ...prev,
-              [roundNumber]: { roundNumber, clipUrl, script, isLoading: false },
-            }));
-            setIsGenerating(false);
-            console.log(`[Tavus] Clip generated for round ${roundNumber}:`, clipUrl);
-            return;
-          }
-          console.warn("[Tavus] API call failed, using mock video");
+        if (res.ok) {
+          const data = await res.json();
+          const clipUrl = data.clip_url || data.video_url || MOCK_VIDEO_URL;
+          setClips((prev) => ({
+            ...prev,
+            [roundNumber]: { roundNumber, clipUrl, script, isLoading: false },
+          }));
+          setIsGenerating(false);
+          console.log(`[Tavus] Clip generated for round ${roundNumber}:`, clipUrl);
+          return;
         }
+        console.warn("[Tavus] API call failed, using mock video");
 
         // Fallback to mock
-        await new Promise((r) => setTimeout(r, 1500)); // Simulate generation delay
+        await new Promise((r) => setTimeout(r, 1500));
         setClips((prev) => ({
           ...prev,
           [roundNumber]: { roundNumber, clipUrl: MOCK_VIDEO_URL, script, isLoading: false },
@@ -103,9 +98,5 @@ export function useTavusClips() {
     []
   );
 
-  const setApiKey = useCallback((key: string) => {
-    tavusApiKey.current = key;
-  }, []);
-
-  return { clips, isGenerating, generateClip, setApiKey };
+  return { clips, isGenerating, generateClip };
 }
