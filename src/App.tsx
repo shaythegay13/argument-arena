@@ -12,8 +12,14 @@ const queryClient = new QueryClient();
 
 const copilotKitUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/copilotkit`;
 
+const copilotProps: Record<string, unknown> = {
+  runtimeUrl: copilotKitUrl,
+  showDevConsole: false,
+  agents__unsafe_dev_only: [{ name: "default" }],
+};
+
 const App = () => (
-  <CopilotKit runtimeUrl={copilotKitUrl} showDevConsole={false}>
+  <CopilotKit {...(copilotProps as any)}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
