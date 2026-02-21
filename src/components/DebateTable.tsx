@@ -1,6 +1,5 @@
 import { Persona, Round, PersonaRating } from "@/types/debate";
-import { Button } from "@/components/ui/button";
-import { Sparkles, X, MessageCircle, Star } from "lucide-react";
+import { MessageCircle, X, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const personaColors: Record<string, { bg: string; text: string; border: string; glow: string }> = {
@@ -48,9 +47,6 @@ interface DebateTableProps {
   generatingPersonaIds: string[];
   expandedPersonaId: string | null;
   onExpandPersona: (id: string | null) => void;
-  onSummarize: () => void;
-  isGeneratingSummary: boolean;
-  summary: string | null;
   roundNumber: number;
   maxRounds: number;
   isGenerating: boolean;
@@ -64,9 +60,6 @@ export default function DebateTable({
   generatingPersonaIds,
   expandedPersonaId,
   onExpandPersona,
-  onSummarize,
-  isGeneratingSummary,
-  summary,
   roundNumber,
   maxRounds,
   isGenerating,
@@ -75,10 +68,6 @@ export default function DebateTable({
 }: DebateTableProps) {
   const seats = seatPositions[personas.length] || seatPositions[4];
   const allResponsesReady = currentRound && currentRound.messages.length === personas.length && generatingPersonaIds.length === 0;
-  const allRead = allResponsesReady && personas.every(p => {
-    const msg = currentRound?.messages.find(m => m.personaId === p.id);
-    return !!msg;
-  });
 
   return (
     <div className="relative w-full" style={{ paddingBottom: "70%" }}>
@@ -120,40 +109,6 @@ export default function DebateTable({
               <Star className="w-5 h-5 text-primary" />
               <span className="text-xs font-mono text-muted-foreground">Ratings In</span>
             </motion.div>
-          ) : allRead && !summary && !isGeneratingSummary ? (
-            <motion.div
-              key="summarize-btn"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            >
-              <Button
-                onClick={onSummarize}
-                disabled={isGenerating || isGeneratingSummary}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-full px-5 py-2 shadow-lg shadow-primary/20"
-                size="sm"
-              >
-                <Sparkles className="w-4 h-4 mr-1.5" />
-                Summarize All
-              </Button>
-            </motion.div>
-          ) : isGeneratingSummary ? (
-            <motion.div
-              key="summarizing"
-              className="flex items-center gap-2 text-xs text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              >
-                <Sparkles className="w-4 h-4 text-primary" />
-              </motion.div>
-              Summarizing…
-            </motion.div>
           ) : isGenerating ? (
             <motion.div
               key="thinking"
@@ -163,6 +118,17 @@ export default function DebateTable({
               transition={{ duration: 1.5, repeat: Infinity }}
             >
               Thinking…
+            </motion.div>
+          ) : allResponsesReady ? (
+            <motion.div
+              key="ready"
+              className="flex flex-col items-center gap-1"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              <MessageCircle className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-mono text-muted-foreground">Click to read</span>
             </motion.div>
           ) : null}
         </AnimatePresence>
