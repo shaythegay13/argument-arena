@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const TAVUS_API_URL = "https://api.tavus.io/v2/clips";
+const TAVUS_BASE = "https://tavusapi.com/v2/videos";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,28 +20,66 @@ serve(async (req) => {
   }
 
   try {
-    const { script, voice_id, avatar_id } = await req.json();
+    const url = new URL(req.url);
+    const videoId = url.searchParams.get("video_id");
 
-    const res = await fetch(TAVUS_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': TAVUS_API_KEY,
-      },
-      body: JSON.stringify({ script, voice_id, avatar_id }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error(`[Tavus] API error [${res.status}]:`, JSON.stringify(data));
-      return new Response(JSON.stringify({ error: `Tavus API error`, status: res.status, details: data }), {
-        status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // GET with video_id param → poll status
+    if (req.method === 'GET' && videoId) {
+      const res = await fetch(`${TAVUS_BASE}/${videoId}`, {
+        headers: { 'x-api-key': TAVUS_API_KEY },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error(`[Tavus] Poll error [${res.status}]:`, JSON.stringify(data));
+        return new Response(JSON.stringify({ error: 'Tavus poll failed', details: data }), {
+          status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({
+        status: data.status,
+        hosted_url: data.hosted_url || null,
+        stream_url: data.stream_url || null,
+        download_url: data.download_url || null,
+      }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    return new Response(JSON.stringify(data), {
-      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // POST → create video (returns immediately with video_id)
+    if (req.method === 'POST') {
+      const { script, replica_id } = await req.json();
+
+      const res = await fetch(TAVUS_BASE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': TAVUS_API_KEY,
+        },
+        body: JSON.stringify({
+          script,
+          replica_id: replica_id || undefined,
+          video_name: `debate-recap-${Date.now()}`,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error(`[Tavus] Create error [${res.status}]:`, JSON.stringify(data));
+        return new Response(JSON.stringify({ error: 'Tavus create failed', details: data }), {
+          status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({
+        video_id: data.video_id,
+        status: data.status,
+      }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('[Tavus] Edge function error:', error);
