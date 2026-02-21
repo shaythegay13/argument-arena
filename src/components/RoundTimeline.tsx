@@ -1,4 +1,4 @@
-import { Gavel } from "lucide-react";
+import { Gavel, Star } from "lucide-react";
 
 interface RoundTimelineProps {
   totalRounds: number;
@@ -7,6 +7,7 @@ interface RoundTimelineProps {
   onSelectRound: (round: number) => void;
   phase: "setup" | "debating" | "final-ratings" | "judge";
   onJudgeClick?: () => void;
+  onGradesClick?: () => void;
 }
 
 const ROUND_LABELS = ["Round 1", "Round 2", "Round 3", "Round 4"];
@@ -18,9 +19,12 @@ export default function RoundTimeline({
   onSelectRound,
   phase,
   onJudgeClick,
+  onGradesClick,
 }: RoundTimelineProps) {
   if (totalRounds === 0 && phase === "setup") return null;
 
+  const gradesActive = phase === "final-ratings";
+  const gradesEnabled = (totalRounds >= maxRounds && phase === "debating") || phase === "final-ratings" || phase === "judge";
   const judgeActive = phase === "judge";
   const judgeEnabled = phase === "final-ratings" || phase === "judge";
 
@@ -32,7 +36,7 @@ export default function RoundTimeline({
 
       {Array.from({ length: maxRounds }, (_, k) => k + 1).map((round, mapIdx) => {
         const completed = round <= totalRounds;
-        const isCurrent = round === currentRound && phase !== "judge";
+        const isCurrent = round === currentRound && phase === "debating";
 
         return (
           <button
@@ -54,6 +58,24 @@ export default function RoundTimeline({
           </button>
         );
       })}
+
+      {/* Grades chip */}
+      <button
+        onClick={() => gradesEnabled && onGradesClick?.()}
+        disabled={!gradesEnabled}
+        className={`
+          flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-mono font-semibold transition-all
+          ${gradesActive
+            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+            : gradesEnabled
+            ? "bg-accent text-accent-foreground hover:bg-accent/80 cursor-pointer"
+            : "bg-muted/20 text-muted-foreground/40 cursor-not-allowed"
+          }
+        `}
+      >
+        <Star className="w-3 h-3" />
+        Grades
+      </button>
 
       {/* Judge chip */}
       <button

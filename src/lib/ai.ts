@@ -228,40 +228,71 @@ export async function generateFinalRatings(
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
 
-      // Parse new SCORE line: "SCORE: 8/10 | verdict text. METRICS: Label1=8, Label2=7"
-      const scoreMatch = text.match(/SCORE:\s*(\d+)\/10\s*\|\s*(.+?)\.\s*METRICS:\s*(.+)/i);
-      if (scoreMatch) {
-        let rawScore = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));
-        // Apply inverse scoring for skeptic
-        if (persona.inverseScore) rawScore = 10 - rawScore;
-
-        const verdictText = scoreMatch[2].trim();
-        const metricsStr = scoreMatch[3];
-        const metrics: Record<string, number> = {};
-        metricsStr.split(",").forEach((m) => {
-          const [label, val] = m.split("=").map((s) => s.trim());
-          if (label && val) metrics[label] = parseInt(val) || 0;
-        });
-
-        ratings.push({ personaId: persona.id, score: rawScore, verdict: verdictText, metrics });
-      } else {
-        // Fallback: try old RATING format for resilience
-        const oldMatch = text.match(/RATING:\s*(\d+)\/10\s*\|\s*(.+)/i);
-        let fallbackScore = oldMatch ? Math.min(10, Math.max(0, parseInt(oldMatch[1]))) : 5;
-        if (persona.inverseScore) fallbackScore = 10 - fallbackScore;
-        ratings.push({
-          personaId: persona.id,
-          score: fallbackScore,
-          verdict: oldMatch ? oldMatch[2].trim() : "Rating not provided",
-          metrics: {},
-        });
-      }
+      const parsed = parseRatingFromText(text, persona);
+      ratings.push(parsed);
 
       onPersonaComplete(persona.id, text);
     })
   );
 
   return { messages, ratings };
+}
+
+export async function generateRatingsOnly(
+  topic: string,
+  personas: Persona[],
+  allRounds: Round[],
+  lastUserResponse: string,
+  onRatingComplete: (personaId: string, rating: PersonaRating) => void,
+  getMemory?: (personaId: string) => string
+): Promise<PersonaRating[]> {
+  const ratings: PersonaRating[] = [];
+
+  await Promise.all(
+    personas.map(async (persona) => {
+      const system =
+        enrichSystemPrompt(persona, topic) +
+        "\n\nIMPORTANT: You MUST end your response with exactly: SCORE: [0-10]/10 | [one-sentence verdict]. METRICS: " +
+        persona.scoringWeights.map((w) => `${w.label}=[0-10]`).join(", ");
+      const memory = getMemory?.(persona.id);
+      const userPrompt = buildFinalRatingPrompt(topic, allRounds, personas, lastUserResponse, persona, memory);
+      const text = await callCompletion(system, userPrompt);
+
+      const rating = parseRatingFromText(text, persona);
+      ratings.push(rating);
+      onRatingComplete(persona.id, rating);
+    })
+  );
+
+  return ratings;
+}
+
+function parseRatingFromText(text: string, persona: Persona): PersonaRating {
+  const scoreMatch = text.match(/SCORE:\s*(\d+)\/10\s*\|\s*(.+?)\.\s*METRICS:\s*(.+)/i);
+  if (scoreMatch) {
+    let rawScore = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));
+    if (persona.inverseScore) rawScore = 10 - rawScore;
+
+    const verdictText = scoreMatch[2].trim();
+    const metricsStr = scoreMatch[3];
+    const metrics: Record<string, number> = {};
+    metricsStr.split(",").forEach((m) => {
+      const [label, val] = m.split("=").map((s) => s.trim());
+      if (label && val) metrics[label] = parseInt(val) || 0;
+    });
+
+    return { personaId: persona.id, score: rawScore, verdict: verdictText, metrics };
+  }
+
+  const oldMatch = text.match(/RATING:\s*(\d+)\/10\s*\|\s*(.+)/i);
+  let fallbackScore = oldMatch ? Math.min(10, Math.max(0, parseInt(oldMatch[1]))) : 5;
+  if (persona.inverseScore) fallbackScore = 10 - fallbackScore;
+  return {
+    personaId: persona.id,
+    score: fallbackScore,
+    verdict: oldMatch ? oldMatch[2].trim() : "Rating not provided",
+    metrics: {},
+  };
 }
 
 export async function generateJudgeVerdict(

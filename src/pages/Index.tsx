@@ -3,7 +3,7 @@ import { Persona, DebateState, Round } from "@/types/debate";
 import {
   generateRound1,
   generateNextRound,
-  generateFinalRatings,
+  generateRatingsOnly,
   generateJudgeVerdict,
   generateAutoResponse,
 } from "@/lib/ai";
@@ -144,7 +144,6 @@ const Index = () => {
   const handleUserSubmit = useCallback(
     async (overrideResponse?: string) => {
       const nextRoundNum = state.rounds.length + 1;
-      const isFinalRound = nextRoundNum >= MAX_ROUNDS;
       const previousRound = state.rounds[state.rounds.length - 1];
       const userResponse = overrideResponse ?? state.userResponse;
 
@@ -160,104 +159,73 @@ const Index = () => {
         userResponse: "",
       }));
 
-      if (isFinalRound) {
-        const { messages, ratings } = await generateFinalRatings(
-          state.topic,
-          state.selectedPersonas,
-          state.rounds,
-          userResponse,
-          (personaId, text) => {
-            setState((prev) => {
-              const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
-              const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
-              const updatedRounds = existingRound
-                ? prev.rounds.map((r) =>
-                    r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r
-                  )
-                : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
-              return {
-                ...prev,
-                generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
-                rounds: updatedRounds,
-              };
-            });
-          },
-          getRecentMemories
-        );
+      const messages = await generateNextRound(
+        state.topic,
+        nextRoundNum,
+        state.selectedPersonas,
+        previousRound,
+        userResponse,
+        (personaId, text) => {
+          setState((prev) => {
+            const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
+            const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
+            const updatedRounds = existingRound
+              ? prev.rounds.map((r) =>
+                  r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r
+                )
+              : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
+            return {
+              ...prev,
+              generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
+              rounds: updatedRounds,
+            };
+          });
+        },
+        getRecentMemories
+      );
 
-        const responseMap: Record<string, string> = {};
-        messages.forEach((m) => { responseMap[m.personaId] = m.text; });
-        await storeRoundMemories(
-          state.selectedPersonas.map((p) => p.id),
-          state.topic,
-          nextRoundNum,
-          userResponse,
-          responseMap
-        );
+      const responseMap: Record<string, string> = {};
+      messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+      await storeRoundMemories(
+        state.selectedPersonas.map((p) => p.id),
+        state.topic,
+        nextRoundNum,
+        userResponse,
+        responseMap
+      );
 
-        setState((prev) => {
-          const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
-            ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
-            : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
-          return {
-            ...prev,
-            isGenerating: false,
-            generatingPersonaIds: [],
-            rounds: updatedRounds,
-            ratings,
-            phase: "final-ratings",
-          };
-        });
+      setState((prev) => {
+        const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
+          ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
+          : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
+        return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds };
+      });
 
-        generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
-      } else {
-        const messages = await generateNextRound(
-          state.topic,
-          nextRoundNum,
-          state.selectedPersonas,
-          previousRound,
-          userResponse,
-          (personaId, text) => {
-            setState((prev) => {
-              const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
-              const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
-              const updatedRounds = existingRound
-                ? prev.rounds.map((r) =>
-                    r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r
-                  )
-                : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
-              return {
-                ...prev,
-                generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
-                rounds: updatedRounds,
-              };
-            });
-          },
-          getRecentMemories
-        );
-
-        const responseMap: Record<string, string> = {};
-        messages.forEach((m) => { responseMap[m.personaId] = m.text; });
-        await storeRoundMemories(
-          state.selectedPersonas.map((p) => p.id),
-          state.topic,
-          nextRoundNum,
-          userResponse,
-          responseMap
-        );
-
-        setState((prev) => {
-          const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
-            ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
-            : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
-          return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds };
-        });
-
-        generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
-      }
+      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
     },
     [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip]
   );
+
+  const handleGenerateRatings = useCallback(async () => {
+    setState((prev) => ({ ...prev, phase: "final-ratings", isGeneratingRatings: true, ratings: [] }));
+
+    const lastUserResponse = state.userResponse || "";
+    const ratings = await generateRatingsOnly(
+      state.topic,
+      state.selectedPersonas,
+      state.rounds,
+      lastUserResponse,
+      (_personaId, rating) => {
+        setState((prev) => ({
+          ...prev,
+          ratings: [...prev.ratings, rating],
+        }));
+      },
+      getRecentMemories
+    );
+
+    setState((prev) => ({ ...prev, ratings, isGeneratingRatings: false }));
+  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories]);
 
   // Auto-debate: when responses are ready and it's not the last round, auto-generate and submit
   useEffect(() => {
@@ -278,6 +246,15 @@ const Index = () => {
 
     return () => { cancelled = true; };
   }, [autoDebate, showFollowUp, isAutoResponding, state.topic, currentRound, state.selectedPersonas, handleUserSubmit]);
+
+  // Auto-debate: auto-trigger ratings after round 4
+  useEffect(() => {
+    if (!autoDebate) return;
+    if (state.phase !== "debating") return;
+    if (state.currentRoundNumber < MAX_ROUNDS) return;
+    if (state.isGenerating || !allResponsesReady) return;
+    handleGenerateRatings();
+  }, [autoDebate, state.phase, state.currentRoundNumber, state.isGenerating, allResponsesReady, handleGenerateRatings]);
 
   const handleJudge = useCallback(async () => {
     setState((prev) => ({ ...prev, phase: "judge", isGeneratingJudge: true }));
@@ -524,14 +501,15 @@ const Index = () => {
                   ...prev,
                   currentRoundNumber: round,
                   expandedPersonaId: null,
-                  ...(prev.phase === "judge" ? {} : {}),
+                  phase: "debating",
                 }))
               }
               phase={state.phase}
               onJudgeClick={handleJudge}
+              onGradesClick={handleGenerateRatings}
             />
 
-            {state.phase !== "judge" && (
+            {state.phase !== "judge" && state.phase !== "final-ratings" && (
               <>
                 <DebateTable
                   personas={state.selectedPersonas}
@@ -573,14 +551,27 @@ const Index = () => {
                   </div>
                 )}
 
-                {state.phase === "final-ratings" && (
-                  <RatingsOverview
-                    personas={state.selectedPersonas}
-                    ratings={state.ratings}
-                    isGenerating={state.isGeneratingRatings}
-                  />
+                {/* Show "Get Grades" button after round 4 completes */}
+                {allResponsesReady && state.currentRoundNumber >= MAX_ROUNDS && state.phase === "debating" && (
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleGenerateRatings}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Get Panel Grades
+                    </Button>
+                  </div>
                 )}
               </>
+            )}
+
+            {state.phase === "final-ratings" && (
+              <RatingsOverview
+                personas={state.selectedPersonas}
+                ratings={state.ratings}
+                isGenerating={state.isGeneratingRatings}
+              />
             )}
 
             {state.phase === "judge" && (
