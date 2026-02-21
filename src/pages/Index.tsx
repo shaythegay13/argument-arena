@@ -4,6 +4,7 @@ import { generateRound1, generateNextRound, generateFinalRatings } from "@/lib/a
 import { PERSONAS } from "@/data/personas";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
+import { useTavusClips } from "@/hooks/useTavusClips";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw } from "lucide-react";
@@ -11,6 +12,7 @@ import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
 import UserResponsePanel from "@/components/UserResponsePanel";
 import RatingsOverview from "@/components/RatingsOverview";
+import HostVideoPlayer from "@/components/HostVideoPlayer";
 
 const MAX_ROUNDS = 4;
 
@@ -42,6 +44,7 @@ const initialState: DebateState = {
 const Index = () => {
   const [state, setState] = useState<DebateState>(initialState);
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } = useRedisMemory();
+  const { clips, isGenerating: isGeneratingClip, generateClip } = useTavusClips();
 
   // Expose state to CopilotKit agent + debug console
   useDebateAgentState(state);
@@ -106,7 +109,10 @@ const Index = () => {
       generatingPersonaIds: [],
       rounds: [{ roundNumber: 1, messages }],
     }));
-  }, [state.topic, state.selectedPersonas, storeRoundMemories]);
+
+    // Generate Tavus clip for Round 1
+    generateClip(1, personas, { roundNumber: 1, messages });
+  }, [state.topic, state.selectedPersonas, storeRoundMemories, generateClip]);
 
   // Show follow-up textarea when all personas have responded and not final round
   const allResponsesReady = currentRound && currentRound.messages.length === state.selectedPersonas.length && !state.isGenerating;
@@ -180,6 +186,9 @@ const Index = () => {
           phase: "final-ratings",
         };
       });
+
+      // Generate Tavus clip for final round
+      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
     } else {
       const messages = await generateNextRound(
         state.topic,
@@ -223,8 +232,11 @@ const Index = () => {
           rounds: updatedRounds,
         };
       });
+
+      // Generate Tavus clip for this round
+      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
     }
-  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories]);
+  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip]);
 
   const handleReset = useCallback(() => {
     setState(initialState);
@@ -343,7 +355,16 @@ const Index = () => {
               phase={state.phase}
             />
 
-            {/* Follow-up textarea below stage */}
+            {/* Host video recap */}
+            {clips[state.currentRoundNumber] && (
+              <HostVideoPlayer
+                clipUrl={clips[state.currentRoundNumber].clipUrl}
+                script={clips[state.currentRoundNumber].script}
+                isLoading={clips[state.currentRoundNumber].isLoading}
+                roundNumber={state.currentRoundNumber}
+              />
+            )}
+
             {showFollowUp && (
               <UserResponsePanel
                 userResponse={state.userResponse}
