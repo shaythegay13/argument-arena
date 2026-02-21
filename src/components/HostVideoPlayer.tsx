@@ -1,5 +1,5 @@
-import { Loader2, Video } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Loader2, Volume2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 interface HostVideoPlayerProps {
@@ -10,35 +10,51 @@ interface HostVideoPlayerProps {
 }
 
 const STEPS = [
-  "Setting up conversation…",
-  "Connecting to host avatar…",
+  "Generating host narration…",
+  "Synthesizing voice…",
   "Almost ready…",
 ];
 
 const HostVideoPlayer = ({ clipUrl, script, isLoading, roundNumber }: HostVideoPlayerProps) => {
   const [stepIndex, setStepIndex] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!isLoading) { setStepIndex(0); setElapsed(0); return; }
     const interval = setInterval(() => {
       setStepIndex((s) => Math.min(s + 1, STEPS.length - 1));
-    }, 4000);
+    }, 3000);
     const tick = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => { clearInterval(interval); clearInterval(tick); };
   }, [isLoading]);
 
+  // Auto-play when audio becomes available
+  useEffect(() => {
+    if (clipUrl && audioRef.current) {
+      audioRef.current.play().catch(() => {});
+    }
+  }, [clipUrl]);
+
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 
-  const isConversationUrl = clipUrl && clipUrl.startsWith("http");
+  const hasAudio = !!clipUrl;
 
   return (
     <section className="rounded-lg border border-border bg-card overflow-hidden">
       <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-        <Video className="w-4 h-4 text-primary" />
+        <Volume2 className="w-4 h-4 text-primary" />
         <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
           Host Recap — Round {roundNumber}
         </span>
+        {isPlaying && (
+          <span className="flex items-center gap-1 ml-auto">
+            <span className="w-1.5 h-3 bg-primary rounded-full animate-pulse" />
+            <span className="w-1.5 h-4 bg-primary rounded-full animate-pulse delay-75" />
+            <span className="w-1.5 h-2.5 bg-primary rounded-full animate-pulse delay-150" />
+          </span>
+        )}
       </div>
 
       {isLoading ? (
@@ -64,24 +80,25 @@ const HostVideoPlayer = ({ clipUrl, script, isLoading, roundNumber }: HostVideoP
             </div>
           </div>
         </div>
-      ) : isConversationUrl ? (
-        <div className="space-y-3">
-          <iframe
+      ) : hasAudio ? (
+        <div className="space-y-3 px-4 py-4">
+          <audio
+            ref={audioRef}
             src={clipUrl}
-            allow="camera;microphone;display-capture"
-            className="w-full aspect-video border-0"
-            title={`Host recap for round ${roundNumber}`}
+            controls
+            className="w-full"
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => setIsPlaying(false)}
           />
-          <div className="px-4 pb-3">
-            <p className="text-xs text-muted-foreground italic leading-relaxed">
-              "{script}"
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground italic leading-relaxed">
+            "{script}"
+          </p>
         </div>
       ) : (
         <div className="flex items-center justify-center py-10 bg-muted/30 text-muted-foreground gap-2">
-          <Video className="w-6 h-6" />
-          <span className="text-sm">Video host unavailable (mock mode)</span>
+          <Volume2 className="w-6 h-6" />
+          <span className="text-sm">Audio host unavailable</span>
         </div>
       )}
     </section>
