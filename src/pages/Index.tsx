@@ -10,7 +10,7 @@ import {
 import { PERSONAS } from "@/data/personas";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
-import { useTavusClips } from "@/hooks/useTavusClips";
+import { useHostAudio } from "@/hooks/useHostAudio";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw, Loader2, Zap, Users } from "lucide-react";
@@ -59,7 +59,7 @@ const Index = () => {
 
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
     useRedisMemory();
-  const { clips, isGenerating: isGeneratingClip, generateClip } = useTavusClips();
+  const { clips, isGenerating: isGeneratingClip, generateClip } = useHostAudio();
 
   useDebateAgentState(state);
   console.log("[RedisMemory] Session:", sessionId, "| Mock:", usingMock);
@@ -548,7 +548,7 @@ const Index = () => {
 
                 {clips[state.currentRoundNumber] && (
                   <HostVideoPlayer
-                    clipUrl={clips[state.currentRoundNumber].conversationUrl}
+                    clipUrl={clips[state.currentRoundNumber].audioUrl}
                     script={clips[state.currentRoundNumber].script}
                     isLoading={clips[state.currentRoundNumber].isLoading}
                     roundNumber={state.currentRoundNumber}
@@ -593,7 +593,7 @@ const Index = () => {
                 />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer
-                    clipUrl={clips[MAX_ROUNDS + 1].conversationUrl}
+                    clipUrl={clips[MAX_ROUNDS + 1].audioUrl}
                     script={clips[MAX_ROUNDS + 1].script}
                     isLoading={clips[MAX_ROUNDS + 1].isLoading}
                     roundNumber={MAX_ROUNDS + 1}
