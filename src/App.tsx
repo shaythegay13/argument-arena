@@ -13,7 +13,7 @@ const queryClient = new QueryClient();
 const copilotKitUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/copilotkit`;
 
 const App = () => (
-  <CopilotKit runtimeUrl={copilotKitUrl}>
+  <CopilotKit runtimeUrl={copilotKitUrl} showDevConsole={false}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
