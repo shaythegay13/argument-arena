@@ -14,6 +14,7 @@ import UserResponsePanel from "@/components/UserResponsePanel";
 import RatingsOverview from "@/components/RatingsOverview";
 import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
+import VoiceInputButton from "@/components/VoiceInputButton";
 
 const MAX_ROUNDS = 4;
 
@@ -245,6 +246,10 @@ const Index = () => {
                 value={state.topic}
                 onChange={(e) => setState((prev) => ({ ...prev, topic: e.target.value }))}
                 className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground min-h-[80px] resize-none focus:ring-1 focus:ring-primary"
+              />
+              <VoiceInputButton
+                onTranscript={(text) => setState((prev) => ({ ...prev, topic: prev.topic + (prev.topic ? " " : "") + text }))}
+                className="mt-2"
               />
             </div>
             <div>

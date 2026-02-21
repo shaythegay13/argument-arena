@@ -1,6 +1,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
+import VoiceInputButton from "@/components/VoiceInputButton";
 
 interface UserResponsePanelProps {
   userResponse: string;
@@ -36,6 +37,10 @@ export default function UserResponsePanel({
           onChange={(e) => onUserResponseChange(e.target.value)}
           disabled={isGenerating}
           className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground min-h-[80px] resize-none focus:ring-1 focus:ring-primary"
+        />
+        <VoiceInputButton
+          onTranscript={(text) => onUserResponseChange(userResponse + (userResponse ? " " : "") + text)}
+          disabled={isGenerating}
         />
         <Button
           onClick={onSubmit}
