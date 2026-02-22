@@ -49,7 +49,7 @@ const PrivacyPolicy = () => {
           <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page with an updated revision date.</p>
 
           <h2 className="text-foreground text-base font-semibold">10. Contact</h2>
-          <p>If you have questions about this Privacy Policy, please reach out through the application.</p>
+          <p>If you have questions about this Privacy Policy, please visit our <button onClick={() => navigate("/auth")} className="text-primary hover:underline">Contact Us</button> page.</p>
         </section>
       </main>
     </div>

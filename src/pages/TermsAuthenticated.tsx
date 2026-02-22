@@ -49,7 +49,7 @@ const TermsAuthenticated = () => {
           <p>We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the modified terms.</p>
 
           <h2 className="text-foreground text-base font-semibold">10. Contact</h2>
-          <p>If you have questions about these Terms, please reach out through the application.</p>
+          <p>If you have questions about these Terms, please visit our <button onClick={() => navigate("/app/contact")} className="text-primary hover:underline">Contact Us</button> page.</p>
         </section>
       </main>
     </div>
