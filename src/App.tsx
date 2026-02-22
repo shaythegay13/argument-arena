@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useTermsAccepted } from "@/hooks/useTermsAccepted";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -13,13 +14,16 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import AcceptTerms from "./pages/AcceptTerms";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) {
+  const { accepted, loading: termsLoading } = useTermsAccepted(user?.id);
+
+  if (loading || termsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -27,6 +31,23 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
+  if (accepted === false) return <Navigate to="/accept-terms" replace />;
+  return <>{children}</>;
+}
+
+function TermsGate({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const { accepted, loading: termsLoading } = useTermsAccepted(user?.id);
+
+  if (loading || termsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/auth" replace />;
+  if (accepted) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
 
@@ -54,6 +75,7 @@ const App = () => (
           <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/accept-terms" element={<TermsGate><AcceptTerms /></TermsGate>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/debate" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/terms" element={<Terms />} />
