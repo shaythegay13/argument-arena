@@ -49,11 +49,23 @@ const Contact = () => {
 
     if (error) {
       toast({ title: "Error sending message", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Message sent", description: "We'll get back to you soon." });
-      setName("");
-      setMessage("");
+      setLoading(false);
+      return;
     }
+
+    // Send email notification
+    try {
+      await supabase.functions.invoke("send-contact-email", {
+        body: { name: result.data.name, email: result.data.email, message: result.data.message },
+      });
+    } catch (emailErr) {
+      console.error("Email notification failed:", emailErr);
+      // Message is saved in DB regardless, so don't block the user
+    }
+
+    toast({ title: "Message sent", description: "We'll get back to you soon." });
+    setName("");
+    setMessage("");
     setLoading(false);
   };
 
