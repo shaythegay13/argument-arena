@@ -16,6 +16,7 @@ import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAuthenticated from "./pages/TermsAuthenticated";
 import PrivacyPolicyAuthenticated from "./pages/PrivacyPolicyAuthenticated";
+import Contact from "./pages/Contact";
 import AcceptTerms from "./pages/AcceptTerms";
 import { Loader2 } from "lucide-react";
 
@@ -84,6 +85,7 @@ const App = () => (
           <Route path="/privacy" element={<AuthRoute><PrivacyPolicy /></AuthRoute>} />
           <Route path="/app/terms" element={<ProtectedRoute><TermsAuthenticated /></ProtectedRoute>} />
           <Route path="/app/privacy" element={<ProtectedRoute><PrivacyPolicyAuthenticated /></ProtectedRoute>} />
+          <Route path="/app/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

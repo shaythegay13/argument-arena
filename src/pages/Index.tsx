@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Play, RotateCcw, Loader2, Zap, Users } from "lucide-react";
+import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail } from "lucide-react";
 import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
 import UserResponsePanel from "@/components/UserResponsePanel";
@@ -345,17 +345,37 @@ const Index = () => {
             </span>
           )}
 
-          {!isSetup && (
+          <div className="flex items-center gap-2 ml-auto">
             <Button
-              onClick={handleReset}
+              onClick={() => navigate("/dashboard")}
               variant="ghost"
               size="sm"
-              className="ml-auto text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
-              <RotateCcw className="w-4 h-4 mr-1.5" />
-              New Debate
+              <LayoutDashboard className="w-4 h-4 mr-1.5" />
+              Dashboard
             </Button>
-          )}
+            <Button
+              onClick={() => navigate("/app/contact")}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Mail className="w-4 h-4 mr-1.5" />
+              Contact Us
+            </Button>
+            {!isSetup && (
+              <Button
+                onClick={handleReset}
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw className="w-4 h-4 mr-1.5" />
+                New Debate
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
