@@ -18,6 +18,7 @@ import TermsAuthenticated from "./pages/TermsAuthenticated";
 import PrivacyPolicyAuthenticated from "./pages/PrivacyPolicyAuthenticated";
 import Contact from "./pages/Contact";
 import AcceptTerms from "./pages/AcceptTerms";
+import AIDisclosureModal from "./components/AIDisclosureModal";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <AIDisclosureModal />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
