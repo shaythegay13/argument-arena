@@ -17,6 +17,7 @@ import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail } from "lucide-react";
+import MobileNav from "@/components/MobileNav";
 import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
 import UserResponsePanel from "@/components/UserResponsePanel";
@@ -324,15 +325,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30" />
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
-          <span className="text-xs font-mono text-muted-foreground ml-1">/ debate stage</span>
+      <header className="border-b border-border px-4 sm:px-6 py-4 relative">
+        <div className="max-w-5xl mx-auto flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30 shrink-0" />
+          <h1 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
+          <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ debate stage</span>
 
           {/* Live debate indicator */}
           {isLiveDebating && (
-            <span className="flex items-center gap-1.5 ml-2">
+            <span className="flex items-center gap-1.5 ml-1 sm:ml-2">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               <span className="text-xs font-mono text-red-400 uppercase tracking-widest">Live</span>
             </span>
@@ -340,30 +341,12 @@ const Index = () => {
 
           {/* Auto-debate badge */}
           {autoDebate && !isSetup && (
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30 hidden sm:inline">
               Auto-Debate
             </span>
           )}
 
           <div className="flex items-center gap-2 ml-auto">
-            <Button
-              onClick={() => navigate("/dashboard")}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <LayoutDashboard className="w-4 h-4 mr-1.5" />
-              Dashboard
-            </Button>
-            <Button
-              onClick={() => navigate("/app/contact")}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Mail className="w-4 h-4 mr-1.5" />
-              Contact Us
-            </Button>
             {!isSetup && (
               <Button
                 onClick={handleReset}
@@ -371,10 +354,11 @@ const Index = () => {
                 size="sm"
                 className="text-muted-foreground hover:text-foreground"
               >
-                <RotateCcw className="w-4 h-4 mr-1.5" />
-                New Debate
+                <RotateCcw className="w-4 h-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">New Debate</span>
               </Button>
             )}
+            <MobileNav currentPage="debate" />
           </div>
         </div>
       </header>
@@ -389,7 +373,7 @@ const Index = () => {
         </div>
       )}
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
         {isSetup && (
           <section className="rounded-lg border border-border bg-card p-6 space-y-5">
             <div>

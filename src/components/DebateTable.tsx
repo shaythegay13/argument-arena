@@ -39,7 +39,7 @@ export default function DebateTable({
   phase,
 }: DebateTableProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {personas.map((persona, i) => {
         const colors = personaColors[persona.colorKey];
         const message = currentRound?.messages.find((m) => m.personaId === persona.id);

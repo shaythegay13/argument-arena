@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Zap, LogOut, Loader2, Trash2, Clock, FileText, Shield, Mail, LayoutDashboard } from "lucide-react";
+import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { JudgeVerdict } from "@/types/debate";
@@ -64,31 +65,18 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-6 py-4">
+      <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30" />
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
-            <span className="text-xs font-mono text-muted-foreground ml-1">/ dashboard</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30 shrink-0" />
+            <h1 className="text-base sm:text-lg font-semibold text-foreground tracking-tight truncate">Startup Jury AI</h1>
+            <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ dashboard</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/debate")} className="text-muted-foreground">
-              <Zap className="w-4 h-4 mr-1.5" />
-              Debate
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/app/contact")} className="text-muted-foreground">
-              <Mail className="w-4 h-4 mr-1.5" />
-              Contact Us
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
-              <LogOut className="w-4 h-4 mr-1.5" />
-              Sign Out
-            </Button>
-          </div>
+          <MobileNav currentPage="dashboard" />
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
         <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Past Sessions</h2>
 
         {loading ? (
@@ -117,7 +105,7 @@ const Dashboard = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04, duration: 0.3 }}
-                  className="rounded-lg border border-border bg-card p-4 flex items-center gap-4 group"
+                  className="rounded-lg border border-border bg-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
@@ -130,20 +118,22 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {v && (
-                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
-                      {v.verdict} — {v.overallScore}/10
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {v && (
+                      <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
+                        {v.verdict} — {v.overallScore}/10
+                      </span>
+                    )}
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(session.id)}
-                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(session.id)}
+                      className="sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity ml-auto sm:ml-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </motion.div>
               );
             })}
@@ -151,7 +141,7 @@ const Dashboard = () => {
         )}
       </main>
 
-      <footer className="border-t border-border px-6 py-6 mt-auto">
+      <footer className="border-t border-border px-4 sm:px-6 py-6 mt-auto">
         <div className="max-w-5xl mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <button onClick={() => navigate("/app/terms")} className="hover:text-foreground underline underline-offset-2 transition-colors">
             Terms & Conditions

@@ -7,16 +7,16 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-6 py-4">
+      <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <span className="text-lg font-semibold text-foreground tracking-tight">Terms & Conditions</span>
+          <span className="text-base sm:text-lg font-semibold text-foreground tracking-tight">Terms & Conditions</span>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-12 prose prose-invert prose-sm">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 prose prose-invert prose-sm">
         <h1 className="text-2xl font-bold text-foreground">Terms and Conditions</h1>
         <p className="text-muted-foreground text-sm">Last updated: February 22, 2026</p>
 
