@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,33 +7,61 @@ const corsHeaders = {
 };
 
 const TAVUS_BASE = "https://tavusapi.com/v2";
+const MAX_SCRIPT_LENGTH = 3000;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
-  if (!TAVUS_API_KEY) {
-    return new Response(JSON.stringify({ error: 'TAVUS_API_KEY is not configured' }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
+    // --- Auth check ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const TAVUS_API_KEY = Deno.env.get('TAVUS_API_KEY');
+    if (!TAVUS_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const url = new URL(req.url);
 
     // GET with conversation_id → get conversation status
     const conversationId = url.searchParams.get("conversation_id");
     if (req.method === 'GET' && conversationId) {
+      if (!/^[a-zA-Z0-9_-]+$/.test(conversationId)) {
+        return new Response(JSON.stringify({ error: 'Invalid conversation_id' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const res = await fetch(`${TAVUS_BASE}/conversations/${conversationId}`, {
         headers: { 'x-api-key': TAVUS_API_KEY },
       });
       const data = await res.json();
       if (!res.ok) {
         console.error(`[Tavus] Poll error [${res.status}]:`, JSON.stringify(data));
-        return new Response(JSON.stringify({ error: 'Tavus poll failed', details: data }), {
-          status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ error: 'Failed to check conversation status' }), {
+          status: res.status >= 500 ? 502 : res.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       return new Response(JSON.stringify({
@@ -47,6 +76,15 @@ serve(async (req) => {
     // POST → create conversation
     if (req.method === 'POST') {
       const { script, action, persona_id } = await req.json();
+
+      // Validate script
+      if (script !== undefined) {
+        if (typeof script !== 'string' || script.length > MAX_SCRIPT_LENGTH) {
+          return new Response(JSON.stringify({ error: `Invalid or too long script (max ${MAX_SCRIPT_LENGTH} chars)` }), {
+            status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
 
       // Action: create persona
       if (action === 'create-persona') {
@@ -64,8 +102,9 @@ serve(async (req) => {
         const data = await res.json();
         if (!res.ok) {
           console.error(`[Tavus] Create persona error [${res.status}]:`, JSON.stringify(data));
-          return new Response(JSON.stringify({ error: 'Tavus persona creation failed', details: data }), {
-            status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          return new Response(JSON.stringify({ error: 'Failed to create persona' }), {
+            status: res.status >= 500 ? 502 : res.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
         console.log(`[Tavus] Persona created: ${data.persona_id}`);
@@ -77,13 +116,11 @@ serve(async (req) => {
       // Default action: create conversation
       const replica_id = Deno.env.get('TAVUS_REPLICA_ID');
       if (!replica_id) {
-        return new Response(JSON.stringify({ error: 'TAVUS_REPLICA_ID is not configured' }), {
+        return new Response(JSON.stringify({ error: 'Server configuration error' }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      
-      // Build conversation request
       const conversationBody: Record<string, unknown> = {
         replica_id,
         conversation_name: `debate-recap-${Date.now()}`,
@@ -93,7 +130,6 @@ serve(async (req) => {
         },
       };
 
-      // Add persona_id if provided
       if (persona_id) {
         conversationBody.persona_id = persona_id;
       }
@@ -112,12 +148,13 @@ serve(async (req) => {
       const data = await res.json();
       if (!res.ok) {
         console.error(`[Tavus] Create conversation error [${res.status}]:`, JSON.stringify(data));
-        return new Response(JSON.stringify({ error: 'Tavus conversation creation failed', details: data }), {
-          status: res.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ error: 'Failed to create conversation' }), {
+          status: res.status >= 500 ? 502 : res.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      console.log(`[Tavus] Conversation created: ${data.conversation_id}, url: ${data.conversation_url}`);
+      console.log(`[Tavus] Conversation created: ${data.conversation_id}`);
 
       return new Response(JSON.stringify({
         conversation_id: data.conversation_id,
@@ -133,8 +170,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('[Tavus] Edge function error:', error);
-    const msg = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: msg }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
