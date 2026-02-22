@@ -28,6 +28,7 @@ export interface PersonaRating {
   personaId: string;
   score: number;       // 0-10 (already inverted for skeptic)
   verdict: string;     // one-sentence verdict
+  assessment: string;  // full multi-sentence assessment text
   metrics: Record<string, number>; // e.g. { Grit: 8, Timing: 7, Upside: 9 }
 }
 

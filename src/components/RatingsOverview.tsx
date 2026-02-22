@@ -94,7 +94,7 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
           {ratings.length > 0 && <ScoreBar personas={personas} ratings={ratings} />}
 
           {/* Per-persona score cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {ratings.map((rating, i) => {
               const persona = personas.find((p) => p.id === rating.personaId);
               if (!persona) return null;
@@ -114,7 +114,13 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-semibold ${textColor}`}>{persona.name}</p>
-                    <p className="text-xs text-muted-foreground mb-1.5">{rating.verdict}</p>
+                    <p className="text-xs text-muted-foreground/80 italic mb-1">{persona.subtitle}</p>
+                    {rating.assessment && (
+                      <p className="text-sm text-foreground/90 mb-2 leading-relaxed">{rating.assessment}</p>
+                    )}
+                    <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                      <span className={`${scoreColor(rating.score)} font-bold`}>Verdict:</span> {rating.verdict}
+                    </p>
                     {metricEntries.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {metricEntries.map(([label, val]) => (

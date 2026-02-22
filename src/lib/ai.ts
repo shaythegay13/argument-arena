@@ -268,29 +268,48 @@ export async function generateRatingsOnly(
 }
 
 function parseRatingFromText(text: string, persona: Persona): PersonaRating {
-  const scoreMatch = text.match(/SCORE:\s*(\d+)\/10\s*\|\s*(.+?)\.\s*METRICS:\s*(.+)/i);
-  if (scoreMatch) {
-    let rawScore = Math.min(10, Math.max(0, parseInt(scoreMatch[1])));
-    if (persona.inverseScore) rawScore = 10 - rawScore;
+  // Extract the assessment (everything before the SCORE/RATING line)
+  const assessmentText = text.replace(/SCORE:.*$/is, "").replace(/RATING:.*$/is, "").trim();
 
-    const verdictText = scoreMatch[2].trim();
-    const metricsStr = scoreMatch[3];
-    const metrics: Record<string, number> = {};
-    metricsStr.split(",").forEach((m) => {
-      const [label, val] = m.split("=").map((s) => s.trim());
-      if (label && val) metrics[label] = parseInt(val) || 0;
-    });
+  // Try multiple regex patterns for robustness
+  const patterns = [
+    /SCORE:\s*(\d+)\s*\/\s*10\s*\|\s*(.+?)\.\s*METRICS:\s*(.+)/i,
+    /SCORE:\s*(\d+)\s*\/\s*10\s*\|\s*(.+?)\s*METRICS:\s*(.+)/i,
+    /SCORE:\s*(\d+)\s*\/\s*10\s*\|\s*(.+)/i,
+  ];
 
-    return { personaId: persona.id, score: rawScore, verdict: verdictText, metrics };
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      let rawScore = Math.min(10, Math.max(0, parseInt(match[1])));
+      if (persona.inverseScore) rawScore = 10 - rawScore;
+
+      const verdictText = match[2].trim().replace(/\.\s*$/, "");
+      const metrics: Record<string, number> = {};
+      const metricsStr = match[3];
+      if (metricsStr) {
+        metricsStr.split(",").forEach((m) => {
+          const parts = m.split("=").map((s) => s.trim());
+          if (parts[0] && parts[1]) metrics[parts[0]] = parseInt(parts[1]) || 0;
+        });
+      }
+
+      return { personaId: persona.id, score: rawScore, verdict: verdictText, assessment: assessmentText, metrics };
+    }
   }
 
-  const oldMatch = text.match(/RATING:\s*(\d+)\/10\s*\|\s*(.+)/i);
-  let fallbackScore = oldMatch ? Math.min(10, Math.max(0, parseInt(oldMatch[1]))) : 5;
+  // Fallback: try to find any X/10 pattern
+  const anyScoreMatch = text.match(/(\d+)\s*\/\s*10/);
+  let fallbackScore = anyScoreMatch ? Math.min(10, Math.max(0, parseInt(anyScoreMatch[1]))) : 5;
   if (persona.inverseScore) fallbackScore = 10 - fallbackScore;
+
+  console.warn("[parseRating] Could not parse structured score from:", text.slice(-200));
+
   return {
     personaId: persona.id,
     score: fallbackScore,
-    verdict: oldMatch ? oldMatch[2].trim() : "Rating not provided",
+    verdict: assessmentText.split(".").slice(-2).join(".").trim() || "Rating not provided",
+    assessment: assessmentText,
     metrics: {},
   };
 }
