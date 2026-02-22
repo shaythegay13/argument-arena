@@ -118,8 +118,14 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="border-t border-border px-6 py-6">
-        <div className="max-w-5xl mx-auto text-center text-xs text-muted-foreground">
-          Startup Jury AI — Validate your idea before you build.
+        <div className="max-w-5xl mx-auto flex flex-col items-center gap-2 text-xs text-muted-foreground">
+          <span>Startup Jury AI — Validate your idea before you build.</span>
+          <button
+            onClick={() => navigate("/terms")}
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            Terms & Conditions
+          </button>
         </div>
       </footer>
     </div>
