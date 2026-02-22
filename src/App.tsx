@@ -14,6 +14,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAuthenticated from "./pages/TermsAuthenticated";
+import PrivacyPolicyAuthenticated from "./pages/PrivacyPolicyAuthenticated";
 import AcceptTerms from "./pages/AcceptTerms";
 import { Loader2 } from "lucide-react";
 
@@ -78,8 +80,10 @@ const App = () => (
           <Route path="/accept-terms" element={<TermsGate><AcceptTerms /></TermsGate>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/debate" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<AuthRoute><Terms /></AuthRoute>} />
+          <Route path="/privacy" element={<AuthRoute><PrivacyPolicy /></AuthRoute>} />
+          <Route path="/app/terms" element={<ProtectedRoute><TermsAuthenticated /></ProtectedRoute>} />
+          <Route path="/app/privacy" element={<ProtectedRoute><PrivacyPolicyAuthenticated /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
