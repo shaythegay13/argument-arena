@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      debate_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          judge_verdict: Json | null
+          phase: string
+          ratings: Json
+          rounds: Json
+          selected_persona_ids: string[]
+          topic: string
+          updated_at: string
+          user_id: string
+          user_responses: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          judge_verdict?: Json | null
+          phase?: string
+          ratings?: Json
+          rounds?: Json
+          selected_persona_ids?: string[]
+          topic: string
+          updated_at?: string
+          user_id: string
+          user_responses?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          judge_verdict?: Json | null
+          phase?: string
+          ratings?: Json
+          rounds?: Json
+          selected_persona_ids?: string[]
+          topic?: string
+          updated_at?: string
+          user_id?: string
+          user_responses?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
