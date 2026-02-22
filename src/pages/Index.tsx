@@ -11,6 +11,8 @@ import { PERSONAS } from "@/data/personas";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useHostAudio } from "@/hooks/useHostAudio";
+import { useAuth } from "@/hooks/useAuth";
+import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Play, RotateCcw, Loader2, Zap, Users } from "lucide-react";
@@ -56,6 +58,9 @@ const Index = () => {
   const [useAllPersonas, setUseAllPersonas] = useState(true);
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
+
+  const { user } = useAuth();
+  const { saveSession, resetSessionId } = useSessionPersistence(user?.id);
 
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
     useRedisMemory();
@@ -289,17 +294,26 @@ const Index = () => {
     }
   }, [state.topic, state.rounds, state.selectedPersonas, state.ratings, generateClip]);
 
+  // Auto-save session whenever rounds, ratings, or verdict change
+  useEffect(() => {
+    if (state.phase === "setup" || !state.topic) return;
+    if (state.rounds.length === 0) return;
+    saveSession(state);
+  }, [state.rounds, state.ratings, state.judgeVerdict, state.phase, saveSession, state.topic]);
+
   const handleReset = useCallback(() => {
+    resetSessionId();
     setState(initialState);
     setAutoDebate(false);
     setIsAutoResponding(false);
-  }, []);
+  }, [resetSessionId]);
 
   const handleRefine = useCallback(() => {
+    resetSessionId();
     setState((prev) => ({ ...initialState, topic: prev.topic, phase: "setup" }));
     setAutoDebate(false);
     setIsAutoResponding(false);
-  }, []);
+  }, [resetSessionId]);
 
   const isSetup = state.phase === "setup";
   const effectivePersonas = useAllPersonas ? PERSONAS : state.selectedPersonas;
