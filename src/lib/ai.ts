@@ -3,10 +3,11 @@ import { Persona, Round, RoundMessage, PersonaRating } from "@/types/debate";
 
 async function callCompletion(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  model?: string
 ): Promise<string> {
   const { data, error } = await supabase.functions.invoke("debate-ai", {
-    body: { systemPrompt, userPrompt },
+    body: { systemPrompt, userPrompt, ...(model && { model }) },
   });
 
   if (error) {
@@ -433,7 +434,8 @@ export async function generateAutoResponse(
 Experts just said:
 ${expertsBlock}
 
-Respond as the founder in 2-3 sentences, addressing the most critical challenges raised.`
+Respond as the founder in 2-3 sentences, addressing the most critical challenges raised.`,
+    "google/gemini-2.5-flash-lite"
   );
 }
 
