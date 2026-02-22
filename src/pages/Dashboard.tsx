@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Zap, LogOut, Loader2, Trash2, Clock } from "lucide-react";
+import { Zap, LogOut, Loader2, Trash2, Clock, FileText, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { JudgeVerdict } from "@/types/debate";
@@ -79,6 +79,14 @@ const Dashboard = () => {
             >
               <Zap className="w-4 h-4 mr-1.5" />
               New Debate
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/app/terms")} className="text-muted-foreground">
+              <FileText className="w-4 h-4 mr-1.5" />
+              Terms
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/app/privacy")} className="text-muted-foreground">
+              <Shield className="w-4 h-4 mr-1.5" />
+              Privacy
             </Button>
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
               <LogOut className="w-4 h-4 mr-1.5" />
