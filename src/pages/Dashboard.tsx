@@ -80,14 +80,6 @@ const Dashboard = () => {
               <Zap className="w-4 h-4 mr-1.5" />
               New Debate
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/app/terms")} className="text-muted-foreground">
-              <FileText className="w-4 h-4 mr-1.5" />
-              Terms
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/app/privacy")} className="text-muted-foreground">
-              <Shield className="w-4 h-4 mr-1.5" />
-              Privacy
-            </Button>
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
               <LogOut className="w-4 h-4 mr-1.5" />
               Sign Out
@@ -158,6 +150,18 @@ const Dashboard = () => {
           </div>
         )}
       </main>
+
+      <footer className="border-t border-border px-6 py-6 mt-auto">
+        <div className="max-w-5xl mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
+          <button onClick={() => navigate("/app/terms")} className="hover:text-foreground underline underline-offset-2 transition-colors">
+            Terms & Conditions
+          </button>
+          <span>·</span>
+          <button onClick={() => navigate("/app/privacy")} className="hover:text-foreground underline underline-offset-2 transition-colors">
+            Privacy Policy
+          </button>
+        </div>
+      </footer>
     </div>
   );
 };
