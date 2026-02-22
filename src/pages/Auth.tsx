@@ -104,6 +104,14 @@ const Auth = () => {
             {isSignUp ? "Sign Up" : "Sign In"}
           </Button>
 
+          {!isSignUp && (
+            <p className="text-center">
+              <button type="button" onClick={() => navigate("/forgot-password")} className="text-xs text-muted-foreground hover:text-primary hover:underline">
+                Forgot your password?
+              </button>
+            </p>
+          )}
+
           <div className="relative my-2">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border" />
