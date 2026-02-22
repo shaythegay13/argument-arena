@@ -69,31 +69,31 @@ const AcceptTerms = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl space-y-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-6 sm:py-8">
+      <div className="w-full max-w-2xl space-y-4 sm:space-y-6">
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
             <Shield className="w-5 h-5 text-primary" />
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Review Our Policies</h1>
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight">Review Our Policies</h1>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground px-2">
             Please review and accept our Terms of Service and Privacy Policy to continue.
           </p>
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-6 space-y-5">
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4 sm:space-y-5">
           <Tabs defaultValue="terms">
             <TabsList className="w-full">
               <TabsTrigger value="terms" className="flex-1">Terms of Service</TabsTrigger>
               <TabsTrigger value="privacy" className="flex-1">Privacy Policy</TabsTrigger>
             </TabsList>
             <TabsContent value="terms">
-              <ScrollArea className="h-72 rounded-md border border-border p-4 mt-3">
+              <ScrollArea className="h-56 sm:h-72 rounded-md border border-border p-3 sm:p-4 mt-3">
                 {renderSections(termsContent)}
               </ScrollArea>
             </TabsContent>
             <TabsContent value="privacy">
-              <ScrollArea className="h-72 rounded-md border border-border p-4 mt-3">
+              <ScrollArea className="h-56 sm:h-72 rounded-md border border-border p-3 sm:p-4 mt-3">
                 {renderSections(privacyContent)}
               </ScrollArea>
             </TabsContent>

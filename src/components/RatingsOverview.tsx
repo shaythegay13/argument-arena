@@ -65,15 +65,15 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
   const badge = avgRating !== null ? verdictBadge(avgRating) : null;
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-card p-6 stage-glow space-y-4">
+    <div className="rounded-lg border border-primary/20 bg-card p-4 sm:p-6 stage-glow space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
         <Star className="w-4 h-4 text-primary" />
         <h3 className="text-sm font-mono uppercase tracking-widest text-primary font-semibold">
           Final Scores
         </h3>
         {avgRating !== null && badge && (
-          <div className="ml-auto flex items-center gap-2">
+          <div className="sm:ml-auto flex items-center gap-2">
             <span className="text-2xl font-bold text-primary">{avgRating}/10</span>
             <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${badge.color}`}>
               {badge.emoji} {badge.label}

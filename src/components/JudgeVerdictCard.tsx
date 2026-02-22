@@ -58,17 +58,17 @@ export default function JudgeVerdictCard({
           <span className="text-sm">Jury deliberating…</span>
         </div>
       ) : verdict ? (
-        <div className="p-6 space-y-5">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           {/* Verdict badge + score */}
           <motion.div
             initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: [1, 1.04, 1], opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className={`inline-flex items-center gap-3 px-5 py-3 rounded-lg border ${verdictConfig[verdict.verdict].bg} ${verdictConfig[verdict.verdict].border}`}
+            className={`inline-flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2 sm:py-3 rounded-lg border ${verdictConfig[verdict.verdict].bg} ${verdictConfig[verdict.verdict].border}`}
           >
-            <span className="text-3xl">{verdictConfig[verdict.verdict].emoji}</span>
+            <span className="text-2xl sm:text-3xl">{verdictConfig[verdict.verdict].emoji}</span>
             <div>
-              <p className={`text-xl font-bold ${verdictConfig[verdict.verdict].color}`}>
+              <p className={`text-lg sm:text-xl font-bold ${verdictConfig[verdict.verdict].color}`}>
                 {verdictConfig[verdict.verdict].label}
               </p>
               <p className="text-sm text-muted-foreground font-mono">

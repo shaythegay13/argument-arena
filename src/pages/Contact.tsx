@@ -59,17 +59,17 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-6 py-4">
+      <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <span className="text-lg font-semibold text-foreground tracking-tight">Contact Us</span>
+          <span className="text-base sm:text-lg font-semibold text-foreground tracking-tight">Contact Us</span>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-6 py-12">
-        <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-6 space-y-4">
+      <main className="max-w-lg mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Name</label>
             <Input

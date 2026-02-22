@@ -29,7 +29,7 @@ export default function RoundTimeline({
   const judgeEnabled = phase === "final-ratings" || phase === "judge";
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
       <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground mr-1">
         Rounds
       </span>
@@ -44,7 +44,7 @@ export default function RoundTimeline({
             onClick={() => completed && onSelectRound(round)}
             disabled={!completed}
             className={`
-              flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-mono font-semibold transition-all
+              flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-mono font-semibold transition-all
               ${isCurrent
                 ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                 : completed
@@ -64,7 +64,7 @@ export default function RoundTimeline({
         onClick={() => gradesEnabled && onGradesClick?.()}
         disabled={!gradesEnabled}
         className={`
-          flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-mono font-semibold transition-all
+          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-mono font-semibold transition-all
           ${gradesActive
             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
             : gradesEnabled
@@ -82,7 +82,7 @@ export default function RoundTimeline({
         onClick={() => judgeEnabled && onJudgeClick?.()}
         disabled={!judgeEnabled}
         className={`
-          flex items-center gap-1.5 px-3 h-8 rounded-md text-xs font-mono font-semibold transition-all
+          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-mono font-semibold transition-all
           ${judgeActive
             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
             : judgeEnabled

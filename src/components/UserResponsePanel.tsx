@@ -26,7 +26,7 @@ export default function UserResponsePanel({
     : `Send & Start Round ${roundNumber + 1}`;
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-card p-6 stage-glow space-y-4">
+    <div className="rounded-lg border border-primary/20 bg-card p-4 sm:p-6 stage-glow space-y-3 sm:space-y-4">
       <div className="space-y-3">
         <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground">
           Your Follow-Up
