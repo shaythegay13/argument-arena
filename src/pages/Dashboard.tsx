@@ -32,6 +32,16 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadSessions();
+
+    // Show welcome toast for first-time sign-in
+    const welcomeKey = "startup_jury_welcomed";
+    if (!localStorage.getItem(welcomeKey)) {
+      localStorage.setItem(welcomeKey, "true");
+      toast({
+        title: "Welcome to Startup Jury AI! 🎉",
+        description: "You're all set. Start a new debate to pitch your idea to AI judges.",
+      });
+    }
   }, []);
 
   const loadSessions = async () => {
