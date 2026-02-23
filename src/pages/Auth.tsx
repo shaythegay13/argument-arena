@@ -24,7 +24,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/auth` },
         });
         if (error) throw error;
         toast({
@@ -133,7 +133,7 @@ const Auth = () => {
             className="w-full border-border text-foreground hover:bg-muted/50"
             onClick={async () => {
               const { error } = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+                redirect_uri: `${window.location.origin}/auth`,
               });
               if (error) {
                 toast({ title: "Google sign-in failed", description: String(error), variant: "destructive" });
