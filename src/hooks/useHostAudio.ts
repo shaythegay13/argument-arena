@@ -39,13 +39,12 @@ Rules:
 - Keep it under 200 words — this will be read aloud
 - Be energetic, professional, and direct
 - Speak in second person to the founder ("Your idea…", "The panel thinks…")
-- Do NOT use markdown, bullet points, or special formatting — write it as natural speech`;
+- Do NOT use markdown, bullet points, or special formatting — write it as natural speech
 
-  const userPrompt = `Here are the ${round.messages.length} panelist responses from Round ${roundNumber}:
+Panelist responses from Round ${roundNumber}:
+${panelResponses}${userPart}`;
 
-${panelResponses}${userPart}
-
-Deliver your host recap summary.`;
+  const userPrompt = `Deliver your spoken host recap summary for Round ${roundNumber} now.`;
 
   try {
     const { data, error } = await supabase.functions.invoke("debate-ai", {
