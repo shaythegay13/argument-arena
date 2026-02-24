@@ -79,7 +79,7 @@ export function useSessionPersistence(userId: string | undefined) {
         userResponse: "",
         ratings: (data.ratings || []) as any[],
         isGeneratingRatings: false,
-        phase: data.phase || "setup",
+        phase: (data.phase as DebateState["phase"]) || "setup",
         judgeVerdict: data.judge_verdict as any,
         isGeneratingJudge: false,
       };
