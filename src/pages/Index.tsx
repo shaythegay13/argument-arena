@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import DebateTable from "@/components/DebateTable";
@@ -70,6 +71,7 @@ const Index = () => {
   const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current);
   const { saveSession, loadSession, resetSessionId } = useSessionPersistence(user?.id);
 
+  const { toast } = useToast();
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
     useRedisMemory();
   const { clips, isGenerating: isGeneratingClip, generateClip } = useHostAudio();
@@ -155,6 +157,7 @@ const Index = () => {
       judgeVerdict: null,
     }));
 
+    try {
     const messages = await generateRound1(
       state.topic,
       personas,
@@ -179,7 +182,12 @@ const Index = () => {
     }));
 
     generateClip(1, personas, { roundNumber: 1, messages });
-  }, [state.topic, state.selectedPersonas, useAllPersonas, storeRoundMemories, generateClip]);
+    } catch (err) {
+      console.error("[Round 1] Generation failed:", err);
+      setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+      toast({ title: "Generation failed", description: "Could not start the debate. Please try again.", variant: "destructive" });
+    }
+  }, [state.topic, state.selectedPersonas, useAllPersonas, storeRoundMemories, generateClip, toast]);
 
   const allResponsesReady =
     currentRound &&
@@ -208,51 +216,57 @@ const Index = () => {
         userResponse: "",
       }));
 
-      const messages = await generateNextRound(
-        state.topic,
-        nextRoundNum,
-        state.selectedPersonas,
-        previousRound,
-        userResponse,
-        (personaId, text) => {
-          setState((prev) => {
-            const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
-            const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
-            const updatedRounds = existingRound
-              ? prev.rounds.map((r) =>
-                  r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r
-                )
-              : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
-            return {
-              ...prev,
-              generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
-              rounds: updatedRounds,
-            };
-          });
-        },
-        getRecentMemories
-      );
+      try {
+        const messages = await generateNextRound(
+          state.topic,
+          nextRoundNum,
+          state.selectedPersonas,
+          previousRound,
+          userResponse,
+          (personaId, text) => {
+            setState((prev) => {
+              const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
+              const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
+              const updatedRounds = existingRound
+                ? prev.rounds.map((r) =>
+                    r.roundNumber === nextRoundNum ? { ...r, messages: updatedMessages } : r
+                  )
+                : [...prev.rounds, { roundNumber: nextRoundNum, messages: updatedMessages }];
+              return {
+                ...prev,
+                generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
+                rounds: updatedRounds,
+              };
+            });
+          },
+          getRecentMemories
+        );
 
-      const responseMap: Record<string, string> = {};
-      messages.forEach((m) => { responseMap[m.personaId] = m.text; });
-      await storeRoundMemories(
-        state.selectedPersonas.map((p) => p.id),
-        state.topic,
-        nextRoundNum,
-        userResponse,
-        responseMap
-      );
+        const responseMap: Record<string, string> = {};
+        messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+        await storeRoundMemories(
+          state.selectedPersonas.map((p) => p.id),
+          state.topic,
+          nextRoundNum,
+          userResponse,
+          responseMap
+        );
 
-      setState((prev) => {
-        const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
-          ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
-          : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
-        return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds };
-      });
+        setState((prev) => {
+          const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
+            ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
+            : [...prev.rounds, { roundNumber: nextRoundNum, messages }];
+          return { ...prev, isGenerating: false, generatingPersonaIds: [], rounds: updatedRounds };
+        });
 
-      generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
+        generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
+      } catch (err) {
+        console.error(`[Round ${nextRoundNum}] Generation failed:`, err);
+        setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+        toast({ title: "Generation failed", description: "The panel couldn't respond. Please try submitting again.", variant: "destructive" });
+      }
     },
-    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip]
+    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, toast]
   );
 
   const handleGenerateRatings = useCallback(async () => {
