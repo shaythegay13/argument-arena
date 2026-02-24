@@ -15,7 +15,7 @@ const ALLOWED_MODELS = [
   "openai/gpt-5-mini",
 ];
 
-const MAX_PROMPT_LENGTH = 5000;
+const MAX_PROMPT_LENGTH = 20000;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
