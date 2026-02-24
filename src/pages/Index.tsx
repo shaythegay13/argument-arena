@@ -96,6 +96,11 @@ const Index = () => {
         if (loadedState) {
           setState(loadedState);
           setUseAllPersonas(loadedState.selectedPersonas.length === PERSONAS.length);
+
+          // Regenerate host recap clips for every round already in the session
+          loadedState.rounds.forEach((round) => {
+            generateClip(round.roundNumber, loadedState.selectedPersonas, round);
+          });
         }
         setSearchParams({});
       })
@@ -106,7 +111,7 @@ const Index = () => {
       .finally(() => {
         setIsLoadingSession(false);
       });
-  }, [authLoading, user?.id, loadSession, setSearchParams]);
+  }, [authLoading, user?.id, loadSession, setSearchParams, generateClip]);
 
   const currentRound = state.rounds.find((r) => r.roundNumber === state.currentRoundNumber);
 
