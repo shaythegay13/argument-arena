@@ -56,11 +56,8 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
-function getWordLimit(roundNumber: number): number {
-  if (roundNumber === 1) return 100;
-  if (roundNumber === 2) return 75;
-  if (roundNumber === 3) return 50;
-  return 50;
+function getWordLimit(_roundNumber: number): number {
+  return 500;
 }
 
 function buildRound1Prompt(topic: string): string {
@@ -68,7 +65,7 @@ function buildRound1Prompt(topic: string): string {
 
 You are on a debate stage with other startup experts. This is Round 1. Give a concise reaction to this idea, in your own voice. Be specific and direct. End with 1-2 pointed questions for the founder.
 
-Keep your response under 100 words.`;
+Keep your response under 500 words.`;
 }
 
 // Max chars per message when used as context in the system prompt.
@@ -105,11 +102,14 @@ function buildRoundNPrompt(
 Previous round statements from your fellow panelists:
 ${prevMessages}`;
 
+  // Truncate founder response in context to keep userPrompt under the 5000-char edge function limit.
+  const founderCtx = userResponse.length > 4200 ? userResponse.slice(0, 4200) + "…" : userResponse;
+
   const userPrompt = `Topic/Idea: "${topic}"
 
-The founder responded: "${userResponse}"
+The founder responded: "${founderCtx}"
 
-This is Round ${roundNumber}. Respond briefly to the idea, the founder's response, and to 1–2 key points made by the others in the last round. Refer to them by role (e.g., "the angel investor", "the skeptic"). Be direct and specific. End with 1-2 new questions for the founder.
+This is Round ${roundNumber}. Respond to the idea, the founder's response, and to 1–2 key points made by the others in the last round. Refer to them by role (e.g., "the angel investor", "the skeptic"). Be direct and specific. End with 1-2 new questions for the founder.
 
 Keep your response under ${wordLimit} words.`;
 
@@ -156,12 +156,12 @@ ${memoryBlock}
 Full debate transcript:
 ${roundsText}
 
-The founder's latest response: "${userResponse}"
+The founder's latest response: "${userResponse.length > 4200 ? userResponse.slice(0, 4200) + "…" : userResponse}"
 
 YOUR SCORING CRITERIA:
 ${weightsBlock}${inverseNote}
 
-This is the FINAL round. Give your final 2-3 sentence verdict on this business idea based on your criteria above, then score it.
+This is the FINAL round. Give your verdict on this business idea (up to 500 words) based on your criteria above, then score it.
 
 You MUST end your response with exactly this format on a new line:
 SCORE: [0-10]/10 | [one-sentence verdict]. METRICS: ${metricsFormat}

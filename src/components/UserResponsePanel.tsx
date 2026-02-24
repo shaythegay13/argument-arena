@@ -25,6 +25,10 @@ export default function UserResponsePanel({
   const userResponseRef = useRef(userResponse);
   useEffect(() => { userResponseRef.current = userResponse; }, [userResponse]);
 
+  const MAX_WORDS = 1000;
+  const wordCount = userResponse.trim() ? userResponse.trim().split(/\s+/).length : 0;
+  const overLimit = wordCount > MAX_WORDS;
+
   const isFinal = roundNumber + 1 >= maxRounds;
   const label = isFinal
     ? `Send & Get Final Round (${roundNumber + 1}/${maxRounds})`
@@ -33,9 +37,14 @@ export default function UserResponsePanel({
   return (
     <div className="rounded-lg border border-primary/20 bg-card p-4 sm:p-6 stage-glow space-y-3 sm:space-y-4">
       <div className="space-y-3">
-        <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground">
-          Your Follow-Up
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground">
+            Your Follow-Up
+          </label>
+          <span className={`text-xs font-mono ${overLimit ? "text-destructive" : "text-muted-foreground"}`}>
+            {wordCount} / {MAX_WORDS} words
+          </span>
+        </div>
         <Textarea
           placeholder="Address the panel's questions, provide more details about your idea, or challenge their assumptions…"
           value={userResponse}
@@ -52,7 +61,7 @@ export default function UserResponsePanel({
         />
         <Button
           onClick={onSubmit}
-          disabled={!userResponse.trim() || isGenerating}
+          disabled={!userResponse.trim() || isGenerating || overLimit}
           className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
         >
           {isGenerating ? (
