@@ -68,9 +68,9 @@ You are on a debate stage with other startup experts. This is Round 1. Give a co
 Keep your response under 500 words.`;
 }
 
-// Max chars per message when used as context in the system prompt.
-// Each persona instruction is ~500 chars; with 8 messages at 450 chars + headers we stay under 5000.
-const MAX_CTX_CHARS = 450;
+// Max chars per previous message in system context.
+// Budget: 5000 - ~500 (persona) - ~1600 (3 memory entries) - ~100 (headers) = 2800 → 2800/8 = 350. Use 280 for safety.
+const MAX_CTX_CHARS = 280;
 
 function truncateForContext(text: string): string {
   return text.length > MAX_CTX_CHARS ? text.slice(0, MAX_CTX_CHARS) + "…" : text;
@@ -92,8 +92,9 @@ function buildRoundNPrompt(
     })
     .join("\n\n");
 
+  // Hard cap on memory to prevent accumulated entries from overflowing systemPrompt
   const memoryBlock = personaMemory
-    ? `\nMEMORY (your past notes on this founder):\n${personaMemory}\n`
+    ? `\nMEMORY (your past notes):\n${personaMemory.slice(0, 1200)}\n`
     : "";
 
   // Previous round context goes into systemPrompt (appended to persona character) to avoid
@@ -103,7 +104,7 @@ Previous round statements from your fellow panelists:
 ${prevMessages}`;
 
   // Truncate founder response in context to keep userPrompt under the 5000-char edge function limit.
-  const founderCtx = userResponse.length > 4200 ? userResponse.slice(0, 4200) + "…" : userResponse;
+  const founderCtx = userResponse.length > 3000 ? userResponse.slice(0, 3000) + "…" : userResponse;
 
   const userPrompt = `Topic/Idea: "${topic}"
 
@@ -156,7 +157,7 @@ ${memoryBlock}
 Full debate transcript:
 ${roundsText}
 
-The founder's latest response: "${userResponse.length > 4200 ? userResponse.slice(0, 4200) + "…" : userResponse}"
+The founder's latest response: "${userResponse.length > 2000 ? userResponse.slice(0, 2000) + "…" : userResponse}"
 
 YOUR SCORING CRITERIA:
 ${weightsBlock}${inverseNote}
@@ -378,12 +379,14 @@ You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
 "strengths" must be an array of exactly 3 strings
 "risks" must be an array of exactly 2 strings`;
 
+  // Truncate each message to 80 chars so 4 rounds × 8 personas fits in userPrompt under 5000 chars.
   const roundsText = rounds
     .map((round) => {
       const msgs = round.messages
         .map((m) => {
           const p = personas.find((p) => p.id === m.personaId);
-          return `  ${p?.subtitle ?? "Expert"}: "${m.text}"`;
+          const snippet = m.text.length > 80 ? m.text.slice(0, 80) + "…" : m.text;
+          return `  ${p?.subtitle ?? "Expert"}: "${snippet}"`;
         })
         .join("\n");
       return `Round ${round.roundNumber}:\n${msgs}`;

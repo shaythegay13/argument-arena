@@ -109,7 +109,12 @@ export function useRedisMemory() {
       await Promise.all(
         activePersonaIds.map((pid) => {
           const myResponse = personaResponses[pid] ?? "";
-          const memText = `Round ${roundNumber}: User pitched "${topic}". Follow-up: "${userFollowUp}". My take: "${myResponse.slice(0, 200)}"`;
+          // Each entry is one round only — no topic repetition.
+          // Founder response and juror take are each capped at 300 chars so
+          // 3 accumulated entries stay well under the 5000-char systemPrompt limit.
+          const founderSnippet = userFollowUp.slice(0, 300);
+          const mySnippet = myResponse.slice(0, 300);
+          const memText = `Round ${roundNumber} | Founder: "${founderSnippet}" | My take: "${mySnippet}"`;
           return storeMemory(pid, memText);
         })
       );
