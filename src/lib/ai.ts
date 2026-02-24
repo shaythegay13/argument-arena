@@ -78,7 +78,7 @@ function buildRoundNPrompt(
   allPersonas: Persona[],
   userResponse: string,
   personaMemory?: string
-): string {
+): { systemContext: string; userPrompt: string } {
   const wordLimit = getWordLimit(roundNumber);
   const prevMessages = previousRound.messages
     .map((m) => {
@@ -91,16 +91,21 @@ function buildRoundNPrompt(
     ? `\nMEMORY (your past notes on this founder):\n${personaMemory}\n`
     : "";
 
-  return `Topic/Idea: "${topic}"
-${memoryBlock}
-Previous round statements:
-${prevMessages}
+  // Previous round context goes into systemPrompt (appended to persona character) to avoid
+  // the 5000-char userPrompt limit on the edge function. Total info is identical.
+  const systemContext = `${memoryBlock}
+Previous round statements from your fellow panelists:
+${prevMessages}`;
+
+  const userPrompt = `Topic/Idea: "${topic}"
 
 The founder responded: "${userResponse}"
 
 This is Round ${roundNumber}. Respond briefly to the idea, the founder's response, and to 1–2 key points made by the others in the last round. Refer to them by role (e.g., "the angel investor", "the skeptic"). Be direct and specific. End with 1-2 new questions for the founder.
 
 Keep your response under ${wordLimit} words.`;
+
+  return { systemContext, userPrompt };
 }
 
 function buildFinalRatingPrompt(
@@ -193,9 +198,9 @@ export async function generateNextRound(
 
   await Promise.all(
     shuffled.map(async (persona) => {
-      const system = enrichSystemPrompt(persona, topic);
       const memory = getMemory?.(persona.id);
-      const userPrompt = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
+      const { systemContext, userPrompt } = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
+      const system = enrichSystemPrompt(persona, topic) + "\n\n" + systemContext;
       const text = await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
