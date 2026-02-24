@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { DebateState } from "@/types/debate";
+import { PERSONAS } from "@/data/personas";
 
 export function useSessionPersistence(userId: string | undefined) {
   const sessionIdRef = useRef<string | null>(null);
@@ -37,9 +38,63 @@ export function useSessionPersistence(userId: string | undefined) {
     [userId]
   );
 
+  const loadSession = useCallback(
+    async (sessionId: string): Promise<DebateState | null> => {
+      if (!userId) return null;
+
+      const { data, error } = await supabase
+        .from("debate_sessions")
+        .select("*")
+        .eq("id", sessionId)
+        .eq("user_id", userId)
+        .single();
+
+      if (error || !data) {
+        console.error("Failed to load session:", error);
+        return null;
+      }
+
+      // Reconstruct the personas from the IDs
+      const selectedPersonas = PERSONAS.filter((p) =>
+        data.selected_persona_ids?.includes(p.id)
+      );
+
+      // Determine the current round number
+      const rounds = (data.rounds || []) as any[];
+      const currentRoundNumber =
+        data.phase === "setup"
+          ? 0
+          : data.phase === "debating"
+          ? rounds.length || 1
+          : rounds.length;
+
+      const state: DebateState = {
+        topic: data.topic || "",
+        selectedPersonas,
+        rounds: rounds,
+        currentRoundNumber,
+        isGenerating: false,
+        generatingPersonaIds: [],
+        expandedPersonaId: null,
+        userResponse: "",
+        ratings: (data.ratings || []) as any[],
+        isGeneratingRatings: false,
+        phase: data.phase || "setup",
+        judgeVerdict: data.judge_verdict as any,
+        isGeneratingJudge: false,
+      };
+
+      // Set the session ID so future saves update this session
+      sessionIdRef.current = sessionId;
+
+      return state;
+    },
+    [userId]
+  );
+
   const resetSessionId = useCallback(() => {
     sessionIdRef.current = null;
   }, []);
 
-  return { saveSession, resetSessionId, sessionId: sessionIdRef };
+  return { saveSession, loadSession, resetSessionId, sessionId: sessionIdRef };
 }

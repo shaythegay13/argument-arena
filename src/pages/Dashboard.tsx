@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Zap, LogOut, Loader2, Trash2, Clock, FileText, Shield, Mail, LayoutDashboard } from "lucide-react";
+import { Zap, Loader2, Trash2, Clock, CheckCircle2, Timer } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { JudgeVerdict } from "@/types/debate";
+
+type FilterOption = "all" | "in-progress" | "finished";
 
 interface SessionRow {
   id: string;
@@ -15,6 +17,7 @@ interface SessionRow {
   judge_verdict: JudgeVerdict | null;
   created_at: string;
   selected_persona_ids: string[];
+  rounds: any[];
 }
 
 function verdictColor(verdict?: string) {
@@ -24,9 +27,26 @@ function verdictColor(verdict?: string) {
   return "text-muted-foreground border-border bg-muted/30";
 }
 
+function isFinished(session: SessionRow) {
+  return (
+    (session.phase === "judge" && !!session.judge_verdict) ||
+    session.phase === "final-ratings"
+  );
+}
+
+function getPhaseDescription(phase: string, rounds?: any[], judgeVerdict?: any) {
+  if (phase === "judge" && judgeVerdict) return "Completed · View verdict";
+  if (phase === "final-ratings") return "Completed · View grades";
+  if (phase === "debating" && rounds) {
+    return `Round ${rounds.length}/4 complete`;
+  }
+  return "Not started";
+}
+
 const Dashboard = () => {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterOption>("all");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,7 +68,7 @@ const Dashboard = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("debate_sessions")
-      .select("id, topic, phase, judge_verdict, created_at, selected_persona_ids")
+      .select("id, topic, phase, judge_verdict, created_at, selected_persona_ids, rounds")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -87,7 +107,35 @@ const Dashboard = () => {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
-        <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Past Sessions</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Past Sessions</h2>
+
+          {/* Filter toggle */}
+          {!loading && sessions.length > 0 && (
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/40 border border-border w-fit">
+              {(["all", "in-progress", "finished"] as FilterOption[]).map((opt) => {
+                const labels: Record<FilterOption, string> = {
+                  all: "All",
+                  "in-progress": "In Progress",
+                  finished: "Finished",
+                };
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => setFilter(opt)}
+                    className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                      filter === opt
+                        ? "bg-background text-foreground shadow-sm border border-border"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {labels[opt]}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {loading ? (
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -105,50 +153,88 @@ const Dashboard = () => {
               Start Your First Debate
             </Button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {sessions.map((session, i) => {
-              const v = session.judge_verdict;
-              return (
-                <motion.div
-                  key={session.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04, duration: 0.3 }}
-                  className="rounded-lg border border-border bg-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Clock className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(session.created_at).toLocaleDateString()}
-                      </span>
-                      <span className="text-xs text-muted-foreground capitalize">• {session.phase}</span>
+        ) : (() => {
+          const filtered = sessions.filter((s) => {
+            if (filter === "finished") return isFinished(s);
+            if (filter === "in-progress") return !isFinished(s);
+            return true;
+          });
+
+          if (filtered.length === 0) {
+            return (
+              <p className="text-sm text-muted-foreground">
+                No {filter === "finished" ? "finished" : "in-progress"} sessions.
+              </p>
+            );
+          }
+
+          return (
+            <div className="space-y-3">
+              {filtered.map((session, i) => {
+                const v = session.judge_verdict;
+                const done = isFinished(session);
+                return (
+                  <motion.div
+                    key={session.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.3 }}
+                    className={`rounded-lg border bg-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group cursor-pointer transition-all ${
+                      done
+                        ? "border-border hover:border-green-500/40 hover:bg-card/80"
+                        : "border-amber-500/30 hover:border-amber-500/60 hover:bg-card/80"
+                    }`}
+                    onClick={() => navigate(`/debate?session=${session.id}`)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
+                        {done ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 shrink-0">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Finished
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 shrink-0">
+                            <Timer className="w-3 h-3" />
+                            In Progress
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(session.created_at).toLocaleDateString()}
+                        </span>
+                        <span className="text-xs text-muted-foreground">· {getPhaseDescription(session.phase, session.rounds, session.judge_verdict)}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    {v && (
-                      <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
-                        {v.verdict} — {v.overallScore}/10
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      {v && (
+                        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
+                          {v.verdict} — {v.overallScore}/10
+                        </span>
+                      )}
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(session.id)}
-                      className="sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity ml-auto sm:ml-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(session.id);
+                        }}
+                        className="sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity ml-auto sm:ml-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </main>
 
       <footer className="border-t border-border px-4 sm:px-6 py-6 mt-auto">

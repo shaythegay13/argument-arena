@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Persona, DebateState, Round } from "@/types/debate";
 import {
   generateRound1,
@@ -62,8 +62,13 @@ const Index = () => {
   const [isAutoResponding, setIsAutoResponding] = useState(false);
 
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { saveSession, resetSessionId } = useSessionPersistence(user?.id);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
+
+  // Capture the session param once at mount so it survives URL clearing
+  const sessionParamRef = useRef(searchParams.get("session"));
+  const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current);
+  const { saveSession, loadSession, resetSessionId } = useSessionPersistence(user?.id);
 
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
     useRedisMemory();
@@ -71,6 +76,37 @@ const Index = () => {
 
   useDebateAgentState(state);
   console.log("[RedisMemory] Session:", sessionId, "| Mock:", usingMock);
+
+  // Load session from URL parameter — wait for auth to resolve first so userId is available
+  useEffect(() => {
+    const sessionId = sessionParamRef.current;
+    if (!sessionId) return;       // no session param in URL
+    if (authLoading) return;      // wait for auth to finish
+    if (!user?.id) {              // not logged in — bail out
+      setIsLoadingSession(false);
+      setSearchParams({});
+      sessionParamRef.current = null;
+      return;
+    }
+
+    sessionParamRef.current = null; // prevent double-load
+
+    loadSession(sessionId)
+      .then((loadedState) => {
+        if (loadedState) {
+          setState(loadedState);
+          setUseAllPersonas(loadedState.selectedPersonas.length === PERSONAS.length);
+        }
+        setSearchParams({});
+      })
+      .catch((err) => {
+        console.error("Failed to load session:", err);
+        setSearchParams({});
+      })
+      .finally(() => {
+        setIsLoadingSession(false);
+      });
+  }, [authLoading, user?.id, loadSession, setSearchParams]);
 
   const currentRound = state.rounds.find((r) => r.roundNumber === state.currentRoundNumber);
 
@@ -322,6 +358,18 @@ const Index = () => {
   const effectivePersonas = useAllPersonas ? PERSONAS : state.selectedPersonas;
   const canStart = state.topic.trim().length > 0 && effectivePersonas.length >= 2;
   const isLiveDebating = state.phase === "debating" && state.isGenerating;
+
+  // Show loading indicator while loading session
+  if (isLoadingSession) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
