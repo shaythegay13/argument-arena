@@ -60,7 +60,7 @@ function getWordLimit(roundNumber: number): number {
   if (roundNumber === 1) return 100;
   if (roundNumber === 2) return 75;
   if (roundNumber === 3) return 50;
-  return 0;
+  return 50;
 }
 
 function buildRound1Prompt(topic: string): string {
@@ -124,20 +124,19 @@ function buildFinalRatingPrompt(
   persona: Persona,
   personaMemory?: string
 ): string {
+  // Keep memory concise to stay under the 5000-char field limit
   const memoryBlock = personaMemory
-    ? `\nMEMORY (your past notes on this founder):\n${personaMemory}\n`
+    ? `\nYour past notes: ${personaMemory.slice(0, 300)}\n`
     : "";
+  // Only include this persona's own statements per round (not all 8 panelists)
+  // to keep userPrompt well under the 5000-char edge function limit.
   const roundsText = allRounds
     .map((round) => {
-      const msgs = round.messages
-        .map((m) => {
-          const p = allPersonas.find((p) => p.id === m.personaId);
-          return `  ${p?.subtitle ?? "Expert"}: "${m.text}"`;
-        })
-        .join("\n");
-      return `Round ${round.roundNumber}:\n${msgs}`;
+      const myMsg = round.messages.find((m) => m.personaId === persona.id);
+      const snippet = myMsg ? myMsg.text.slice(0, 300) : "(no response)";
+      return `Round ${round.roundNumber}: "${snippet}"`;
     })
-    .join("\n\n");
+    .join("\n");
 
   const weightsBlock = persona.scoringWeights
     .map((w) => `- ${w.label}: ${Math.round(w.weight * 100)}% weight`)
@@ -244,7 +243,7 @@ export async function generateFinalRatings(
   const messages: RoundMessage[] = [];
   const ratings: PersonaRating[] = [];
 
-  await Promise.all(
+  await Promise.allSettled(
     personas.map(async (persona) => {
       const system =
         enrichSystemPrompt(persona, topic) +
@@ -252,14 +251,18 @@ export async function generateFinalRatings(
         persona.scoringWeights.map((w) => `${w.label}=[0-10]`).join(", ");
       const memory = getMemory?.(persona.id);
       const userPrompt = buildFinalRatingPrompt(topic, allRounds, personas, userResponse, persona, memory);
-      const text = await callCompletion(system, userPrompt);
-      const msg: RoundMessage = { personaId: persona.id, text };
-      messages.push(msg);
-
-      const parsed = parseRatingFromText(text, persona);
-      ratings.push(parsed);
-
-      onPersonaComplete(persona.id, text);
+      try {
+        const text = await callCompletion(system, userPrompt);
+        messages.push({ personaId: persona.id, text });
+        ratings.push(parseRatingFromText(text, persona));
+        onPersonaComplete(persona.id, text);
+      } catch (err) {
+        console.error(`[FinalRating] ${persona.id} failed:`, err);
+        const fallback = "Unable to provide a final rating.";
+        messages.push({ personaId: persona.id, text: fallback });
+        ratings.push(parseRatingFromText(fallback, persona));
+        onPersonaComplete(persona.id, fallback);
+      }
     })
   );
 
@@ -276,7 +279,7 @@ export async function generateRatingsOnly(
 ): Promise<PersonaRating[]> {
   const ratings: PersonaRating[] = [];
 
-  await Promise.all(
+  await Promise.allSettled(
     personas.map(async (persona) => {
       const system =
         enrichSystemPrompt(persona, topic) +
@@ -284,11 +287,17 @@ export async function generateRatingsOnly(
         persona.scoringWeights.map((w) => `${w.label}=[0-10]`).join(", ");
       const memory = getMemory?.(persona.id);
       const userPrompt = buildFinalRatingPrompt(topic, allRounds, personas, lastUserResponse, persona, memory);
-      const text = await callCompletion(system, userPrompt);
-
-      const rating = parseRatingFromText(text, persona);
-      ratings.push(rating);
-      onRatingComplete(persona.id, rating);
+      try {
+        const text = await callCompletion(system, userPrompt);
+        const rating = parseRatingFromText(text, persona);
+        ratings.push(rating);
+        onRatingComplete(persona.id, rating);
+      } catch (err) {
+        console.error(`[RatingsOnly] ${persona.id} failed:`, err);
+        const rating = parseRatingFromText("", persona);
+        ratings.push(rating);
+        onRatingComplete(persona.id, rating);
+      }
     })
   );
 
