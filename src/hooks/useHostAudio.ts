@@ -9,18 +9,24 @@ interface HostClip {
   isLoading: boolean;
 }
 
+// Per-message char budget for host recap context.
+// Rules block ~630 chars + 8 messages at 480 chars + separators stays well under 5000.
+const MAX_RECAP_CHARS = 480;
+
 async function buildRoundScript(
   roundNumber: number,
   personas: Persona[],
   round: Round,
   userResponse?: string
 ): Promise<string> {
-  // Build full context for AI summarization
+  // Build context for AI summarization, truncating each response to fit within the
+  // 5000-char systemPrompt limit on the edge function.
   const panelResponses = round.messages.map((m) => {
     const p = personas.find((p) => p.id === m.personaId);
     const name = p?.name ?? "Panelist";
     const role = p?.subtitle ?? "Expert";
-    return `${name} (${role}):\n${m.text}`;
+    const text = m.text.length > MAX_RECAP_CHARS ? m.text.slice(0, MAX_RECAP_CHARS) + "…" : m.text;
+    return `${name} (${role}):\n${text}`;
   }).join("\n\n---\n\n");
 
   const userPart = userResponse

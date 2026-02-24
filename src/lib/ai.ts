@@ -71,6 +71,14 @@ You are on a debate stage with other startup experts. This is Round 1. Give a co
 Keep your response under 100 words.`;
 }
 
+// Max chars per message when used as context in the system prompt.
+// Each persona instruction is ~500 chars; with 8 messages at 450 chars + headers we stay under 5000.
+const MAX_CTX_CHARS = 450;
+
+function truncateForContext(text: string): string {
+  return text.length > MAX_CTX_CHARS ? text.slice(0, MAX_CTX_CHARS) + "…" : text;
+}
+
 function buildRoundNPrompt(
   topic: string,
   roundNumber: number,
@@ -83,7 +91,7 @@ function buildRoundNPrompt(
   const prevMessages = previousRound.messages
     .map((m) => {
       const p = allPersonas.find((p) => p.id === m.personaId);
-      return `${p?.subtitle ?? "Expert"}: "${m.text}"`;
+      return `${p?.subtitle ?? "Expert"}: "${truncateForContext(m.text)}"`;
     })
     .join("\n\n");
 
@@ -92,7 +100,7 @@ function buildRoundNPrompt(
     : "";
 
   // Previous round context goes into systemPrompt (appended to persona character) to avoid
-  // the 5000-char userPrompt limit on the edge function. Total info is identical.
+  // the 5000-char per-field limit on the edge function.
   const systemContext = `${memoryBlock}
 Previous round statements from your fellow panelists:
 ${prevMessages}`;
