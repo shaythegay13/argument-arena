@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
@@ -20,6 +21,10 @@ export default function UserResponsePanel({
   roundNumber,
   maxRounds,
 }: UserResponsePanelProps) {
+  // Keep a ref to the latest userResponse so voice transcript callbacks never close over a stale value
+  const userResponseRef = useRef(userResponse);
+  useEffect(() => { userResponseRef.current = userResponse; }, [userResponse]);
+
   const isFinal = roundNumber + 1 >= maxRounds;
   const label = isFinal
     ? `Send & Get Final Round (${roundNumber + 1}/${maxRounds})`
@@ -39,7 +44,10 @@ export default function UserResponsePanel({
           className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground min-h-[80px] resize-none focus:ring-1 focus:ring-primary"
         />
         <VoiceInputButton
-          onTranscript={(text) => onUserResponseChange(userResponse + (userResponse ? " " : "") + text)}
+          onTranscript={(text) => {
+            const current = userResponseRef.current;
+            onUserResponseChange(current + (current ? " " : "") + text);
+          }}
           disabled={isGenerating}
         />
         <Button
