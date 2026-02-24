@@ -171,13 +171,20 @@ export async function generateRound1(
   const messages: RoundMessage[] = [];
   const shuffled = shuffleArray(personas);
 
-  await Promise.all(
+  await Promise.allSettled(
     shuffled.map(async (persona) => {
       const system = enrichSystemPrompt(persona, topic);
-      const text = await callCompletion(system, userPrompt);
-      const msg: RoundMessage = { personaId: persona.id, text };
-      messages.push(msg);
-      onPersonaComplete(persona.id, text);
+      try {
+        const text = await callCompletion(system, userPrompt);
+        const msg: RoundMessage = { personaId: persona.id, text };
+        messages.push(msg);
+        onPersonaComplete(persona.id, text);
+      } catch (err) {
+        console.error(`[Round 1] ${persona.id} failed:`, err);
+        const fallback = "I wasn't able to weigh in this round — please continue.";
+        messages.push({ personaId: persona.id, text: fallback });
+        onPersonaComplete(persona.id, fallback);
+      }
     })
   );
 
@@ -196,15 +203,22 @@ export async function generateNextRound(
   const messages: RoundMessage[] = [];
   const shuffled = shuffleArray(personas);
 
-  await Promise.all(
+  await Promise.allSettled(
     shuffled.map(async (persona) => {
       const memory = getMemory?.(persona.id);
       const { systemContext, userPrompt } = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
       const system = enrichSystemPrompt(persona, topic) + "\n\n" + systemContext;
-      const text = await callCompletion(system, userPrompt);
-      const msg: RoundMessage = { personaId: persona.id, text };
-      messages.push(msg);
-      onPersonaComplete(persona.id, text);
+      try {
+        const text = await callCompletion(system, userPrompt);
+        const msg: RoundMessage = { personaId: persona.id, text };
+        messages.push(msg);
+        onPersonaComplete(persona.id, text);
+      } catch (err) {
+        console.error(`[Round ${roundNumber}] ${persona.id} failed:`, err);
+        const fallback = "I wasn't able to weigh in this round — please continue.";
+        messages.push({ personaId: persona.id, text: fallback });
+        onPersonaComplete(persona.id, fallback);
+      }
     })
   );
 
