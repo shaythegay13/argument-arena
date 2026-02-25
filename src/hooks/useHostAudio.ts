@@ -10,8 +10,8 @@ interface HostClip {
 }
 
 // Per-message char budget for host recap context.
-// Rules block ~630 chars + 8 messages at 480 chars + separators stays well under 5000.
-const MAX_RECAP_CHARS = 480;
+// Rules ~630 + 8 msgs at 400 + separators + founder snippet (250) ≈ 4400 → safe under 5000.
+const MAX_RECAP_CHARS = 400;
 
 async function buildRoundScript(
   roundNumber: number,
@@ -29,8 +29,11 @@ async function buildRoundScript(
     return `${name} (${role}):\n${text}`;
   }).join("\n\n---\n\n");
 
-  const userPart = userResponse
-    ? `\n\nThe founder responded:\n"${userResponse}"`
+  const founderSnippet = userResponse
+    ? userResponse.slice(0, 250) + (userResponse.length > 250 ? "…" : "")
+    : null;
+  const userPart = founderSnippet
+    ? `\n\nThe founder responded:\n"${founderSnippet}"`
     : "";
 
   const systemPrompt = `You are the host of "Startup Jury AI", a fast-paced startup debate panel. Your job is to deliver a spoken recap of round ${roundNumber}.
