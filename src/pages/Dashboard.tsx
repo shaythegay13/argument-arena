@@ -6,7 +6,7 @@ import { Zap, Loader2, Trash2, Clock, CheckCircle2, Timer } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import type { JudgeVerdict } from "@/types/debate";
+import type { JudgeVerdict, PersonaRating } from "@/types/debate";
 
 type FilterOption = "all" | "in-progress" | "finished";
 
@@ -15,6 +15,7 @@ interface SessionRow {
   topic: string;
   phase: string;
   judge_verdict: JudgeVerdict | null;
+  ratings: PersonaRating[];
   created_at: string;
   selected_persona_ids: string[];
   rounds: any[];
@@ -32,6 +33,22 @@ function isFinished(session: SessionRow) {
     (session.phase === "judge" && !!session.judge_verdict) ||
     session.phase === "final-ratings"
   );
+}
+
+function getInsights(session: SessionRow): { pros: string[]; cons: string[] } {
+  const ratings = session.ratings ?? [];
+  if (ratings.length > 0) {
+    const sorted = [...ratings].sort((a, b) => b.score - a.score);
+    const pros = sorted.slice(0, 4).map((r) => r.verdict).filter(Boolean);
+    const cons = sorted.slice(-4).map((r) => r.verdict).filter(Boolean);
+    return { pros, cons };
+  }
+  // Fall back to judge verdict strengths/risks
+  const v = session.judge_verdict;
+  if (v) {
+    return { pros: [...v.strengths], cons: [...v.risks, v.why] };
+  }
+  return { pros: [], cons: [] };
 }
 
 function getPhaseDescription(phase: string, rounds?: any[], judgeVerdict?: any) {
@@ -68,7 +85,7 @@ const Dashboard = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("debate_sessions")
-      .select("id, topic, phase, judge_verdict, created_at, selected_persona_ids, rounds")
+      .select("id, topic, phase, judge_verdict, ratings, created_at, selected_persona_ids, rounds")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -179,7 +196,7 @@ const Dashboard = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.3 }}
-                    className={`rounded-lg border bg-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group cursor-pointer transition-all ${
+                    className={`rounded-lg border bg-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 group cursor-pointer transition-all ${
                       done
                         ? "border-border hover:border-green-500/40 hover:bg-card/80"
                         : "border-amber-500/30 hover:border-amber-500/60 hover:bg-card/80"
@@ -188,7 +205,7 @@ const Dashboard = () => {
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
+                        <p className="text-sm font-medium text-foreground">{session.topic}</p>
                         {done ? (
                           <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 shrink-0">
                             <CheckCircle2 className="w-3 h-3" />
@@ -208,13 +225,42 @@ const Dashboard = () => {
                         </span>
                         <span className="text-xs text-muted-foreground">· {getPhaseDescription(session.phase, session.rounds, session.judge_verdict)}</span>
                       </div>
+
+                      {/* Pros / cons for finished sessions */}
+                      {done && (() => {
+                        const { pros, cons } = getInsights(session);
+                        if (pros.length === 0 && cons.length === 0) return null;
+                        return (
+                          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                            <div className="space-y-1">
+                              {pros.map((p, idx) => (
+                                <div key={idx} className="flex items-start gap-1.5">
+                                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                                  <span className="text-xs text-muted-foreground leading-snug">{p}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="space-y-1">
+                              {cons.map((c, idx) => (
+                                <div key={idx} className="flex items-start gap-1.5">
+                                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                                  <span className="text-xs text-muted-foreground leading-snug">{c}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex flex-col items-end gap-2 shrink-0">
                       {v && (
-                        <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
-                          {v.verdict} — {v.overallScore}/10
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
+                            {v.verdict}
+                          </span>
+                          <span className="text-sm font-semibold text-foreground">{v.overallScore}/10</span>
+                        </div>
                       )}
 
                       <Button
