@@ -5,7 +5,7 @@ import {
   OpenAIAdapter,
   copilotRuntimeNodeHttpEndpoint,
 } from "npm:@copilotkit/runtime@1.51.3";
-import OpenAI from "npm:openai@4.86.2";
+import OpenAI from "https://esm.sh/openai@4.86.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
