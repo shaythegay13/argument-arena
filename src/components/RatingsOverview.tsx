@@ -4,32 +4,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 const personaColors: Record<string, { text: string; bg: string; border: string; barBg: string }> = {
-  angel: { text: "text-persona-angel", bg: "bg-persona-angel", border: "persona-glow-angel", barBg: "hsl(38, 90%, 55%)" },
-  vc: { text: "text-persona-vc", bg: "bg-persona-vc", border: "persona-glow-vc", barBg: "hsl(210, 70%, 55%)" },
-  customer: { text: "text-persona-customer", bg: "bg-persona-customer", border: "persona-glow-customer", barBg: "hsl(150, 60%, 45%)" },
-  operator: { text: "text-persona-operator", bg: "bg-persona-operator", border: "persona-glow-operator", barBg: "hsl(280, 55%, 55%)" },
-  skeptic: { text: "text-persona-skeptic", bg: "bg-persona-skeptic", border: "persona-glow-skeptic", barBg: "hsl(0, 65%, 55%)" },
-  quant: { text: "text-persona-quant", bg: "bg-persona-quant", border: "persona-glow-quant", barBg: "hsl(190, 70%, 50%)" },
+  angel: { text: "text-persona-angel", bg: "bg-persona-angel", border: "persona-glow-angel", barBg: "hsl(25, 95%, 53%)" },
+  vc: { text: "text-persona-vc", bg: "bg-persona-vc", border: "persona-glow-vc", barBg: "hsl(199, 89%, 60%)" },
+  customer: { text: "text-persona-customer", bg: "bg-persona-customer", border: "persona-glow-customer", barBg: "hsl(142, 71%, 45%)" },
+  operator: { text: "text-persona-operator", bg: "bg-persona-operator", border: "persona-glow-operator", barBg: "hsl(142, 60%, 50%)" },
+  skeptic: { text: "text-persona-skeptic", bg: "bg-persona-skeptic", border: "persona-glow-skeptic", barBg: "hsl(0, 84%, 60%)" },
+  quant: { text: "text-persona-quant", bg: "bg-persona-quant", border: "persona-glow-quant", barBg: "hsl(215, 16%, 65%)" },
   insider: { text: "text-persona-insider", bg: "bg-persona-insider", border: "persona-glow-insider", barBg: "hsl(25, 75%, 50%)" },
-  visionary: { text: "text-persona-visionary", bg: "bg-persona-visionary", border: "persona-glow-visionary", barBg: "hsl(320, 60%, 55%)" },
+  visionary: { text: "text-persona-visionary", bg: "bg-persona-visionary", border: "persona-glow-visionary", barBg: "hsl(280, 55%, 55%)" },
 };
 
 function scoreColor(score: number): string {
-  if (score >= 8) return "text-green-400";
-  if (score >= 6) return "text-yellow-400";
-  return "text-red-400";
+  if (score >= 8) return "text-verdict-go";
+  if (score >= 6) return "text-verdict-maybe";
+  return "text-verdict-nogo";
 }
 
 function scoreBg(score: number): string {
-  if (score >= 8) return "bg-green-400";
-  if (score >= 6) return "bg-yellow-400";
-  return "bg-red-400";
+  if (score >= 8) return "bg-verdict-go";
+  if (score >= 6) return "bg-verdict-maybe";
+  return "bg-verdict-nogo";
 }
 
 function verdictBadge(avg: number): { label: string; color: string; emoji: string } {
-  if (avg >= 8) return { label: "GO", color: "text-green-400 border-green-400/40 bg-green-400/10", emoji: "🟢" };
-  if (avg >= 6) return { label: "MAYBE", color: "text-yellow-400 border-yellow-400/40 bg-yellow-400/10", emoji: "🟡" };
-  return { label: "NO-GO", color: "text-red-400 border-red-400/40 bg-red-400/10", emoji: "🔴" };
+  if (avg >= 8) return { label: "GO", color: "text-verdict-go border-verdict-go/40 bg-verdict-go/10", emoji: "🟢" };
+  if (avg >= 6) return { label: "MAYBE", color: "text-verdict-maybe border-verdict-maybe/40 bg-verdict-maybe/10", emoji: "🟡" };
+  return { label: "NO-GO", color: "text-verdict-nogo border-verdict-nogo/40 bg-verdict-nogo/10", emoji: "🔴" };
 }
 
 function MetricBar({ label, value, maxValue = 10, color, delay }: { label: string; value: number; maxValue?: number; color: string; delay: number }) {
@@ -67,18 +67,16 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
       : null;
 
   const badge = avgRating !== null ? verdictBadge(avgRating) : null;
-
-  // Sort ratings by score descending
   const sortedRatings = [...ratings].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="rounded-lg border border-primary/20 bg-card overflow-hidden stage-glow">
+    <div className="rounded-[14px] border border-primary/20 bg-card overflow-hidden stage-glow">
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-mono uppercase tracking-widest text-primary font-semibold">
+            <h3 className="text-sm font-mono uppercase tracking-[0.2em] text-primary font-semibold">
               Panel Scorecards
             </h3>
           </div>
@@ -90,7 +88,7 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                 <span className={`text-2xl font-bold ${scoreColor(avgRating)}`}>{avgRating}</span>
                 <span className="text-sm text-muted-foreground">/10</span>
               </div>
-              <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-md border ${badge.color}`}>
+              <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-[10px] border ${badge.color}`}>
                 {badge.emoji} {badge.label}
               </span>
             </div>
@@ -102,7 +100,7 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
         <div className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Array.from({ length: personas.length }).map((_, i) => (
-              <div key={i} className="rounded-lg bg-muted/30 p-4 space-y-2 animate-pulse">
+              <div key={i} className="rounded-[14px] bg-muted/30 p-4 space-y-2 animate-pulse">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-muted" />
                   <div className="flex-1 space-y-1.5">
@@ -135,7 +133,7 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.06 }}
                   onClick={() => setExpandedId(expandedId === r.personaId ? null : r.personaId)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-[10px] border transition-all ${
                     expandedId === r.personaId
                       ? `${colors.border} ${colors.bg}`
                       : "border-border bg-muted/20 hover:bg-muted/40"
@@ -168,11 +166,10 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08, duration: 0.35 }}
-                  className={`rounded-lg border overflow-hidden transition-all ${
+                  className={`rounded-[14px] border overflow-hidden transition-all ${
                     isExpanded ? `${colors.border} shadow-lg` : "border-border"
                   }`}
                 >
-                  {/* Card header */}
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : rating.personaId)}
                     className="w-full px-4 py-3 flex items-center gap-3 bg-card hover:bg-muted/20 transition-colors"
@@ -199,7 +196,6 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                     </div>
                   </button>
 
-                  {/* Score bar under header */}
                   <div className="h-1 w-full bg-muted">
                     <motion.div
                       initial={{ width: 0 }}
@@ -209,7 +205,6 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                     />
                   </div>
 
-                  {/* Expanded content */}
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
@@ -220,16 +215,13 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                         className="overflow-hidden"
                       >
                         <div className="px-4 py-3 bg-muted/10 space-y-3">
-                          {/* Verdict */}
                           <div>
-                            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">Verdict</p>
+                            <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1">Verdict</p>
                             <p className="text-sm text-foreground/90 font-medium">{rating.verdict}</p>
                           </div>
-
-                          {/* Metric bars */}
                           {metricEntries.length > 0 && (
                             <div>
-                              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Scoring Breakdown</p>
+                              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-2">Scoring Breakdown</p>
                               <div className="space-y-1.5">
                                 {metricEntries.map(([label, val], mi) => (
                                   <MetricBar
@@ -243,11 +235,9 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                               </div>
                             </div>
                           )}
-
-                          {/* Assessment */}
                           {rating.assessment && (
                             <div>
-                              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">Full Assessment</p>
+                              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1">Full Assessment</p>
                               <p className="text-xs text-foreground/75 leading-relaxed">{rating.assessment}</p>
                             </div>
                           )}

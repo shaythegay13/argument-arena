@@ -3,14 +3,14 @@ import { MessageCircle, Star, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const personaColors: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  angel: { bg: "bg-persona-angel", text: "text-persona-angel", border: "persona-glow-angel", glow: "shadow-[0_0_20px_hsl(38_90%_55%/0.3)]" },
-  vc: { bg: "bg-persona-vc", text: "text-persona-vc", border: "persona-glow-vc", glow: "shadow-[0_0_20px_hsl(210_70%_55%/0.3)]" },
-  customer: { bg: "bg-persona-customer", text: "text-persona-customer", border: "persona-glow-customer", glow: "shadow-[0_0_20px_hsl(150_60%_45%/0.3)]" },
-  operator: { bg: "bg-persona-operator", text: "text-persona-operator", border: "persona-glow-operator", glow: "shadow-[0_0_20px_hsl(280_55%_55%/0.3)]" },
-  skeptic: { bg: "bg-persona-skeptic", text: "text-persona-skeptic", border: "persona-glow-skeptic", glow: "shadow-[0_0_20px_hsl(0_65%_55%/0.3)]" },
-  quant: { bg: "bg-persona-quant", text: "text-persona-quant", border: "persona-glow-quant", glow: "shadow-[0_0_20px_hsl(190_70%_50%/0.3)]" },
+  angel: { bg: "bg-persona-angel", text: "text-persona-angel", border: "persona-glow-angel", glow: "shadow-[0_0_20px_hsl(25_95%_53%/0.3)]" },
+  vc: { bg: "bg-persona-vc", text: "text-persona-vc", border: "persona-glow-vc", glow: "shadow-[0_0_20px_hsl(199_89%_60%/0.3)]" },
+  customer: { bg: "bg-persona-customer", text: "text-persona-customer", border: "persona-glow-customer", glow: "shadow-[0_0_20px_hsl(142_71%_45%/0.3)]" },
+  operator: { bg: "bg-persona-operator", text: "text-persona-operator", border: "persona-glow-operator", glow: "shadow-[0_0_20px_hsl(142_60%_50%/0.3)]" },
+  skeptic: { bg: "bg-persona-skeptic", text: "text-persona-skeptic", border: "persona-glow-skeptic", glow: "shadow-[0_0_20px_hsl(0_84%_60%/0.3)]" },
+  quant: { bg: "bg-persona-quant", text: "text-persona-quant", border: "persona-glow-quant", glow: "shadow-[0_0_20px_hsl(215_16%_65%/0.3)]" },
   insider: { bg: "bg-persona-insider", text: "text-persona-insider", border: "persona-glow-insider", glow: "shadow-[0_0_20px_hsl(25_75%_50%/0.3)]" },
-  visionary: { bg: "bg-persona-visionary", text: "text-persona-visionary", border: "persona-glow-visionary", glow: "shadow-[0_0_20px_hsl(320_60%_55%/0.3)]" },
+  visionary: { bg: "bg-persona-visionary", text: "text-persona-visionary", border: "persona-glow-visionary", glow: "shadow-[0_0_20px_hsl(280_55%_55%/0.3)]" },
 };
 
 const ROUND_THEMES: Record<number, { label: string; description: string }> = {

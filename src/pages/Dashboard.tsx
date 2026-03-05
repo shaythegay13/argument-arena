@@ -31,16 +31,16 @@ function verdictEmoji(verdict?: string) {
 }
 
 function verdictColor(verdict?: string) {
-  if (verdict === "GO") return "text-green-400 border-green-400/40 bg-green-400/10";
-  if (verdict === "MAYBE") return "text-yellow-400 border-yellow-400/40 bg-yellow-400/10";
-  if (verdict === "NO-GO") return "text-red-400 border-red-400/40 bg-red-400/10";
+  if (verdict === "GO") return "text-verdict-go border-verdict-go/40 bg-verdict-go/10";
+  if (verdict === "MAYBE") return "text-verdict-maybe border-verdict-maybe/40 bg-verdict-maybe/10";
+  if (verdict === "NO-GO") return "text-verdict-nogo border-verdict-nogo/40 bg-verdict-nogo/10";
   return "text-muted-foreground border-border bg-muted/30";
 }
 
 function scoreColor(score: number): string {
-  if (score >= 8) return "text-green-400";
-  if (score >= 6) return "text-yellow-400";
-  return "text-red-400";
+  if (score >= 8) return "text-verdict-go";
+  if (score >= 6) return "text-verdict-maybe";
+  return "text-verdict-nogo";
 }
 
 function isFinished(session: SessionRow) {
@@ -99,7 +99,6 @@ const Dashboard = () => {
 
   const finishedCount = sessions.filter(isFinished).length;
   const isAtLimit = finishedCount >= FREE_EVALUATION_LIMIT;
-  // For now, "pro" is stored in localStorage as a simple flag. Replace with real billing later.
   const isPro = localStorage.getItem("startup_jury_pro") === "true";
 
   const handleNewDebate = () => {
@@ -116,7 +115,6 @@ const Dashboard = () => {
     return true;
   });
 
-  // Stats
   const avgScore = (() => {
     const scored = sessions.filter((s) => s.judge_verdict?.overallScore);
     if (scored.length === 0) return null;
@@ -127,21 +125,24 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30 shrink-0" />
-            <h1 className="text-base sm:text-lg font-semibold text-foreground tracking-tight truncate">Startup Jury AI</h1>
+        <div className="max-w-[1200px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-3.5 h-3.5 rounded-sm bg-primary shrink-0" />
+            <h1 className="text-base sm:text-lg font-bold tracking-tight truncate">
+              <span className="text-foreground">STARTUP</span>{" "}
+              <span className="text-primary">JURY AI</span>
+            </h1>
             <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ dashboard</span>
           </div>
           <MobileNav currentPage="dashboard" />
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+      <main className="max-w-[1200px] mx-auto px-6 py-6 sm:py-8 space-y-5">
         {/* Stats bar */}
         {!loading && sessions.length > 0 && (
           <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-[14px] bg-card border border-border">
               <span className="text-xs text-muted-foreground font-mono">Evaluations</span>
               <span className="text-sm font-bold text-foreground">{finishedCount}</span>
               {!isPro && (
@@ -149,14 +150,14 @@ const Dashboard = () => {
               )}
             </div>
             {avgScore !== null && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-[14px] bg-card border border-border">
                 <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground font-mono">Avg Score</span>
                 <span className={`text-sm font-bold ${scoreColor(avgScore)}`}>{avgScore}/10</span>
               </div>
             )}
             {isPro && (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-primary/10 border border-primary/20">
                 <Crown className="w-3.5 h-3.5 text-primary" />
                 <span className="text-xs font-mono font-semibold text-primary">Pro</span>
               </div>
@@ -166,11 +167,11 @@ const Dashboard = () => {
 
         {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Past Sessions</h2>
+          <h2 className="text-sm font-mono uppercase tracking-[0.2em] text-muted-foreground">Past Sessions</h2>
 
           <div className="flex items-center gap-2">
             {!loading && sessions.length > 0 && (
-              <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/40 border border-border">
+              <div className="flex items-center gap-1 p-1 rounded-[14px] bg-muted/40 border border-border">
                 {(["all", "in-progress", "finished"] as FilterOption[]).map((opt) => {
                   const labels: Record<FilterOption, string> = {
                     all: "All",
@@ -181,7 +182,7 @@ const Dashboard = () => {
                     <button
                       key={opt}
                       onClick={() => setFilter(opt)}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                      className={`px-3 py-1 rounded-[10px] text-xs font-medium transition-all ${
                         filter === opt
                           ? "bg-background text-foreground shadow-sm border border-border"
                           : "text-muted-foreground hover:text-foreground"
@@ -196,7 +197,7 @@ const Dashboard = () => {
             <Button
               onClick={handleNewDebate}
               size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+              className="font-semibold rounded-[10px]"
             >
               <Zap className="w-3.5 h-3.5 mr-1.5" />
               New Debate
@@ -210,7 +211,7 @@ const Dashboard = () => {
             <span className="text-sm">Loading sessions…</span>
           </div>
         ) : sessions.length === 0 ? (
-          <div className="rounded-lg border border-border bg-card p-10 text-center space-y-4">
+          <div className="rounded-[14px] border border-border bg-card p-10 text-center space-y-4">
             <div className="text-4xl">⚖️</div>
             <p className="text-foreground font-medium">No debates yet</p>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
@@ -218,7 +219,7 @@ const Dashboard = () => {
             </p>
             <Button
               onClick={() => navigate("/debate")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="rounded-[10px]"
             >
               <Zap className="w-4 h-4 mr-2" />
               Start Your First Jury
@@ -243,22 +244,20 @@ const Dashboard = () => {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03, duration: 0.25 }}
-                  className="rounded-lg border border-border bg-card hover:bg-muted/20 transition-all cursor-pointer group"
+                  className="rounded-[14px] border border-border bg-card hover:bg-muted/20 transition-all cursor-pointer group"
                   onClick={() => navigate(`/debate?session=${session.id}`)}
                 >
                   <div className="px-4 py-3 flex items-center gap-3">
-                    {/* Verdict icon or status */}
                     <div className="shrink-0">
                       {v ? (
                         <span className="text-2xl">{verdictEmoji(v.verdict)}</span>
                       ) : done ? (
-                        <CheckCircle2 className="w-6 h-6 text-green-400" />
+                        <CheckCircle2 className="w-6 h-6 text-verdict-go" />
                       ) : (
-                        <Timer className="w-6 h-6 text-amber-400" />
+                        <Timer className="w-6 h-6 text-verdict-maybe" />
                       )}
                     </div>
 
-                    {/* Main content */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -268,9 +267,9 @@ const Dashboard = () => {
                           })}
                         </span>
                         {done ? (
-                          <span className="text-[10px] font-mono text-green-400">Completed</span>
+                          <span className="text-[10px] font-mono text-verdict-go">Completed</span>
                         ) : (
-                          <span className="text-[10px] font-mono text-amber-400">
+                          <span className="text-[10px] font-mono text-verdict-maybe">
                             Round {session.rounds?.length ?? 0}/4
                           </span>
                         )}
@@ -282,7 +281,6 @@ const Dashboard = () => {
                       </div>
                     </div>
 
-                    {/* Score & verdict badge */}
                     <div className="flex items-center gap-2 shrink-0">
                       {avgRating !== null && (
                         <span className={`text-lg font-bold ${scoreColor(avgRating)}`}>
@@ -290,7 +288,7 @@ const Dashboard = () => {
                         </span>
                       )}
                       {v && (
-                        <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
+                        <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-[10px] border ${verdictColor(v.verdict)}`}>
                           {v.verdict}
                         </span>
                       )}
@@ -313,12 +311,12 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Upgrade prompt when at limit */}
+        {/* Upgrade prompt */}
         {isAtLimit && !isPro && !loading && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-lg border border-primary/30 bg-primary/5 p-5 text-center space-y-3"
+            className="rounded-[14px] border border-primary/30 bg-primary/5 p-5 text-center space-y-3"
           >
             <Crown className="w-8 h-8 text-primary mx-auto" />
             <h3 className="text-base font-semibold text-foreground">You've used all free evaluations</h3>
@@ -327,7 +325,7 @@ const Dashboard = () => {
             </p>
             <Button
               onClick={() => setShowUpgrade(true)}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="rounded-[10px]"
             >
               <Crown className="w-4 h-4 mr-2" />
               Upgrade to Pro
@@ -336,8 +334,8 @@ const Dashboard = () => {
         )}
       </main>
 
-      <footer className="border-t border-border px-4 sm:px-6 py-6 mt-auto">
-        <div className="max-w-5xl mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
+      <footer className="border-t border-border px-6 py-6 mt-auto">
+        <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <button onClick={() => navigate("/app/terms")} className="hover:text-foreground underline underline-offset-2 transition-colors">
             Terms & Conditions
           </button>

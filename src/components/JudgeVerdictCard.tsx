@@ -20,33 +20,33 @@ const verdictConfig: Record<
 > = {
   GO: {
     emoji: "🚀",
-    color: "text-green-400",
-    bg: "bg-green-400/10",
-    border: "border-green-400/30",
+    color: "text-verdict-go",
+    bg: "bg-verdict-go/10",
+    border: "border-verdict-go/30",
     label: "GO",
     tagline: "High Potential — Build this now",
-    gradientFrom: "from-green-500/20",
-    gradientTo: "to-green-900/5",
+    gradientFrom: "from-verdict-go/20",
+    gradientTo: "to-verdict-go/5",
   },
   MAYBE: {
     emoji: "⚠️",
-    color: "text-yellow-400",
-    bg: "bg-yellow-400/10",
-    border: "border-yellow-400/30",
+    color: "text-verdict-maybe",
+    bg: "bg-verdict-maybe/10",
+    border: "border-verdict-maybe/30",
     label: "MAYBE",
     tagline: "Needs Work — Refine before committing",
-    gradientFrom: "from-yellow-500/20",
-    gradientTo: "to-yellow-900/5",
+    gradientFrom: "from-verdict-maybe/20",
+    gradientTo: "to-verdict-maybe/5",
   },
   "NO-GO": {
     emoji: "❌",
-    color: "text-red-400",
-    bg: "bg-red-400/10",
-    border: "border-red-400/30",
+    color: "text-verdict-nogo",
+    bg: "bg-verdict-nogo/10",
+    border: "border-verdict-nogo/30",
     label: "NO-GO",
     tagline: "Likely to Fail — Pivot or kill",
-    gradientFrom: "from-red-500/20",
-    gradientTo: "to-red-900/5",
+    gradientFrom: "from-verdict-nogo/20",
+    gradientTo: "to-verdict-nogo/5",
   },
 };
 
@@ -119,11 +119,11 @@ export default function JudgeVerdictCard({
   }, [verdict, isGenerating]);
 
   return (
-    <section className="rounded-lg border border-border bg-card overflow-hidden">
+    <section className="rounded-[14px] border border-border bg-card overflow-hidden">
       {/* Header */}
       <div className="px-4 sm:px-6 py-3 border-b border-border flex items-center gap-2">
         <Gavel className="w-4 h-4 text-primary" />
-        <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+        <span className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
           The Jury Foreperson
         </span>
         <span className="text-[10px] text-muted-foreground/60 font-mono ml-1">
@@ -175,7 +175,7 @@ export default function JudgeVerdictCard({
                 transition={{ delay: 0.5 }}
                 className="sm:ml-auto"
               >
-                <div className={`px-4 py-2 rounded-lg border ${verdictConfig[verdict.verdict].border} ${verdictConfig[verdict.verdict].bg}`}>
+                <div className={`px-4 py-2 rounded-[14px] border ${verdictConfig[verdict.verdict].border} ${verdictConfig[verdict.verdict].bg}`}>
                   <p className="text-xs text-muted-foreground font-mono text-center">Overall Score</p>
                   <p className={`text-3xl font-bold text-center ${verdictConfig[verdict.verdict].color}`}>
                     {verdict.overallScore}<span className="text-base text-muted-foreground">/10</span>
@@ -196,7 +196,7 @@ export default function JudgeVerdictCard({
               >
                 {/* Why */}
                 <div>
-                  <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1.5">
+                  <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                     Foreperson's Summary
                   </p>
                   <p className="text-base text-foreground leading-relaxed">{verdict.why}</p>
@@ -204,11 +204,10 @@ export default function JudgeVerdictCard({
 
                 {/* Strengths & Risks side by side */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Strengths */}
-                  <div className="rounded-lg border border-green-400/20 bg-green-400/5 p-4">
+                  <div className="rounded-[14px] border border-verdict-go/20 bg-verdict-go/5 p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <Shield className="w-4 h-4 text-green-400" />
-                      <p className="text-xs font-mono uppercase tracking-widest text-green-400 font-semibold">
+                      <Shield className="w-4 h-4 text-verdict-go" />
+                      <p className="text-xs font-mono uppercase tracking-[0.2em] text-verdict-go font-semibold">
                         Strengths
                       </p>
                     </div>
@@ -221,18 +220,17 @@ export default function JudgeVerdictCard({
                           transition={{ delay: 0.3 + i * 0.1 }}
                           className="flex items-start gap-2 text-sm text-foreground/85"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-verdict-go mt-2 shrink-0" />
                           {s}
                         </motion.li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Risks */}
-                  <div className="rounded-lg border border-red-400/20 bg-red-400/5 p-4">
+                  <div className="rounded-[14px] border border-verdict-nogo/20 bg-verdict-nogo/5 p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <AlertTriangle className="w-4 h-4 text-red-400" />
-                      <p className="text-xs font-mono uppercase tracking-widest text-red-400 font-semibold">
+                      <AlertTriangle className="w-4 h-4 text-verdict-nogo" />
+                      <p className="text-xs font-mono uppercase tracking-[0.2em] text-verdict-nogo font-semibold">
                         Major Risks
                       </p>
                     </div>
@@ -245,7 +243,7 @@ export default function JudgeVerdictCard({
                           transition={{ delay: 0.5 + i * 0.1 }}
                           className="flex items-start gap-2 text-sm text-foreground/85"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-400 mt-2 shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-verdict-nogo mt-2 shrink-0" />
                           {r}
                         </motion.li>
                       ))}
@@ -258,11 +256,11 @@ export default function JudgeVerdictCard({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
-                  className="rounded-lg bg-primary/10 border border-primary/20 px-5 py-4"
+                  className="rounded-[14px] bg-primary/10 border border-primary/20 px-5 py-4"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <Lightbulb className="w-4 h-4 text-primary" />
-                    <p className="text-xs font-mono uppercase tracking-widest text-primary font-semibold">
+                    <p className="text-xs font-mono uppercase tracking-[0.2em] text-primary font-semibold">
                       Recommended Next Step
                     </p>
                   </div>
@@ -274,11 +272,11 @@ export default function JudgeVerdictCard({
 
                 {/* CTA buttons */}
                 <div className="flex flex-wrap gap-3 pt-3 border-t border-border">
-                  <Button variant="outline" size="sm" onClick={onReset} className="gap-2">
+                  <Button variant="outline" size="sm" onClick={onReset} className="gap-2 rounded-[10px]">
                     <RotateCcw className="w-3.5 h-3.5" />
                     New Idea
                   </Button>
-                  <Button variant="outline" size="sm" onClick={onRefine} className="gap-2">
+                  <Button variant="outline" size="sm" onClick={onRefine} className="gap-2 rounded-[10px]">
                     <RefreshCw className="w-3.5 h-3.5" />
                     Refine & Re-pitch
                   </Button>
@@ -286,7 +284,7 @@ export default function JudgeVerdictCard({
                     <Button
                       variant={shared ? "default" : "outline"}
                       size="sm"
-                      className="gap-2"
+                      className="gap-2 rounded-[10px]"
                       disabled={shareLoading}
                       onClick={async () => {
                         setShareLoading(true);
@@ -314,7 +312,7 @@ export default function JudgeVerdictCard({
                     variant="ghost"
                     size="sm"
                     onClick={() => window.print()}
-                    className="gap-2 text-muted-foreground ml-auto"
+                    className="gap-2 text-muted-foreground ml-auto rounded-[10px]"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Export PDF
