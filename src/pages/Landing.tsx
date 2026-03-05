@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, Users, Star, ArrowRight, Shield, Brain, MessageSquare, BarChart3, Share2, CheckCircle2 } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
 
 const features = [
@@ -79,13 +80,7 @@ const Landing = () => {
       {/* Nav */}
       <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-3.5 h-3.5 rounded-sm bg-primary shrink-0" />
-            <span className="text-base sm:text-lg font-bold tracking-tight truncate">
-              <span className="text-foreground">STARTUP</span>{" "}
-              <span className="text-primary">JURY AI</span>
-            </span>
-          </div>
+          <img src={logo} alt="Startup Jury AI" className="h-8 sm:h-9" />
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
@@ -376,13 +371,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-border px-6 py-10">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2.5">
-            <div className="w-3 h-3 rounded-sm bg-primary" />
-            <span className="font-bold text-sm">
-              <span className="text-foreground">STARTUP</span>{" "}
-              <span className="text-primary">JURY AI</span>
-            </span>
-          </div>
+          <img src={logo} alt="Startup Jury AI" className="h-7" />
           <span className="font-light">Validate your idea before you build.</span>
           <div className="flex items-center gap-3">
             <button
