@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Zap, Loader2, Trash2, Clock, CheckCircle2, Timer } from "lucide-react";
+import { Zap, Loader2, Trash2, Clock, CheckCircle2, Timer, TrendingUp, Share2, Crown } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { JudgeVerdict, PersonaRating } from "@/types/debate";
+import UpgradeModal from "@/components/UpgradeModal";
 
 type FilterOption = "all" | "in-progress" | "finished";
 
@@ -19,6 +20,14 @@ interface SessionRow {
   created_at: string;
   selected_persona_ids: string[];
   rounds: any[];
+  is_public: boolean;
+}
+
+function verdictEmoji(verdict?: string) {
+  if (verdict === "GO") return "🚀";
+  if (verdict === "MAYBE") return "⚠️";
+  if (verdict === "NO-GO") return "❌";
+  return "";
 }
 
 function verdictColor(verdict?: string) {
@@ -28,6 +37,12 @@ function verdictColor(verdict?: string) {
   return "text-muted-foreground border-border bg-muted/30";
 }
 
+function scoreColor(score: number): string {
+  if (score >= 8) return "text-green-400";
+  if (score >= 6) return "text-yellow-400";
+  return "text-red-400";
+}
+
 function isFinished(session: SessionRow) {
   return (
     (session.phase === "judge" && !!session.judge_verdict) ||
@@ -35,42 +50,19 @@ function isFinished(session: SessionRow) {
   );
 }
 
-function getInsights(session: SessionRow): { pros: string[]; cons: string[] } {
-  const ratings = session.ratings ?? [];
-  if (ratings.length > 0) {
-    const sorted = [...ratings].sort((a, b) => b.score - a.score);
-    const pros = sorted.slice(0, 4).map((r) => r.verdict).filter(Boolean);
-    const cons = sorted.slice(-4).map((r) => r.verdict).filter(Boolean);
-    return { pros, cons };
-  }
-  // Fall back to judge verdict strengths/risks
-  const v = session.judge_verdict;
-  if (v) {
-    return { pros: [...v.strengths], cons: [...v.risks, v.why] };
-  }
-  return { pros: [], cons: [] };
-}
-
-function getPhaseDescription(phase: string, rounds?: any[], judgeVerdict?: any) {
-  if (phase === "judge" && judgeVerdict) return "Completed · View verdict";
-  if (phase === "final-ratings") return "Completed · View grades";
-  if (phase === "debating" && rounds) {
-    return `Round ${rounds.length}/4 complete`;
-  }
-  return "Not started";
-}
+const FREE_EVALUATION_LIMIT = 2;
 
 const Dashboard = () => {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterOption>("all");
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadSessions();
 
-    // Show welcome toast for first-time sign-in
     const welcomeKey = "startup_jury_welcomed";
     if (!localStorage.getItem(welcomeKey)) {
       localStorage.setItem(welcomeKey, "true");
@@ -85,7 +77,7 @@ const Dashboard = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("debate_sessions")
-      .select("id, topic, phase, judge_verdict, ratings, created_at, selected_persona_ids, rounds")
+      .select("id, topic, phase, judge_verdict, ratings, created_at, selected_persona_ids, rounds, is_public")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -105,14 +97,36 @@ const Dashboard = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+  const finishedCount = sessions.filter(isFinished).length;
+  const isAtLimit = finishedCount >= FREE_EVALUATION_LIMIT;
+  // For now, "pro" is stored in localStorage as a simple flag. Replace with real billing later.
+  const isPro = localStorage.getItem("startup_jury_pro") === "true";
+
+  const handleNewDebate = () => {
+    if (isAtLimit && !isPro) {
+      setShowUpgrade(true);
+    } else {
+      navigate("/debate");
+    }
   };
+
+  const filtered = sessions.filter((s) => {
+    if (filter === "finished") return isFinished(s);
+    if (filter === "in-progress") return !isFinished(s);
+    return true;
+  });
+
+  // Stats
+  const avgScore = (() => {
+    const scored = sessions.filter((s) => s.judge_verdict?.overallScore);
+    if (scored.length === 0) return null;
+    const avg = scored.reduce((sum, s) => sum + (s.judge_verdict?.overallScore ?? 0), 0) / scored.length;
+    return Math.round(avg * 10) / 10;
+  })();
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-4 sm:px-6 py-4 relative">
+      <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30 shrink-0" />
@@ -123,146 +137,163 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+        {/* Stats bar */}
+        {!loading && sessions.length > 0 && (
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+              <span className="text-xs text-muted-foreground font-mono">Evaluations</span>
+              <span className="text-sm font-bold text-foreground">{finishedCount}</span>
+              {!isPro && (
+                <span className="text-[10px] text-muted-foreground font-mono">/ {FREE_EVALUATION_LIMIT} free</span>
+              )}
+            </div>
+            {avgScore !== null && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+                <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground font-mono">Avg Score</span>
+                <span className={`text-sm font-bold ${scoreColor(avgScore)}`}>{avgScore}/10</span>
+              </div>
+            )}
+            {isPro && (
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+                <Crown className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-mono font-semibold text-primary">Pro</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Past Sessions</h2>
 
-          {/* Filter toggle */}
-          {!loading && sessions.length > 0 && (
-            <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/40 border border-border w-fit">
-              {(["all", "in-progress", "finished"] as FilterOption[]).map((opt) => {
-                const labels: Record<FilterOption, string> = {
-                  all: "All",
-                  "in-progress": "In Progress",
-                  finished: "Finished",
-                };
-                return (
-                  <button
-                    key={opt}
-                    onClick={() => setFilter(opt)}
-                    className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                      filter === opt
-                        ? "bg-background text-foreground shadow-sm border border-border"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {labels[opt]}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {!loading && sessions.length > 0 && (
+              <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/40 border border-border">
+                {(["all", "in-progress", "finished"] as FilterOption[]).map((opt) => {
+                  const labels: Record<FilterOption, string> = {
+                    all: "All",
+                    "in-progress": "In Progress",
+                    finished: "Finished",
+                  };
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => setFilter(opt)}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                        filter === opt
+                          ? "bg-background text-foreground shadow-sm border border-border"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {labels[opt]}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <Button
+              onClick={handleNewDebate}
+              size="sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+            >
+              <Zap className="w-3.5 h-3.5 mr-1.5" />
+              New Debate
+            </Button>
+          </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">Loading…</span>
+          <div className="flex items-center gap-2 text-muted-foreground py-12 justify-center">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span className="text-sm">Loading sessions…</span>
           </div>
         ) : sessions.length === 0 ? (
-          <div className="rounded-lg border border-border bg-card p-8 text-center space-y-3">
-            <p className="text-muted-foreground text-sm">No debates yet.</p>
+          <div className="rounded-lg border border-border bg-card p-10 text-center space-y-4">
+            <div className="text-4xl">⚖️</div>
+            <p className="text-foreground font-medium">No debates yet</p>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              Submit your startup idea and watch AI judges debate it across 4 rounds.
+            </p>
             <Button
               onClick={() => navigate("/debate")}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <Zap className="w-4 h-4 mr-2" />
-              Start Your First Debate
+              Start Your First Jury
             </Button>
           </div>
-        ) : (() => {
-          const filtered = sessions.filter((s) => {
-            if (filter === "finished") return isFinished(s);
-            if (filter === "in-progress") return !isFinished(s);
-            return true;
-          });
+        ) : filtered.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-8 text-center">
+            No {filter === "finished" ? "finished" : "in-progress"} sessions.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {filtered.map((session, i) => {
+              const v = session.judge_verdict;
+              const done = isFinished(session);
+              const avgRating = session.ratings?.length > 0
+                ? Math.round((session.ratings.reduce((s, r) => s + r.score, 0) / session.ratings.length) * 10) / 10
+                : null;
 
-          if (filtered.length === 0) {
-            return (
-              <p className="text-sm text-muted-foreground">
-                No {filter === "finished" ? "finished" : "in-progress"} sessions.
-              </p>
-            );
-          }
+              return (
+                <motion.div
+                  key={session.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.25 }}
+                  className="rounded-lg border border-border bg-card hover:bg-muted/20 transition-all cursor-pointer group"
+                  onClick={() => navigate(`/debate?session=${session.id}`)}
+                >
+                  <div className="px-4 py-3 flex items-center gap-3">
+                    {/* Verdict icon or status */}
+                    <div className="shrink-0">
+                      {v ? (
+                        <span className="text-2xl">{verdictEmoji(v.verdict)}</span>
+                      ) : done ? (
+                        <CheckCircle2 className="w-6 h-6 text-green-400" />
+                      ) : (
+                        <Timer className="w-6 h-6 text-amber-400" />
+                      )}
+                    </div>
 
-          return (
-            <div className="space-y-3">
-              {filtered.map((session, i) => {
-                const v = session.judge_verdict;
-                const done = isFinished(session);
-                return (
-                  <motion.div
-                    key={session.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04, duration: 0.3 }}
-                    className={`rounded-lg border bg-card p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 group cursor-pointer transition-all ${
-                      done
-                        ? "border-border hover:border-green-500/40 hover:bg-card/80"
-                        : "border-amber-500/30 hover:border-amber-500/60 hover:bg-card/80"
-                    }`}
-                    onClick={() => navigate(`/debate?session=${session.id}`)}
-                  >
+                    {/* Main content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium text-foreground">{session.topic}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-muted-foreground">
+                          {new Date(session.created_at).toLocaleDateString("en-US", {
+                            month: "short", day: "numeric", year: "numeric"
+                          })}
+                        </span>
                         {done ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 shrink-0">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Finished
-                          </span>
+                          <span className="text-[10px] font-mono text-green-400">Completed</span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 shrink-0">
-                            <Timer className="w-3 h-3" />
-                            In Progress
+                          <span className="text-[10px] font-mono text-amber-400">
+                            Round {session.rounds?.length ?? 0}/4
+                          </span>
+                        )}
+                        {session.is_public && (
+                          <span className="text-[10px] font-mono text-muted-foreground flex items-center gap-0.5">
+                            <Share2 className="w-2.5 h-2.5" /> Shared
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(session.created_at).toLocaleDateString()}
-                        </span>
-                        <span className="text-xs text-muted-foreground">· {getPhaseDescription(session.phase, session.rounds, session.judge_verdict)}</span>
-                      </div>
-
-                      {/* Pros / cons for finished sessions */}
-                      {done && (() => {
-                        const { pros, cons } = getInsights(session);
-                        if (pros.length === 0 && cons.length === 0) return null;
-                        return (
-                          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
-                            <div className="space-y-1">
-                              {pros.map((p, idx) => (
-                                <div key={idx} className="flex items-start gap-1.5">
-                                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
-                                  <span className="text-xs text-muted-foreground leading-snug">{p}</span>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="space-y-1">
-                              {cons.map((c, idx) => (
-                                <div key={idx} className="flex items-start gap-1.5">
-                                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                                  <span className="text-xs text-muted-foreground leading-snug">{c}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })()}
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      {v && (
-                        <div className="flex flex-col items-end gap-1">
-                          <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
-                            {v.verdict}
-                          </span>
-                          <span className="text-sm font-semibold text-foreground">{v.overallScore}/10</span>
-                        </div>
+                    {/* Score & verdict badge */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {avgRating !== null && (
+                        <span className={`text-lg font-bold ${scoreColor(avgRating)}`}>
+                          {avgRating}
+                        </span>
                       )}
-
+                      {v && (
+                        <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${verdictColor(v.verdict)}`}>
+                          {v.verdict}
+                        </span>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -270,17 +301,39 @@ const Dashboard = () => {
                           e.stopPropagation();
                           handleDelete(session.id);
                         }}
-                        className="sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity ml-auto sm:ml-0"
+                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity h-8 w-8 p-0"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          );
-        })()}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Upgrade prompt when at limit */}
+        {isAtLimit && !isPro && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-lg border border-primary/30 bg-primary/5 p-5 text-center space-y-3"
+          >
+            <Crown className="w-8 h-8 text-primary mx-auto" />
+            <h3 className="text-base font-semibold text-foreground">You've used all free evaluations</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Upgrade to Pro for unlimited debates, full judge scorecards, downloadable reports, and advanced analysis.
+            </p>
+            <Button
+              onClick={() => setShowUpgrade(true)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade to Pro
+            </Button>
+          </motion.div>
+        )}
       </main>
 
       <footer className="border-t border-border px-4 sm:px-6 py-6 mt-auto">
@@ -294,6 +347,8 @@ const Dashboard = () => {
           </button>
         </div>
       </footer>
+
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   );
 };
