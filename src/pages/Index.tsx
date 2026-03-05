@@ -628,6 +628,8 @@ const Index = () => {
                     isGenerating={state.isGenerating}
                     roundNumber={state.currentRoundNumber}
                     maxRounds={MAX_ROUNDS}
+                    autoDebate={autoDebate}
+                    onAutoDebateToggle={() => setAutoDebate((v) => !v)}
                   />
                 )}
 
