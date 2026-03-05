@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Persona, DebateState, Round } from "@/types/debate";
 import {
   generateRound1,
@@ -26,6 +27,7 @@ import RatingsOverview from "@/components/RatingsOverview";
 import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
+import UpgradeModal from "@/components/UpgradeModal";
 
 const MAX_ROUNDS = 4;
 
@@ -61,6 +63,10 @@ const Index = () => {
   const [useAllPersonas, setUseAllPersonas] = useState(true);
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [finishedCount, setFinishedCount] = useState(0);
+  const isPro = localStorage.getItem("startup_jury_pro") === "true";
+  const FREE_LIMIT = 2;
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,6 +84,21 @@ const Index = () => {
 
   useDebateAgentState(state);
   console.log("[RedisMemory] Session:", sessionId, "| Mock:", usingMock);
+
+  // Count finished evaluations for paywall
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("debate_sessions")
+      .select("id, phase, judge_verdict", { count: "exact", head: false })
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        const finished = (data ?? []).filter(
+          (s: any) => (s.phase === "judge" && s.judge_verdict) || s.phase === "final-ratings"
+        ).length;
+        setFinishedCount(finished);
+      });
+  }, [user?.id]);
 
   // Load session from URL parameter — wait for auth to resolve first so userId is available
   useEffect(() => {
@@ -142,6 +163,10 @@ const Index = () => {
   }, [useAllPersonas, state.phase]);
 
   const handleStartDebate = useCallback(async () => {
+    if (finishedCount >= FREE_LIMIT && !isPro) {
+      setShowUpgrade(true);
+      return;
+    }
     const personas = useAllPersonas ? PERSONAS : state.selectedPersonas;
     if (!personas.length) return;
 
@@ -697,6 +722,7 @@ const Index = () => {
           </button>
         </div>
       </footer>
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     </div>
   );
 };
