@@ -22,7 +22,7 @@ const features = [
   {
     icon: Shield,
     title: "Session History",
-    description: "Every debate is saved. Revisit scores, verdicts, and judge feedback anytime.",
+    description: "Every debate is saved. Revisit scores, verdicts, and judge feedback anytime from your dashboard.",
   },
 ];
 
@@ -77,11 +77,14 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
-      <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30 shrink-0" />
-            <span className="text-base sm:text-lg font-semibold text-foreground tracking-tight truncate">Startup Jury AI</span>
+      <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
+        <div className="max-w-[1200px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-3.5 h-3.5 rounded-sm bg-primary shrink-0" />
+            <span className="text-base sm:text-lg font-bold tracking-tight truncate">
+              <span className="text-foreground">STARTUP</span>{" "}
+              <span className="text-primary">JURY AI</span>
+            </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
@@ -95,7 +98,7 @@ const Landing = () => {
             <Button
               size="sm"
               onClick={() => navigate("/auth")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs sm:text-sm"
+              className="font-semibold text-xs sm:text-sm rounded-[10px]"
             >
               Get Started
             </Button>
@@ -104,23 +107,27 @@ const Landing = () => {
       </header>
 
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-28 text-center space-y-8">
+      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-32 text-center space-y-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-5"
+          className="space-y-6"
         >
-          <span className="inline-block text-xs font-mono uppercase tracking-widest text-primary px-3 py-1 rounded-full border border-primary/30 bg-primary/10">
+          <span className="inline-block text-xs font-mono uppercase tracking-[0.2em] text-primary px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10">
             AI-Powered Startup Validation
           </span>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1]">
-            Stop Guessing.
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.08] tracking-tight">
+            Pitch Your Startup
             <br />
-            <span className="text-primary">Get a Verdict.</span>
+            <span className="text-primary">to the AI Jury</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Pitch your startup idea to a panel of 8 AI experts — investors, operators, and skeptics — who debate it across 4 rounds and deliver a scored GO / NO-GO verdict in minutes.
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
+            8 AI expert personas — investors, operators, and skeptics — debate your idea across 4 rounds and deliver a scored{" "}
+            <span className="text-verdict-go font-medium">GO</span>{" / "}
+            <span className="text-verdict-maybe font-medium">MAYBE</span>{" / "}
+            <span className="text-verdict-nogo font-medium">NO-GO</span>{" "}
+            verdict in minutes.
           </p>
         </motion.div>
 
@@ -128,26 +135,42 @@ const Landing = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-3"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <Button
             size="lg"
             onClick={() => navigate("/auth")}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm sm:text-base px-8 w-full sm:w-auto h-12"
+            className="font-semibold text-sm sm:text-base px-8 w-full sm:w-auto h-12 rounded-[10px]"
           >
             <Zap className="w-5 h-5 mr-2" />
             Start Free Evaluation
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
-          <span className="text-xs text-muted-foreground">2 free evaluations · No credit card</span>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate("/auth")}
+            className="font-medium text-sm sm:text-base px-8 w-full sm:w-auto h-12 rounded-[10px] border-accent text-accent hover:bg-accent/10"
+          >
+            Learn More
+          </Button>
         </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-xs text-muted-foreground"
+        >
+          2 free evaluations · No credit card required
+        </motion.p>
 
         {/* Social proof strip */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
-          className="flex items-center justify-center gap-6 pt-4 flex-wrap"
+          className="flex items-center justify-center gap-8 sm:gap-12 pt-4 flex-wrap"
         >
           {[
             { value: "2,400+", label: "Ideas Evaluated" },
@@ -155,27 +178,27 @@ const Landing = () => {
             { value: "8", label: "AI Judges" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-lg sm:text-xl font-bold text-foreground">{stat.value}</div>
-              <div className="text-xs text-muted-foreground">{stat.label}</div>
+              <div className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</div>
+              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{stat.label}</div>
             </div>
           ))}
         </motion.div>
       </section>
 
       {/* How It Works */}
-      <section className="bg-card/50 border-y border-border">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+      <section className="bg-card/60 border-y border-border">
+        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12 sm:mb-16 space-y-3"
+            className="text-center mb-14 sm:mb-20 space-y-4"
           >
-            <span className="text-xs font-mono uppercase tracking-widest text-primary">How It Works</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
+            <span className="text-xs font-mono uppercase tracking-[0.2em] text-accent">How It Works</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">
               From idea to verdict in 4 steps
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto font-light">
               No pitch deck, no warm intros, no waiting. Just describe your idea and let the jury deliberate.
             </p>
           </motion.div>
@@ -188,14 +211,14 @@ const Landing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.4 }}
-                className="relative rounded-lg border border-border bg-card p-6 space-y-3"
+                className="relative rounded-[14px] border border-border bg-card p-6 space-y-4 hover:border-primary/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl font-bold text-primary/30 font-mono">{step.number}</span>
+                  <span className="text-2xl font-bold text-primary/25 font-mono">{step.number}</span>
                   <step.icon className="w-5 h-5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-foreground">{step.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+                <h3 className="font-semibold text-foreground text-base">{step.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -203,20 +226,20 @@ const Landing = () => {
       </section>
 
       {/* Features */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12 space-y-3"
+          className="text-center mb-14 space-y-4"
         >
-          <span className="text-xs font-mono uppercase tracking-widest text-primary">Features</span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
+          <span className="text-xs font-mono uppercase tracking-[0.2em] text-accent">Features</span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">
             Built for founders who move fast
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
@@ -224,97 +247,143 @@ const Landing = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08, duration: 0.4 }}
-              className="rounded-lg border border-border bg-card p-6 space-y-3 hover:border-primary/30 transition-colors"
+              className="rounded-[14px] border border-border bg-card p-6 sm:p-7 space-y-3 hover:border-primary/30 transition-colors"
             >
               <feature.icon className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold text-foreground">{feature.title}</h3>
+              <h3 className="font-semibold text-foreground text-base">{feature.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="bg-card/50 border-y border-border">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+      {/* Verdict Demo */}
+      <section className="bg-card/60 border-y border-border">
+        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12 space-y-3"
+            className="text-center mb-14 space-y-4"
           >
-            <span className="text-xs font-mono uppercase tracking-widest text-primary">Testimonials</span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">
-              Founders love the brutal honesty
+            <span className="text-xs font-mono uppercase tracking-[0.2em] text-accent">The Verdict</span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+              Clear, actionable outcomes
             </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto font-light">
+              Your idea shows strong potential but faces serious execution risks. Here's the breakdown.
+            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
+            {[
+              { label: "GO", desc: "High Potential", bg: "bg-verdict-go", emoji: "🚀" },
+              { label: "MAYBE", desc: "Needs Work", bg: "bg-verdict-maybe", emoji: "⚠️" },
+              { label: "NO-GO", desc: "High Risk", bg: "bg-verdict-nogo", emoji: "❌" },
+            ].map((v, i) => (
               <motion.div
-                key={t.author}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                key={v.label}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.4 }}
-                className="rounded-lg border border-border bg-card p-6 space-y-4"
+                transition={{ delay: i * 0.12, duration: 0.4 }}
+                className="rounded-[14px] border border-border bg-card p-6 text-center space-y-3"
               >
-                <p className="text-sm text-foreground leading-relaxed italic">"{t.quote}"</p>
-                <div>
-                  <div className="text-sm font-semibold text-foreground">{t.author}</div>
-                  <div className="text-xs text-muted-foreground">{t.role}</div>
-                </div>
+                <div className="text-3xl">{v.emoji}</div>
+                <span className={`inline-block ${v.bg} text-foreground font-bold text-sm px-4 py-1.5 rounded-full`}>
+                  {v.label}
+                </span>
+                <p className="text-sm text-muted-foreground">{v.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing teaser */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
+      {/* Testimonials */}
+      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="rounded-xl border border-primary/30 bg-primary/5 p-8 sm:p-12 text-center space-y-6"
+          className="text-center mb-14 space-y-4"
         >
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Start validating for free</h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <div className="space-y-2">
-              <div className="text-3xl font-bold text-foreground">$0</div>
-              <div className="text-sm text-muted-foreground">2 free evaluations</div>
-            </div>
-            <div className="hidden sm:block w-px h-12 bg-border" />
-            <div className="space-y-2">
-              <div className="text-3xl font-bold text-primary">$19<span className="text-base font-normal text-muted-foreground">/mo</span></div>
-              <div className="text-sm text-muted-foreground">Unlimited evaluations</div>
-            </div>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <Button
-              size="lg"
-              onClick={() => navigate("/auth")}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-8 h-12"
-            >
-              Get Started Free
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
-              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-primary" /> No credit card</span>
-              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-primary" /> Cancel anytime</span>
-            </div>
-          </div>
+          <span className="text-xs font-mono uppercase tracking-[0.2em] text-accent">Testimonials</span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+            Founders love the brutal honesty
+          </h2>
         </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {testimonials.map((t, i) => (
+            <motion.div
+              key={t.author}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.4 }}
+              className="rounded-[14px] border border-border bg-card p-6 sm:p-7 space-y-5"
+            >
+              <p className="text-sm text-foreground leading-relaxed italic">"{t.quote}"</p>
+              <div>
+                <div className="text-sm font-semibold text-foreground">{t.author}</div>
+                <div className="text-xs text-muted-foreground">{t.role}</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="bg-card/60 border-y border-border">
+        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="rounded-[14px] border border-primary/30 bg-primary/5 p-8 sm:p-14 text-center space-y-8"
+          >
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">Start validating for free</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+              <div className="space-y-2">
+                <div className="text-4xl font-bold text-foreground">$0</div>
+                <div className="text-sm text-muted-foreground">2 free evaluations</div>
+              </div>
+              <div className="hidden sm:block w-px h-14 bg-border" />
+              <div className="space-y-2">
+                <div className="text-4xl font-bold text-primary">$19<span className="text-base font-normal text-muted-foreground">/mo</span></div>
+                <div className="text-sm text-muted-foreground">Unlimited evaluations</div>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <Button
+                size="lg"
+                onClick={() => navigate("/auth")}
+                className="font-semibold px-10 h-12 rounded-[10px]"
+              >
+                Get Started Free
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <div className="flex items-center gap-5 text-xs text-muted-foreground pt-2">
+                <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-verdict-go" /> No credit card</span>
+                <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-verdict-go" /> Cancel anytime</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border px-4 sm:px-6 py-8">
-        <div className="max-w-5xl mx-auto flex flex-col items-center gap-3 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-            <span className="font-semibold text-foreground text-sm">Startup Jury AI</span>
+      <footer className="border-t border-border px-6 py-10">
+        <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2.5">
+            <div className="w-3 h-3 rounded-sm bg-primary" />
+            <span className="font-bold text-sm">
+              <span className="text-foreground">STARTUP</span>{" "}
+              <span className="text-primary">JURY AI</span>
+            </span>
           </div>
-          <span>Validate your idea before you build.</span>
+          <span className="font-light">Validate your idea before you build.</span>
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/terms")}
