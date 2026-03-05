@@ -418,16 +418,19 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-4 relative">
-        <div className="max-w-5xl mx-auto flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30 shrink-0" />
-          <h1 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
+        <div className="max-w-[1200px] mx-auto flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="w-3.5 h-3.5 rounded-sm bg-primary shrink-0" />
+          <h1 className="text-base sm:text-lg font-bold tracking-tight">
+            <span className="text-foreground">STARTUP</span>{" "}
+            <span className="text-primary">JURY AI</span>
+          </h1>
           <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ debate stage</span>
 
           {/* Live debate indicator */}
           {isLiveDebating && (
             <span className="flex items-center gap-1.5 ml-1 sm:ml-2">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-xs font-mono text-red-400 uppercase tracking-widest">Live</span>
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+              <span className="text-xs font-mono text-destructive uppercase tracking-widest">Live</span>
             </span>
           )}
 
@@ -465,9 +468,9 @@ const Index = () => {
         </div>
       )}
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
+      <main className="max-w-[1200px] mx-auto px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
         {isSetup && (
-          <section className="rounded-lg border border-border bg-card p-6 space-y-5">
+          <section className="rounded-[14px] border border-border bg-card p-6 space-y-5">
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
                 Startup Idea
@@ -712,7 +715,7 @@ const Index = () => {
       </main>
 
       <footer className="border-t border-border px-6 py-6 mt-auto">
-        <div className="max-w-5xl mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
+        <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <button onClick={() => navigate("/app/terms")} className="hover:text-foreground underline underline-offset-2 transition-colors">
             Terms & Conditions
           </button>

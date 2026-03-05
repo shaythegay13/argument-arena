@@ -9,21 +9,21 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
 const verdictConfig: Record<string, { emoji: string; color: string; bg: string; border: string; label: string; tagline: string }> = {
-  GO: { emoji: "🚀", color: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/30", label: "GO", tagline: "High Potential" },
-  MAYBE: { emoji: "⚠️", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/30", label: "MAYBE", tagline: "Needs Work" },
-  "NO-GO": { emoji: "❌", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/30", label: "NO-GO", tagline: "Likely to Fail" },
+  GO: { emoji: "🚀", color: "text-verdict-go", bg: "bg-verdict-go/10", border: "border-verdict-go/30", label: "GO", tagline: "High Potential" },
+  MAYBE: { emoji: "⚠️", color: "text-verdict-maybe", bg: "bg-verdict-maybe/10", border: "border-verdict-maybe/30", label: "MAYBE", tagline: "Needs Work" },
+  "NO-GO": { emoji: "❌", color: "text-verdict-nogo", bg: "bg-verdict-nogo/10", border: "border-verdict-nogo/30", label: "NO-GO", tagline: "Likely to Fail" },
 };
 
 function scoreColor(score: number): string {
-  if (score >= 8) return "text-green-400";
-  if (score >= 6) return "text-yellow-400";
-  return "text-red-400";
+  if (score >= 8) return "text-verdict-go";
+  if (score >= 6) return "text-verdict-maybe";
+  return "text-verdict-nogo";
 }
 
 function scoreBg(score: number): string {
-  if (score >= 8) return "bg-green-400";
-  if (score >= 6) return "bg-yellow-400";
-  return "bg-red-400";
+  if (score >= 8) return "bg-verdict-go";
+  if (score >= 6) return "bg-verdict-maybe";
+  return "bg-verdict-nogo";
 }
 
 const personaColors: Record<string, { text: string; bg: string; border: string }> = {
@@ -100,7 +100,7 @@ export default function ResultPage() {
         <p className="text-sm text-muted-foreground text-center max-w-sm">
           This result page doesn't exist or hasn't been shared publicly.
         </p>
-        <Button variant="outline" onClick={() => navigate("/")} className="gap-2">
+        <Button variant="outline" onClick={() => navigate("/")} className="gap-2 rounded-[10px]">
           <ArrowLeft className="w-4 h-4" />
           Go Home
         </Button>
@@ -119,7 +119,6 @@ export default function ResultPage() {
     year: "numeric", month: "short", day: "numeric",
   });
 
-  // Get top 2 judge comments (highest scoring)
   const topComments = sortedRatings.slice(0, 2).map((r) => {
     const persona = personas.find((p) => p.id === r.personaId);
     return { persona, rating: r };
@@ -130,15 +129,18 @@ export default function ResultPage() {
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30" />
-          <h1 className="text-base font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
+          <div className="w-3.5 h-3.5 rounded-sm bg-primary" />
+          <h1 className="text-base font-bold tracking-tight">
+            <span className="text-foreground">STARTUP</span>{" "}
+            <span className="text-primary">JURY AI</span>
+          </h1>
           <span className="text-xs font-mono text-muted-foreground">/ result</span>
           <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleCopyLink} className="gap-1.5 text-muted-foreground">
               <Share2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Copy Link</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/")} className="gap-1.5">
+            <Button size="sm" onClick={() => navigate("/")} className="gap-1.5 rounded-[10px]">
               <Zap className="w-3.5 h-3.5" />
               Try It
             </Button>
@@ -151,9 +153,9 @@ export default function ResultPage() {
         <motion.section
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg border border-border bg-card p-5 sm:p-6"
+          className="rounded-[14px] border border-border bg-card p-5 sm:p-6"
         >
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">Startup Idea</p>
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1">Startup Idea</p>
           <p className="text-base sm:text-lg text-foreground leading-relaxed">{session.topic}</p>
           <p className="text-xs text-muted-foreground mt-2 font-mono">
             Evaluated on {dateStr} · {personas.length} judges · {session.rounds.length} rounds
@@ -166,7 +168,7 @@ export default function ResultPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.15 }}
-            className={`rounded-lg border ${vConfig.border} ${vConfig.bg} p-6 sm:p-8`}
+            className={`rounded-[14px] border ${vConfig.border} ${vConfig.bg} p-6 sm:p-8`}
           >
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <span className="text-5xl">{vConfig.emoji}</span>
@@ -174,7 +176,7 @@ export default function ResultPage() {
                 <h2 className={`text-3xl sm:text-4xl font-bold ${vConfig.color}`}>{vConfig.label}</h2>
                 <p className="text-sm text-muted-foreground">{vConfig.tagline}</p>
               </div>
-              <div className={`px-4 py-2 rounded-lg border ${vConfig.border} bg-card/50`}>
+              <div className={`px-4 py-2 rounded-[14px] border ${vConfig.border} bg-card/50`}>
                 <p className="text-xs text-muted-foreground font-mono text-center">Score</p>
                 <p className={`text-3xl font-bold text-center ${vConfig.color}`}>
                   {verdict.overallScore}<span className="text-sm text-muted-foreground">/10</span>
@@ -186,29 +188,29 @@ export default function ResultPage() {
 
             {/* Strengths & Risks */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
-              <div className="rounded-md border border-green-400/20 bg-green-400/5 p-3">
+              <div className="rounded-[10px] border border-verdict-go/20 bg-verdict-go/5 p-3">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Shield className="w-3.5 h-3.5 text-green-400" />
-                  <span className="text-[10px] font-mono uppercase text-green-400 font-semibold">Strengths</span>
+                  <Shield className="w-3.5 h-3.5 text-verdict-go" />
+                  <span className="text-[10px] font-mono uppercase text-verdict-go font-semibold">Strengths</span>
                 </div>
                 <ul className="space-y-1">
                   {verdict.strengths.map((s, i) => (
                     <li key={i} className="flex items-start gap-1.5 text-xs text-foreground/80">
-                      <span className="w-1 h-1 rounded-full bg-green-400 mt-1.5 shrink-0" />
+                      <span className="w-1 h-1 rounded-full bg-verdict-go mt-1.5 shrink-0" />
                       {s}
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-md border border-red-400/20 bg-red-400/5 p-3">
+              <div className="rounded-[10px] border border-verdict-nogo/20 bg-verdict-nogo/5 p-3">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-                  <span className="text-[10px] font-mono uppercase text-red-400 font-semibold">Risks</span>
+                  <AlertTriangle className="w-3.5 h-3.5 text-verdict-nogo" />
+                  <span className="text-[10px] font-mono uppercase text-verdict-nogo font-semibold">Risks</span>
                 </div>
                 <ul className="space-y-1">
                   {verdict.risks.map((r, i) => (
                     <li key={i} className="flex items-start gap-1.5 text-xs text-foreground/80">
-                      <span className="w-1 h-1 rounded-full bg-red-400 mt-1.5 shrink-0" />
+                      <span className="w-1 h-1 rounded-full bg-verdict-nogo mt-1.5 shrink-0" />
                       {r}
                     </li>
                   ))}
@@ -216,7 +218,7 @@ export default function ResultPage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-md bg-primary/10 border border-primary/20 px-4 py-3 flex items-start gap-2">
+            <div className="mt-4 rounded-[10px] bg-primary/10 border border-primary/20 px-4 py-3 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 text-primary mt-0.5 shrink-0" />
               <div>
                 <p className="text-[10px] font-mono uppercase text-primary font-semibold mb-0.5">Next Step</p>
@@ -232,11 +234,11 @@ export default function ResultPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="rounded-lg border border-border bg-card overflow-hidden"
+            className="rounded-[14px] border border-border bg-card overflow-hidden"
           >
             <div className="px-4 sm:px-5 py-3 border-b border-border flex items-center gap-2">
               <Star className="w-4 h-4 text-primary" />
-              <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
                 Judge Scorecards
               </span>
               {avgScore && (
@@ -271,7 +273,7 @@ export default function ResultPage() {
                         <p className="text-[10px] text-muted-foreground">{persona.subtitle}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <div className={`w-16 h-1.5 rounded-full bg-muted overflow-hidden`}>
+                        <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div className={`h-full ${scoreBg(rating.score)} rounded-full`} style={{ width: `${(rating.score / 10) * 100}%` }} />
                         </div>
                         <span className={`text-sm font-bold ${scoreColor(rating.score)}`}>{rating.score}/10</span>
@@ -293,9 +295,9 @@ export default function ResultPage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className="rounded-lg border border-border bg-card p-4 sm:p-5"
+            className="rounded-[14px] border border-border bg-card p-4 sm:p-5"
           >
-            <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
+            <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground mb-3">
               Key Insights from the Panel
             </p>
             <div className="space-y-3">
@@ -331,14 +333,14 @@ export default function ResultPage() {
         >
           <p className="text-xs text-muted-foreground">Share this result</p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5">
+            <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5 rounded-[10px]">
               <Share2 className="w-3.5 h-3.5" />
               Copy Link
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5"
+              className="gap-1.5 rounded-[10px]"
               onClick={() => {
                 const text = `My startup idea "${session.topic.slice(0, 60)}..." got a ${verdict?.verdict ?? "?"} verdict from Startup Jury AI! Score: ${verdict?.overallScore ?? "?"}/10`;
                 window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, "_blank");
@@ -351,7 +353,6 @@ export default function ResultPage() {
         </motion.div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border px-6 py-6">
         <div className="max-w-3xl mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <span>Powered by</span>
