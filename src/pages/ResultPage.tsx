@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import logo from "@/assets/logo.png";
 import { PERSONAS } from "@/data/personas";
 import { Persona, PersonaRating, JudgeVerdict, Round } from "@/types/debate";
 import { Loader2, ArrowLeft, Share2, ExternalLink, Gavel, Star, Shield, AlertTriangle, Lightbulb, ArrowRight, Zap } from "lucide-react";
@@ -129,11 +130,7 @@ export default function ResultPage() {
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <div className="w-3.5 h-3.5 rounded-sm bg-primary" />
-          <h1 className="text-base font-bold tracking-tight">
-            <span className="text-foreground">STARTUP</span>{" "}
-            <span className="text-primary">JURY AI</span>
-          </h1>
+          <img src={logo} alt="Startup Jury AI" className="h-8" />
           <span className="text-xs font-mono text-muted-foreground">/ result</span>
           <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleCopyLink} className="gap-1.5 text-muted-foreground">

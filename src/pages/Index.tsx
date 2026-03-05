@@ -28,6 +28,7 @@ import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
 import UpgradeModal from "@/components/UpgradeModal";
+import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
 
@@ -419,11 +420,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className="w-3.5 h-3.5 rounded-sm bg-primary shrink-0" />
-          <h1 className="text-base sm:text-lg font-bold tracking-tight">
-            <span className="text-foreground">STARTUP</span>{" "}
-            <span className="text-primary">JURY AI</span>
-          </h1>
+          <img src={logo} alt="Startup Jury AI" className="h-8 sm:h-9" />
           <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ debate stage</span>
 
           {/* Live debate indicator */}

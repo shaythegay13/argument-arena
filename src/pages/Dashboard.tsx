@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { JudgeVerdict, PersonaRating } from "@/types/debate";
 import UpgradeModal from "@/components/UpgradeModal";
+import logo from "@/assets/logo.png";
 
 type FilterOption = "all" | "in-progress" | "finished";
 
@@ -127,11 +128,7 @@ const Dashboard = () => {
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-3.5 h-3.5 rounded-sm bg-primary shrink-0" />
-            <h1 className="text-base sm:text-lg font-bold tracking-tight truncate">
-              <span className="text-foreground">STARTUP</span>{" "}
-              <span className="text-primary">JURY AI</span>
-            </h1>
+            <img src={logo} alt="Startup Jury AI" className="h-8 sm:h-9" />
             <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ dashboard</span>
           </div>
           <MobileNav currentPage="dashboard" />
