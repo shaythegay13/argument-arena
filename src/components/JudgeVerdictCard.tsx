@@ -1,14 +1,17 @@
-import { Gavel, Loader2, RotateCcw, RefreshCw, Download, Shield, AlertTriangle, Lightbulb, ArrowRight } from "lucide-react";
+import { Gavel, Loader2, RotateCcw, RefreshCw, Download, Shield, AlertTriangle, Lightbulb, ArrowRight, Share2, Check } from "lucide-react";
 import { JudgeVerdict } from "@/types/debate";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface JudgeVerdictCardProps {
   verdict: JudgeVerdict | null;
   isGenerating: boolean;
   onReset: () => void;
   onRefine: () => void;
+  sessionId?: string;
 }
 
 const verdictConfig: Record<
@@ -100,8 +103,12 @@ export default function JudgeVerdictCard({
   isGenerating,
   onReset,
   onRefine,
+  sessionId,
 }: JudgeVerdictCardProps) {
   const [revealed, setRevealed] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shared, setShared] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (verdict && !isGenerating) {
@@ -267,24 +274,42 @@ export default function JudgeVerdictCard({
 
                 {/* CTA buttons */}
                 <div className="flex flex-wrap gap-3 pt-3 border-t border-border">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onReset}
-                    className="gap-2"
-                  >
+                  <Button variant="outline" size="sm" onClick={onReset} className="gap-2">
                     <RotateCcw className="w-3.5 h-3.5" />
                     New Idea
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onRefine}
-                    className="gap-2"
-                  >
+                  <Button variant="outline" size="sm" onClick={onRefine} className="gap-2">
                     <RefreshCw className="w-3.5 h-3.5" />
                     Refine & Re-pitch
                   </Button>
+                  {sessionId && (
+                    <Button
+                      variant={shared ? "default" : "outline"}
+                      size="sm"
+                      className="gap-2"
+                      disabled={shareLoading}
+                      onClick={async () => {
+                        setShareLoading(true);
+                        try {
+                          await supabase
+                            .from("debate_sessions")
+                            .update({ is_public: true } as any)
+                            .eq("id", sessionId);
+                          const url = `${window.location.origin}/result/${sessionId}`;
+                          await navigator.clipboard.writeText(url);
+                          setShared(true);
+                          toast({ title: "Share link copied!", description: "Anyone with the link can view this result." });
+                          setTimeout(() => setShared(false), 3000);
+                        } catch {
+                          toast({ title: "Failed to share", variant: "destructive" });
+                        }
+                        setShareLoading(false);
+                      }}
+                    >
+                      {shared ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
+                      {shared ? "Link Copied!" : "Share Result"}
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
