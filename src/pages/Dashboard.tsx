@@ -128,7 +128,7 @@ const Dashboard = () => {
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <img src={logo} alt="Startup Jury AI" className="h-16 sm:h-20" />
+            <img src={logo} alt="Startup Jury AI" className="h-32 sm:h-40 -my-10" />
             <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ dashboard</span>
           </div>
           <MobileNav currentPage="dashboard" />
