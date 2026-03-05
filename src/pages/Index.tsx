@@ -420,7 +420,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center gap-2 sm:gap-3 flex-wrap">
-          <img src={logo} alt="Startup Jury AI" className="h-8 sm:h-9" />
+          <img src={logo} alt="Startup Jury AI" className="h-12 sm:h-14" />
           <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ debate stage</span>
 
           {/* Live debate indicator */}
