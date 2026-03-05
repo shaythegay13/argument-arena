@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,58 +6,71 @@
 
 @layer base {
   :root {
-    --background: 220 20% 7%;
-    --foreground: 40 20% 92%;
+    /* Deep Navy – authority, credibility */
+    --background: 222 47% 11%;
+    --foreground: 0 0% 100%;
 
-    --card: 220 18% 11%;
-    --card-foreground: 40 20% 92%;
+    /* Dark Slate – cards, panels */
+    --card: 217 33% 17%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 220 18% 11%;
-    --popover-foreground: 40 20% 92%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 38 90% 55%;
-    --primary-foreground: 220 20% 7%;
+    /* Jury Orange – energy, momentum */
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 16%;
-    --secondary-foreground: 40 15% 80%;
+    /* Dark Slate secondary */
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 214 32% 91%;
 
-    --muted: 220 14% 14%;
-    --muted-foreground: 220 10% 50%;
+    /* Muted tones */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 16% 65%;
 
-    --accent: 38 70% 45%;
-    --accent-foreground: 220 20% 7%;
+    /* Tech Blue – intelligence, innovation */
+    --accent: 199 89% 60%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    /* Verdict Red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 14% 18%;
-    --input: 220 14% 18%;
-    --ring: 38 90% 55%;
+    /* Borders & Input – subtle slate */
+    --border: 217 24% 22%;
+    --input: 217 24% 22%;
+    --ring: 25 95% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.875rem;
+
+    /* Verdict colors */
+    --verdict-go: 142 71% 45%;
+    --verdict-maybe: 38 92% 50%;
+    --verdict-nogo: 0 84% 60%;
 
     /* Persona accent colors */
-    --persona-angel: 38 90% 55%;
-    --persona-vc: 210 70% 55%;
-    --persona-customer: 150 60% 45%;
-    --persona-operator: 280 55% 55%;
-    --persona-skeptic: 0 65% 55%;
-    --persona-quant: 190 70% 50%;
+    --persona-angel: 25 95% 53%;
+    --persona-vc: 199 89% 60%;
+    --persona-customer: 142 71% 45%;
+    --persona-operator: 142 60% 50%;
+    --persona-skeptic: 0 84% 60%;
+    --persona-quant: 215 16% 65%;
     --persona-insider: 25 75% 50%;
-    --persona-visionary: 320 60% 55%;
+    --persona-visionary: 280 55% 55%;
 
     /* Stage glow */
-    --stage-glow: 38 90% 55%;
+    --stage-glow: 25 95% 53%;
     --stage-spotlight: 0 0% 100%;
 
-    --sidebar-background: 220 18% 9%;
-    --sidebar-foreground: 40 20% 92%;
-    --sidebar-primary: 38 90% 55%;
-    --sidebar-primary-foreground: 220 20% 7%;
-    --sidebar-accent: 220 15% 16%;
-    --sidebar-accent-foreground: 40 15% 80%;
-    --sidebar-border: 220 14% 18%;
-    --sidebar-ring: 38 90% 55%;
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 25 95% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 214 32% 91%;
+    --sidebar-border: 217 24% 22%;
+    --sidebar-ring: 25 95% 53%;
   }
 }
 
@@ -67,12 +80,18 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
   }
 
   code, .font-mono {
     font-family: 'JetBrains Mono', monospace;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
   }
 }
 
@@ -108,4 +127,12 @@
   .bg-persona-quant { background-color: hsl(var(--persona-quant) / 0.12); }
   .bg-persona-insider { background-color: hsl(var(--persona-insider) / 0.12); }
   .bg-persona-visionary { background-color: hsl(var(--persona-visionary) / 0.12); }
+
+  /* Verdict utilities */
+  .verdict-go { color: hsl(var(--verdict-go)); }
+  .verdict-maybe { color: hsl(var(--verdict-maybe)); }
+  .verdict-nogo { color: hsl(var(--verdict-nogo)); }
+  .bg-verdict-go { background-color: hsl(var(--verdict-go)); }
+  .bg-verdict-maybe { background-color: hsl(var(--verdict-maybe)); }
+  .bg-verdict-nogo { background-color: hsl(var(--verdict-nogo)); }
 }

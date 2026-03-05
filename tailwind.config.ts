@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        verdict: {
+          go: "hsl(var(--verdict-go))",
+          maybe: "hsl(var(--verdict-maybe))",
+          nogo: "hsl(var(--verdict-nogo))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
