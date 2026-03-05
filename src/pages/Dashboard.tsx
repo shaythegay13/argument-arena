@@ -125,7 +125,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-4 sm:px-6 py-4">
+      <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
             <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12" />
