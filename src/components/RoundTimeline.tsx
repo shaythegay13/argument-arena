@@ -1,4 +1,5 @@
 import { Gavel, Star } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface RoundTimelineProps {
   totalRounds: number;
@@ -10,7 +11,12 @@ interface RoundTimelineProps {
   onGradesClick?: () => void;
 }
 
-const ROUND_LABELS = ["Round 1", "Round 2", "Round 3", "Round 4"];
+const ROUND_LABELS = [
+  "Initial Reactions",
+  "Risks & Critiques",
+  "Founder Defense",
+  "Final Evaluations",
+];
 
 export default function RoundTimeline({
   totalRounds,
@@ -29,22 +35,20 @@ export default function RoundTimeline({
   const judgeEnabled = phase === "final-ratings" || phase === "judge";
 
   return (
-    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-      <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground mr-1">
-        Rounds
-      </span>
-
-      {Array.from({ length: maxRounds }, (_, k) => k + 1).map((round, mapIdx) => {
+    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+      {Array.from({ length: maxRounds }, (_, k) => k + 1).map((round) => {
         const completed = round <= totalRounds;
         const isCurrent = round === currentRound && phase === "debating";
 
         return (
-          <button
+          <motion.button
             key={round}
+            whileHover={completed ? { scale: 1.05 } : {}}
+            whileTap={completed ? { scale: 0.95 } : {}}
             onClick={() => completed && onSelectRound(round)}
             disabled={!completed}
             className={`
-              flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-mono font-semibold transition-all
+              flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all
               ${isCurrent
                 ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                 : completed
@@ -53,18 +57,24 @@ export default function RoundTimeline({
               }
             `}
           >
-            <span className={`w-2 h-2 rounded-full ${completed ? "bg-current" : "border border-current"}`} />
-            {ROUND_LABELS[mapIdx]}
-          </button>
+            <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${completed ? "bg-current" : "border border-current"}`} />
+            <span className="hidden sm:inline">{ROUND_LABELS[round - 1] ?? `Round ${round}`}</span>
+            <span className="sm:hidden">R{round}</span>
+          </motion.button>
         );
       })}
 
+      {/* Separator */}
+      <div className="w-px h-5 bg-border mx-0.5" />
+
       {/* Grades chip */}
-      <button
+      <motion.button
+        whileHover={gradesEnabled ? { scale: 1.05 } : {}}
+        whileTap={gradesEnabled ? { scale: 0.95 } : {}}
         onClick={() => gradesEnabled && onGradesClick?.()}
         disabled={!gradesEnabled}
         className={`
-          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-mono font-semibold transition-all
+          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all
           ${gradesActive
             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
             : gradesEnabled
@@ -75,14 +85,16 @@ export default function RoundTimeline({
       >
         <Star className="w-3 h-3" />
         Grades
-      </button>
+      </motion.button>
 
       {/* Judge chip */}
-      <button
+      <motion.button
+        whileHover={judgeEnabled ? { scale: 1.05 } : {}}
+        whileTap={judgeEnabled ? { scale: 0.95 } : {}}
         onClick={() => judgeEnabled && onJudgeClick?.()}
         disabled={!judgeEnabled}
         className={`
-          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[11px] sm:text-xs font-mono font-semibold transition-all
+          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all
           ${judgeActive
             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
             : judgeEnabled
@@ -92,8 +104,8 @@ export default function RoundTimeline({
         `}
       >
         <Gavel className="w-3 h-3" />
-        Judge
-      </button>
+        Verdict
+      </motion.button>
     </div>
   );
 }
