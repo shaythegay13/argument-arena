@@ -69,7 +69,7 @@ const Index = () => {
   // Capture the session param once at mount so it survives URL clearing
   const sessionParamRef = useRef(searchParams.get("session"));
   const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current);
-  const { saveSession, loadSession, resetSessionId } = useSessionPersistence(user?.id);
+  const { saveSession, loadSession, resetSessionId, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
 
   const { toast } = useToast();
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
@@ -670,6 +670,7 @@ const Index = () => {
                   isGenerating={state.isGeneratingJudge}
                   onReset={handleReset}
                   onRefine={handleRefine}
+                  sessionId={sessionIdRef.current ?? undefined}
                 />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer

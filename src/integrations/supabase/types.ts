@@ -45,6 +45,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_public: boolean
           judge_verdict: Json | null
           phase: string
           ratings: Json
@@ -58,6 +59,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_public?: boolean
           judge_verdict?: Json | null
           phase?: string
           ratings?: Json
@@ -71,6 +73,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_public?: boolean
           judge_verdict?: Json | null
           phase?: string
           ratings?: Json
