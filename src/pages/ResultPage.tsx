@@ -83,6 +83,7 @@ export default function ResultPage() {
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
+    trackEvent("result_shared", { sessionId: id });
     toast({ title: "Link copied!", description: "Share this link with anyone." });
   };
 
@@ -338,7 +339,7 @@ export default function ResultPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.print()}
+              onClick={() => { trackEvent("pdf_downloaded", { sessionId: id }); window.print(); }}
               className="gap-1.5 rounded-[10px]"
             >
               <Download className="w-3.5 h-3.5" />
