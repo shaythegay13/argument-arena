@@ -184,6 +184,7 @@ const Index = () => {
       judgeVerdict: null,
     }));
 
+    trackEvent("debate_started", { personaCount: personas.length });
     try {
     const messages = await generateRound1(
       state.topic,
