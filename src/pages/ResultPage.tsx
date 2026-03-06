@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { PERSONAS } from "@/data/personas";
 import { Persona, PersonaRating, JudgeVerdict, Round } from "@/types/debate";
-import { Loader2, ArrowLeft, Share2, ExternalLink, Gavel, Star, Shield, AlertTriangle, Lightbulb, ArrowRight, Zap } from "lucide-react";
+import { Loader2, ArrowLeft, Share2, ExternalLink, Gavel, Star, Shield, AlertTriangle, Lightbulb, ArrowRight, Zap, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -176,7 +176,7 @@ export default function ResultPage() {
               <div className={`px-4 py-2 rounded-[14px] border ${vConfig.border} bg-card/50`}>
                 <p className="text-xs text-muted-foreground font-mono text-center">Score</p>
                 <p className={`text-3xl font-bold text-center ${vConfig.color}`}>
-                  {verdict.overallScore}<span className="text-sm text-muted-foreground">/10</span>
+                  {verdict.overallScore * 10}<span className="text-sm text-muted-foreground">/100</span>
                 </p>
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function ResultPage() {
               </span>
               {avgScore && (
                 <span className="ml-auto text-xs font-mono text-muted-foreground">
-                  Avg: <span className={`font-bold ${scoreColor(avgScore)}`}>{avgScore}/10</span>
+                  Avg: <span className={`font-bold ${scoreColor(avgScore)}`}>{Math.round(avgScore * 10)}/100</span>
                 </span>
               )}
             </div>
@@ -273,7 +273,7 @@ export default function ResultPage() {
                         <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div className={`h-full ${scoreBg(rating.score)} rounded-full`} style={{ width: `${(rating.score / 10) * 100}%` }} />
                         </div>
-                        <span className={`text-sm font-bold ${scoreColor(rating.score)}`}>{rating.score}/10</span>
+                        <span className={`text-sm font-bold ${scoreColor(rating.score)}`}>{rating.score * 10}/100</span>
                       </div>
                     </div>
                     {rating.verdict && (
@@ -333,6 +333,15 @@ export default function ResultPage() {
             <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5 rounded-[10px]">
               <Share2 className="w-3.5 h-3.5" />
               Copy Link
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              className="gap-1.5 rounded-[10px]"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Download PDF
             </Button>
             <Button
               variant="outline"

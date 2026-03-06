@@ -150,7 +150,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 px-3 py-2 rounded-[14px] bg-card border border-border">
                 <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground font-mono">Avg Score</span>
-                <span className={`text-sm font-bold ${scoreColor(avgScore)}`}>{avgScore}/10</span>
+                <span className={`text-sm font-bold ${scoreColor(avgScore)}`}>{Math.round(avgScore * 10)}/100</span>
               </div>
             )}
             {isPro && (

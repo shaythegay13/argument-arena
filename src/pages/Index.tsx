@@ -15,10 +15,10 @@ import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useHostAudio } from "@/hooks/useHostAudio";
 import { useAuth } from "@/hooks/useAuth";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail } from "lucide-react";
+import IdeaSubmissionForm from "@/components/IdeaSubmissionForm";
 import MobileNav from "@/components/MobileNav";
 import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
@@ -469,20 +469,12 @@ const Index = () => {
         {isSetup && (
           <section className="rounded-[14px] border border-border bg-card p-6 space-y-5">
             <div>
-              <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
+              <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
                 Startup Idea
               </label>
-              <Textarea
-                placeholder="e.g. AI personal stylist app using phone camera — describes your outfit and suggests improvements"
-                value={state.topic}
-                onChange={(e) => setState((prev) => ({ ...prev, topic: e.target.value }))}
-                className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground min-h-[80px] resize-none focus:ring-1 focus:ring-primary"
-              />
-              <VoiceInputButton
-                onTranscript={(text) =>
-                  setState((prev) => ({ ...prev, topic: prev.topic + (prev.topic ? " " : "") + text }))
-                }
-                className="mt-2"
+              <IdeaSubmissionForm
+                onTopicChange={(topic) => setState((prev) => ({ ...prev, topic }))}
+                disabled={state.isGenerating}
               />
             </div>
 
