@@ -178,7 +178,7 @@ export default function JudgeVerdictCard({
                 <div className={`px-4 py-2 rounded-[14px] border ${verdictConfig[verdict.verdict].border} ${verdictConfig[verdict.verdict].bg}`}>
                   <p className="text-xs text-muted-foreground font-mono text-center">Overall Score</p>
                   <p className={`text-3xl font-bold text-center ${verdictConfig[verdict.verdict].color}`}>
-                    {verdict.overallScore}<span className="text-base text-muted-foreground">/10</span>
+                    {verdict.overallScore * 10}<span className="text-base text-muted-foreground">/100</span>
                   </p>
                 </div>
               </motion.div>
