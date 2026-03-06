@@ -358,6 +358,7 @@ const Index = () => {
         state.ratings
       );
       setState((prev) => ({ ...prev, judgeVerdict, isGeneratingJudge: false }));
+      trackEvent("debate_completed", { verdict: judgeVerdict.verdict, score: judgeVerdict.overallScore });
 
       generateClip(MAX_ROUNDS + 1, state.selectedPersonas, {
         roundNumber: MAX_ROUNDS + 1,
