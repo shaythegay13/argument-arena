@@ -8,6 +8,7 @@ import { Loader2, ArrowLeft, Share2, ExternalLink, Gavel, Star, Shield, AlertTri
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 
 const verdictConfig: Record<string, { emoji: string; color: string; bg: string; border: string; label: string; tagline: string }> = {
   GO: { emoji: "🚀", color: "text-verdict-go", bg: "bg-verdict-go/10", border: "border-verdict-go/30", label: "GO", tagline: "High Potential" },
@@ -82,6 +83,7 @@ export default function ResultPage() {
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
+    trackEvent("result_shared", { sessionId: id });
     toast({ title: "Link copied!", description: "Share this link with anyone." });
   };
 
@@ -337,7 +339,7 @@ export default function ResultPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.print()}
+              onClick={() => { trackEvent("pdf_downloaded", { sessionId: id }); window.print(); }}
               className="gap-1.5 rounded-[10px]"
             >
               <Download className="w-3.5 h-3.5" />

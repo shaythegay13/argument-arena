@@ -9,6 +9,7 @@ import {
   generateJudgeVerdict,
   generateAutoResponse,
 } from "@/lib/ai";
+import { trackEvent } from "@/lib/analytics";
 import { PERSONAS } from "@/data/personas";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
@@ -183,6 +184,7 @@ const Index = () => {
       judgeVerdict: null,
     }));
 
+    trackEvent("debate_started", { personaCount: personas.length });
     try {
     const messages = await generateRound1(
       state.topic,
@@ -356,6 +358,7 @@ const Index = () => {
         state.ratings
       );
       setState((prev) => ({ ...prev, judgeVerdict, isGeneratingJudge: false }));
+      trackEvent("debate_completed", { verdict: judgeVerdict.verdict, score: judgeVerdict.overallScore });
 
       generateClip(MAX_ROUNDS + 1, state.selectedPersonas, {
         roundNumber: MAX_ROUNDS + 1,
