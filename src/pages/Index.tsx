@@ -9,6 +9,7 @@ import {
   generateJudgeVerdict,
   generateAutoResponse,
 } from "@/lib/ai";
+import { trackEvent } from "@/lib/analytics";
 import { PERSONAS } from "@/data/personas";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
