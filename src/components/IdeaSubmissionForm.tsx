@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Zap, Loader2, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
+import { Zap, Loader2, ChevronDown, ChevronUp, Lightbulb, Sparkles } from "lucide-react";
 import VoiceInputButton from "@/components/VoiceInputButton";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface IdeaFormData {
   problem: string;
@@ -159,6 +160,11 @@ export default function IdeaSubmissionForm({ onTopicChange, disabled }: IdeaSubm
         )}
       </AnimatePresence>
 
+      {/* AI Completeness Check */}
+      {completeness >= 2 && (
+        <AICompletenessCheck form={form} />
+      )}
+
       {/* Inline suggestions */}
       {suggestions.length > 0 && completeness < 4 && completeness > 0 && (
         <div className="flex items-start gap-2 px-3 py-2 rounded-[10px] bg-primary/5 border border-primary/15">
@@ -168,6 +174,77 @@ export default function IdeaSubmissionForm({ onTopicChange, disabled }: IdeaSubm
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function AICompletenessCheck({ form }: { form: IdeaFormData }) {
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  const checkCompleteness = async () => {
+    setLoading(true);
+    setFeedback(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("debate-ai", {
+        body: {
+          systemPrompt: "You are a startup pitch coach. Evaluate the completeness of this startup idea submission. If it's ready for expert debate, say 'READY' on the first line. If it needs improvement, give 2-3 brief bullet points (each under 15 words) of what's missing or vague. Be encouraging but honest. Keep total response under 80 words.",
+          userPrompt: `Problem: ${form.problem || "(not provided)"}\nSolution: ${form.solution || "(not provided)"}\nTarget Market: ${form.targetMarket || "(not provided)"}\nMonetization: ${form.monetization || "(not provided)"}`,
+          model: "google/gemini-2.5-flash-lite",
+        },
+      });
+      if (error) throw error;
+      setFeedback(data?.content ?? "Unable to check.");
+    } catch {
+      setFeedback("Couldn't check right now. You can still start the debate!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (dismissed) return null;
+
+  return (
+    <div className="space-y-2">
+      {!feedback && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={checkCompleteness}
+          disabled={loading}
+          className="rounded-[10px] text-xs"
+        >
+          {loading ? (
+            <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+          ) : (
+            <Sparkles className="w-3 h-3 mr-1.5" />
+          )}
+          AI Completeness Check
+        </Button>
+      )}
+      <AnimatePresence>
+        {feedback && (
+          <motion.div
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="px-3 py-2.5 rounded-[10px] border border-primary/20 bg-primary/5 space-y-1"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-primary">AI Feedback</span>
+              <button
+                onClick={() => setDismissed(true)}
+                className="text-[10px] text-muted-foreground hover:text-foreground"
+              >
+                Dismiss
+              </button>
+            </div>
+            <p className="text-xs text-foreground/80 whitespace-pre-line">{feedback}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
