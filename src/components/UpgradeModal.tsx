@@ -99,7 +99,7 @@ export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, on
             </div>
 
             <div className="px-6 pb-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="rounded-[14px] border border-border p-4 space-y-3">
                   <div>
                     <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Free</p>
