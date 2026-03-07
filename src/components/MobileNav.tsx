@@ -11,7 +11,7 @@ interface MobileNavProps {
   onNewDebate?: () => void;
 }
 
-export default function MobileNav({ currentPage, isPro, onUpgradeClick }: MobileNavProps) {
+export default function MobileNav({ currentPage, isPro, onUpgradeClick, onNewDebate }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
