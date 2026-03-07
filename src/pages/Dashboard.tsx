@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
-import { Zap, Loader2, Trash2, Clock, CheckCircle2, Timer, TrendingUp, Share2, Crown, Settings } from "lucide-react";
+import { Zap, Loader2, Trash2, CheckCircle2, Timer, Share2, Crown, Settings } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
