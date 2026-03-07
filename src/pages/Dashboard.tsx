@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
-import { Zap, Loader2, Trash2, Clock, CheckCircle2, Timer, TrendingUp, Share2, Crown } from "lucide-react";
+import { Zap, Loader2, Trash2, Clock, CheckCircle2, Timer, TrendingUp, Share2, Crown, Settings } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -156,10 +156,14 @@ const Dashboard = () => {
               </div>
             )}
             {isPro && (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-primary/10 border border-primary/20">
+              <button
+                onClick={() => subscription.manageSubscription()}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+              >
                 <Crown className="w-3.5 h-3.5 text-primary" />
                 <span className="text-xs font-mono font-semibold text-primary">Pro</span>
-              </div>
+                <Settings className="w-3 h-3 text-primary/60 ml-1" />
+              </button>
             )}
           </div>
         )}
