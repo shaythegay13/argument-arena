@@ -71,6 +71,7 @@ const Index = () => {
   const subscription = useSubscription();
   const isPro = subscription.isPro;
   const FREE_LIMIT = 2;
+  const PRO_LIMIT = 100;
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -169,6 +170,14 @@ const Index = () => {
   const handleStartDebate = useCallback(async () => {
     if (finishedCount >= FREE_LIMIT && !isPro) {
       setShowUpgrade(true);
+      return;
+    }
+    if (isPro && finishedCount >= PRO_LIMIT) {
+      toast({
+        title: "Monthly limit reached",
+        description: `You've used all ${PRO_LIMIT} evaluations this month. Contact us if you need more.`,
+        variant: "destructive",
+      });
       return;
     }
     const personas = useAllPersonas ? PERSONAS : state.selectedPersonas;

@@ -53,6 +53,7 @@ function isFinished(session: SessionRow) {
 }
 
 const FREE_EVALUATION_LIMIT = 2;
+const PRO_EVALUATION_LIMIT = 100;
 
 const Dashboard = () => {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
@@ -107,6 +108,12 @@ const Dashboard = () => {
   const handleNewDebate = () => {
     if (isAtLimit && !isPro) {
       setShowUpgrade(true);
+    } else if (isPro && finishedCount >= PRO_EVALUATION_LIMIT) {
+      toast({
+        title: "Monthly limit reached",
+        description: `You've used all ${PRO_EVALUATION_LIMIT} evaluations. Contact us if you need more.`,
+        variant: "destructive",
+      });
     } else {
       navigate("/debate");
     }
