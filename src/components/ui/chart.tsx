@@ -58,6 +58,18 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = "Chart";
 
+// SECURITY: ChartConfig must never contain user-supplied data.
+// Color values are validated before injection to prevent CSS injection.
+const SAFE_CSS_COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgb\([^;{}]*\)|rgba\([^;{}]*\)|hsl\([^;{}]*\)|hsla\([^;{}]*\)|[a-zA-Z]{1,30})$/;
+
+function sanitizeCssColor(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (SAFE_CSS_COLOR_RE.test(trimmed)) return trimmed;
+  console.warn(`[ChartStyle] Rejected unsafe color value: "${trimmed}"`);
+  return null;
+}
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color);
 
@@ -74,7 +86,8 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+    const raw = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+    const color = sanitizeCssColor(raw);
     return color ? `  --color-${key}: ${color};` : null;
   })
   .join("\n")}
