@@ -100,7 +100,8 @@ const Dashboard = () => {
 
   const finishedCount = sessions.filter(isFinished).length;
   const isAtLimit = finishedCount >= FREE_EVALUATION_LIMIT;
-  const subscription = __useSubscription();\n  const isPro = subscription.isPro;
+  const subscription = useSubscription();
+  const isPro = subscription.isPro;
 
   const handleNewDebate = () => {
     if (isAtLimit && !isPro) {
