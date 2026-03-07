@@ -56,7 +56,10 @@ serve(async (req) => {
       });
     }
 
-    const voice = voiceId || 'JBFqnCBsd6RMkjVDRZzb';
+    const ALLOWED_VOICE_IDS = new Set([
+      'JBFqnCBsd6RMkjVDRZzb', // George (default)
+    ]);
+    const voice = (voiceId && ALLOWED_VOICE_IDS.has(voiceId)) ? voiceId : 'JBFqnCBsd6RMkjVDRZzb';
 
     console.log(`[ElevenLabs TTS] Generating speech for ${text.length} chars with voice ${voice}`);
 
