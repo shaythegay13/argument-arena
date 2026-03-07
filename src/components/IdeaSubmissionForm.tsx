@@ -52,9 +52,9 @@ export default function IdeaSubmissionForm({ onTopicChange, disabled }: IdeaSubm
   if (!form.problem.trim()) suggestions.push("Describe the problem you're solving");
   if (!form.solution.trim()) suggestions.push("Explain your proposed solution");
   if (form.problem.trim() && form.solution.trim() && !form.targetMarket.trim())
-    suggestions.push("Add your target market for better analysis");
+    suggestions.push("Optionally add your target market for deeper analysis");
   if (form.problem.trim() && form.solution.trim() && !form.monetization.trim())
-    suggestions.push("Add a monetization strategy for a complete evaluation");
+    suggestions.push("Optionally add a monetization strategy for richer feedback");
 
   return (
     <div className="space-y-4">
@@ -189,8 +189,8 @@ function AICompletenessCheck({ form }: { form: IdeaFormData }) {
     try {
       const { data, error } = await supabase.functions.invoke("debate-ai", {
         body: {
-          systemPrompt: "You are a startup pitch coach. Evaluate the completeness of this startup idea submission. If it's ready for expert debate, say 'READY' on the first line. If it needs improvement, give 2-3 brief bullet points (each under 15 words) of what's missing or vague. Be encouraging but honest. Keep total response under 80 words.",
-          userPrompt: `Problem: ${form.problem || "(not provided)"}\nSolution: ${form.solution || "(not provided)"}\nTarget Market: ${form.targetMarket || "(not provided)"}\nMonetization: ${form.monetization || "(not provided)"}`,
+          systemPrompt: "You are a startup pitch coach. Evaluate the completeness of this startup idea submission. Only the Problem and Solution fields are required. Target Market and Monetization are optional bonus fields — do NOT flag them as missing or needed. If Problem and Solution are clear enough for expert debate, say 'READY' on the first line. If they need improvement, give 2-3 brief bullet points (each under 15 words) about how to improve Problem or Solution only. Be encouraging but honest. Keep total response under 80 words.",
+          userPrompt: `Problem: ${form.problem || "(not provided)"}\nSolution: ${form.solution || "(not provided)"}${form.targetMarket ? `\nTarget Market (optional): ${form.targetMarket}` : ""}${form.monetization ? `\nMonetization (optional): ${form.monetization}` : ""}`,
           model: "google/gemini-2.5-flash-lite",
         },
       });
