@@ -80,7 +80,7 @@ const Landing = () => {
       {/* Nav */}
       <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-          <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12" />
+          <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" />
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
@@ -371,7 +371,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-border px-6 py-10">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
-          <img src={logo} alt="Startup Jury AI" className="h-32 -my-10" />
+          <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-32 -my-8 sm:-my-10" />
           <span className="font-light">Validate your idea before you build.</span>
           <div className="flex items-center gap-3">
             <button

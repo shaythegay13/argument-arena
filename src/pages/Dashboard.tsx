@@ -130,7 +130,7 @@ const Dashboard = () => {
       <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12" />
+            <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" />
             <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ dashboard</span>
           </div>
           <MobileNav currentPage="dashboard" isPro={isPro} onUpgradeClick={() => setShowUpgrade(true)} onNewDebate={handleNewDebate} />
@@ -302,7 +302,7 @@ const Dashboard = () => {
                           e.stopPropagation();
                           handleDelete(session.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity h-8 w-8 p-0"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity h-8 w-8 p-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>

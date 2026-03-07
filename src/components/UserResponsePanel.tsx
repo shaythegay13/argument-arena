@@ -55,8 +55,8 @@ export default function UserResponsePanel({
   };
 
   const buttonLabel = isFinal
-    ? `Send & Get Final Round (${roundNumber + 1}/${maxRounds})`
-    : `Send & Start Round ${roundNumber + 1}`;
+    ? `Send Final (${roundNumber + 1}/${maxRounds})`
+    : `Send → Round ${roundNumber + 1}`;
 
   return (
     <motion.div
