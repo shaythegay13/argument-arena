@@ -8,6 +8,37 @@ type EventName =
   | "pdf_downloaded"
   | "idea_validated";
 
+/** Allowed metadata keys – only non-sensitive, application-level data. */
+const ALLOWED_METADATA_KEYS = new Set([
+  "personaCount",
+  "verdict",
+  "score",
+  "sessionId",
+  "roundCount",
+]);
+
+/**
+ * Strips any keys not on the allowlist and rejects non-primitive values
+ * to prevent accidental storage of sensitive data (IPs, tokens, PII).
+ */
+function sanitizeMetadata(
+  raw: Record<string, unknown>
+): Record<string, string | number | boolean | null> {
+  const clean: Record<string, string | number | boolean | null> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (!ALLOWED_METADATA_KEYS.has(key)) continue;
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      value === null
+    ) {
+      clean[key] = value;
+    }
+  }
+  return clean;
+}
+
 export async function trackEvent(
   eventName: EventName,
   metadata: Record<string, unknown> = {}
@@ -19,7 +50,7 @@ export async function trackEvent(
     await supabase.from("analytics_events").insert({
       user_id: user.id,
       event_name: eventName,
-      metadata,
+      metadata: sanitizeMetadata(metadata),
     } as any);
   } catch (err) {
     // Analytics should never block the UI
