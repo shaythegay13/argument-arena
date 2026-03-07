@@ -33,7 +33,7 @@ function sanitizeMetadata(
       typeof value === "boolean" ||
       value === null
     ) {
-      clean[key] = value;
+      clean[key] = value as string | number | boolean | null;
     }
   }
   return clean;
