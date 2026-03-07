@@ -84,7 +84,12 @@ export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, on
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 40 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full sm:max-w-lg rounded-t-[20px] sm:rounded-[14px] border border-border bg-card shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col"
+            drag={isMobile ? "y" : false}
+            dragControls={dragControls}
+            dragConstraints={{ top: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="relative w-full sm:max-w-lg rounded-t-[20px] sm:rounded-[14px] border border-border bg-card shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col touch-none sm:touch-auto"
           >
             <button
               onClick={onClose}
@@ -94,7 +99,10 @@ export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, on
             </button>
 
             {/* Drag handle on mobile */}
-            <div className="flex justify-center pt-3 pb-0 sm:hidden">
+            <div
+              className="flex justify-center pt-3 pb-0 sm:hidden cursor-grab active:cursor-grabbing"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
             </div>
 
