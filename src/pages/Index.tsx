@@ -455,7 +455,7 @@ const Index = () => {
                 <span className="hidden sm:inline">New Debate</span>
               </Button>
             )}
-            <MobileNav currentPage="debate" />
+            <MobileNav currentPage="debate" isPro={isPro} onUpgradeClick={() => setShowUpgrade(true)} />
           </div>
         </div>
       </header>

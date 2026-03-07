@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, Zap, LayoutDashboard, Mail, LogOut } from "lucide-react";
+import { Menu, X, Zap, LayoutDashboard, Mail, LogOut, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MobileNavProps {
   currentPage: "dashboard" | "debate";
+  isPro?: boolean;
+  onUpgradeClick?: () => void;
 }
 
-export default function MobileNav({ currentPage }: MobileNavProps) {
+export default function MobileNav({ currentPage, isPro, onUpgradeClick }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -31,18 +33,48 @@ export default function MobileNav({ currentPage }: MobileNavProps) {
   return (
     <>
       {/* Mobile hamburger — visible only on small screens */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="md:hidden text-muted-foreground"
-        onClick={() => setOpen(!open)}
-        aria-label="Toggle menu"
-      >
-        {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </Button>
+      <div className="flex items-center gap-2 md:hidden">
+        {isPro ? (
+          <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/15 border border-primary/25 text-[10px] font-mono font-bold text-primary uppercase tracking-wider">
+            <Crown className="w-3 h-3" />
+            Pro
+          </span>
+        ) : onUpgradeClick ? (
+          <button
+            onClick={onUpgradeClick}
+            className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-mono font-semibold text-primary hover:bg-primary/20 transition-colors"
+          >
+            <Zap className="w-3 h-3" />
+            Upgrade
+          </button>
+        ) : null}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground"
+          onClick={() => setOpen(!open)}
+          aria-label="Toggle menu"
+        >
+          {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </Button>
+      </div>
 
       {/* Desktop nav — hidden on mobile */}
       <div className="hidden md:flex items-center gap-2">
+        {isPro ? (
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/15 border border-primary/25 text-xs font-mono font-bold text-primary uppercase tracking-wider mr-1">
+            <Crown className="w-3.5 h-3.5" />
+            Pro
+          </span>
+        ) : onUpgradeClick ? (
+          <button
+            onClick={onUpgradeClick}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-mono font-semibold text-primary hover:bg-primary/20 transition-colors mr-1"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            Upgrade
+          </button>
+        ) : null}
         {navItems.map((item) => (
           <Button
             key={item.label}
