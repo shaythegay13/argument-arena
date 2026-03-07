@@ -1,8 +1,9 @@
 import { Crown, Check, Zap, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UpgradeModalProps {
   open: boolean;
