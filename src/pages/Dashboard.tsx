@@ -133,7 +133,7 @@ const Dashboard = () => {
             <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12" />
             <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ dashboard</span>
           </div>
-          <MobileNav currentPage="dashboard" isPro={isPro} onUpgradeClick={() => setShowUpgrade(true)} />
+          <MobileNav currentPage="dashboard" isPro={isPro} onUpgradeClick={() => setShowUpgrade(true)} onNewDebate={handleNewDebate} />
         </div>
       </header>
 

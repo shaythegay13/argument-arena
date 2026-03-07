@@ -8,9 +8,10 @@ interface MobileNavProps {
   currentPage: "dashboard" | "debate";
   isPro?: boolean;
   onUpgradeClick?: () => void;
+  onNewDebate?: () => void;
 }
 
-export default function MobileNav({ currentPage, isPro, onUpgradeClick }: MobileNavProps) {
+export default function MobileNav({ currentPage, isPro, onUpgradeClick, onNewDebate }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -24,7 +25,7 @@ export default function MobileNav({ currentPage, isPro, onUpgradeClick }: Mobile
       ? [{ label: "Dashboard", icon: LayoutDashboard, onClick: () => navigate("/dashboard") }]
       : []),
     ...(currentPage !== "debate"
-      ? [{ label: "New Debate", icon: Zap, onClick: () => navigate("/debate") }]
+      ? [{ label: "New Debate", icon: Zap, onClick: () => (onNewDebate ? onNewDebate() : navigate("/debate")) }]
       : []),
     { label: "Contact Us", icon: Mail, onClick: () => navigate("/app/contact") },
     { label: "Sign Out", icon: LogOut, onClick: handleSignOut },
