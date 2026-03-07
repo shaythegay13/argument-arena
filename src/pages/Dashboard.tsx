@@ -125,12 +125,6 @@ const Dashboard = () => {
     return true;
   });
 
-  const avgScore = (() => {
-    const scored = sessions.filter((s) => s.judge_verdict?.overallScore);
-    if (scored.length === 0) return null;
-    const avg = scored.reduce((sum, s) => sum + (s.judge_verdict?.overallScore ?? 0), 0) / scored.length;
-    return Math.round(avg * 10) / 10;
-  })();
 
   return (
     <div className="min-h-screen bg-background">
