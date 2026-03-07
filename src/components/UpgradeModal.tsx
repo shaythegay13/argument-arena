@@ -1,11 +1,16 @@
-import { Crown, Check, Zap, X } from "lucide-react";
+import { Crown, Check, Zap, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
+  isPro?: boolean;
+  subscriptionEnd?: string | null;
+  onCheckout: () => Promise<void>;
+  onManage?: () => Promise<void>;
 }
 
 const FREE_FEATURES = [
@@ -23,17 +28,35 @@ const PRO_FEATURES = [
   "Priority AI processing",
 ];
 
-export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
+export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, onCheckout, onManage }: UpgradeModalProps) {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const handleUpgrade = () => {
-    localStorage.setItem("startup_jury_pro", "true");
-    toast({
-      title: "Welcome to Pro! 🎉",
-      description: "You now have unlimited access to all features.",
-    });
-    onClose();
-    window.location.reload();
+  const handleUpgrade = async () => {
+    setLoading(true);
+    try {
+      await onCheckout();
+      toast({
+        title: "Checkout opened",
+        description: "Complete payment in the new tab to activate Pro.",
+      });
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManage = async () => {
+    setLoading(true);
+    try {
+      await onManage?.();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,9 +88,13 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
               <div className="w-14 h-14 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center mx-auto mb-4">
                 <Crown className="w-7 h-7 text-primary" />
               </div>
-              <h2 className="text-xl font-bold text-foreground">Upgrade to Pro</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                {isPro ? "Pro Plan Active" : "Upgrade to Pro"}
+              </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Unlock unlimited evaluations and advanced features
+                {isPro
+                  ? `Your subscription renews ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString() : "soon"}`
+                  : "Unlock unlimited evaluations and advanced features"}
               </p>
             </div>
 
@@ -88,20 +115,29 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
                     ))}
                   </ul>
                   <Button variant="outline" size="sm" className="w-full rounded-[10px]" disabled>
-                    Current Plan
+                    {isPro ? "Free Tier" : "Current Plan"}
                   </Button>
                 </div>
 
                 <div className="rounded-[14px] border-2 border-primary/50 bg-primary/5 p-4 space-y-3 relative">
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                      RECOMMENDED
-                    </span>
-                  </div>
+                  {isPro && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                        YOUR PLAN
+                      </span>
+                    </div>
+                  )}
+                  {!isPro && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                        RECOMMENDED
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <p className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Pro</p>
                     <div className="flex items-baseline gap-1 mt-1">
-                      <p className="text-2xl font-bold text-foreground">$19</p>
+                      <p className="text-2xl font-bold text-foreground">$8.99</p>
                       <p className="text-xs text-muted-foreground">/month</p>
                     </div>
                   </div>
@@ -113,21 +149,35 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
                       </li>
                     ))}
                   </ul>
-                  <Button
-                    size="sm"
-                    className="w-full font-semibold rounded-[10px]"
-                    onClick={handleUpgrade}
-                  >
-                    <Zap className="w-3.5 h-3.5 mr-1.5" />
-                    Upgrade Now
-                  </Button>
+                  {isPro ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full rounded-[10px]"
+                      onClick={handleManage}
+                      disabled={loading}
+                    >
+                      <Settings className="w-3.5 h-3.5 mr-1.5" />
+                      Manage
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="w-full font-semibold rounded-[10px]"
+                      onClick={handleUpgrade}
+                      disabled={loading}
+                    >
+                      <Zap className="w-3.5 h-3.5 mr-1.5" />
+                      {loading ? "Loading…" : "Upgrade Now"}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="px-6 py-3 border-t border-border bg-muted/20 text-center">
               <p className="text-[10px] text-muted-foreground">
-                Cancel anytime · No long-term commitment · Secure payment
+                Cancel anytime · No long-term commitment · Secure payment via Stripe
               </p>
             </div>
           </motion.div>
