@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -9,6 +9,16 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import type { JudgeVerdict, PersonaRating } from "@/types/debate";
 import UpgradeModal from "@/components/UpgradeModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import logo from "@/assets/logo.png";
 
 type FilterOption = "all" | "in-progress" | "finished";
@@ -60,6 +70,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterOption>("all");
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -91,14 +102,16 @@ const Dashboard = () => {
     setLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("debate_sessions").delete().eq("id", id);
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase.from("debate_sessions").delete().eq("id", deleteTarget);
     if (error) {
       toast({ title: "Error deleting session", variant: "destructive" });
     } else {
-      setSessions((prev) => prev.filter((s) => s.id !== id));
+      setSessions((prev) => prev.filter((s) => s.id !== deleteTarget));
     }
-  };
+    setDeleteTarget(null);
+  }, [deleteTarget, toast]);
 
   const finishedCount = sessions.filter(isFinished).length;
   const isAtLimit = finishedCount >= FREE_EVALUATION_LIMIT;
@@ -285,7 +298,7 @@ const Dashboard = () => {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(session.id);
+                          setDeleteTarget(session.id);
                         }}
                         className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity h-8 w-8 p-0"
                       >
