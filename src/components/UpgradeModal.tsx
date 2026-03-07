@@ -32,6 +32,14 @@ const PRO_FEATURES = [
 export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, onCheckout, onManage }: UpgradeModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
+  const dragControls = useDragControls();
+
+  const handleDragEnd = useCallback((_: any, info: PanInfo) => {
+    if (info.offset.y > 100 || info.velocity.y > 300) {
+      onClose();
+    }
+  }, [onClose]);
 
   const handleUpgrade = async () => {
     setLoading(true);
