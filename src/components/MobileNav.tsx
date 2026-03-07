@@ -25,7 +25,7 @@ export default function MobileNav({ currentPage, isPro, onUpgradeClick, onNewDeb
       ? [{ label: "Dashboard", icon: LayoutDashboard, onClick: () => navigate("/dashboard") }]
       : []),
     ...(currentPage !== "debate"
-      ? [{ label: "New Debate", icon: Zap, onClick: () => navigate("/debate") }]
+      ? [{ label: "New Debate", icon: Zap, onClick: () => (onNewDebate ? onNewDebate() : navigate("/debate")) }]
       : []),
     { label: "Contact Us", icon: Mail, onClick: () => navigate("/app/contact") },
     { label: "Sign Out", icon: LogOut, onClick: handleSignOut },
