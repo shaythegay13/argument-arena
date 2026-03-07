@@ -100,7 +100,7 @@ const Dashboard = () => {
 
   const finishedCount = sessions.filter(isFinished).length;
   const isAtLimit = finishedCount >= FREE_EVALUATION_LIMIT;
-  const isPro = localStorage.getItem("startup_jury_pro") === "true";
+  const subscription = __useSubscription();\n  const isPro = subscription.isPro;
 
   const handleNewDebate = () => {
     if (isAtLimit && !isPro) {
@@ -343,7 +343,7 @@ const Dashboard = () => {
         </div>
       </footer>
 
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} isPro={subscription.isPro} subscriptionEnd={subscription.subscriptionEnd} onCheckout={subscription.startCheckout} onManage={subscription.manageSubscription} />
     </div>
   );
 };
