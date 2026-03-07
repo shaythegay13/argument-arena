@@ -154,6 +154,9 @@ const Dashboard = () => {
               {!isPro && (
                 <span className="text-[10px] text-muted-foreground font-mono">/ {FREE_EVALUATION_LIMIT} free</span>
               )}
+              {isPro && (
+                <span className="text-[10px] text-muted-foreground font-mono">/ {PRO_EVALUATION_LIMIT}</span>
+              )}
             </div>
             {avgScore !== null && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-[14px] bg-card border border-border">
