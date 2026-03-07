@@ -144,7 +144,7 @@ const Landing = () => {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => navigate("/auth")}
+            onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
             className="font-medium text-sm sm:text-base px-8 w-full sm:w-auto h-12 rounded-[10px] border-accent text-accent hover:bg-accent/10"
           >
             Learn More
@@ -181,7 +181,7 @@ const Landing = () => {
       </section>
 
       {/* How It Works */}
-      <section className="bg-card/60 border-y border-border">
+      <section id="how-it-works" className="bg-card/60 border-y border-border">
         <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
