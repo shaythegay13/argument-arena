@@ -1,0 +1,22 @@
+# Startup Jury AI
+> AI-powered startup idea validation platform. 8 expert AI personas debate startup ideas and deliver GO/MAYBE/NO-GO verdicts in under 5 minutes.
+
+## What We Do
+Startup Jury AI simulates an expert investment panel debate using 8 distinct AI personas — angel investors, venture capitalists, operators, and skeptics. Founders describe their startup idea in plain language, and the AI jury debates it across 4 progressive rounds using weighted scoring criteria including TAM, team grit, market timing, and execution risk.
+
+## Key Facts
+- 2,400+ startup ideas evaluated
+- 8 AI judge personas with unique scoring criteria
+- 4 debate rounds with progressively shorter responses
+- Verdicts: GO (high potential), MAYBE (needs work), NO-GO (high risk)
+- Results delivered in under 5 minutes
+- No pitch deck required
+- Freemium: 2 free evaluations, $8.99/month unlimited
+
+## Main Pages
+- [Home](https://startupjuryai.com/): Product overview and free signup
+- [Terms](https://startupjuryai.com/terms): Terms and conditions
+- [Privacy](https://startupjuryai.com/privacy): Privacy policy
+
+## Contact
+- Email: info@startupjuryai.com
