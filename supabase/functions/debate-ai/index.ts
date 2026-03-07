@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +17,46 @@ const ALLOWED_MODELS = [
 ];
 
 const MAX_PROMPT_LENGTH = 20000;
+const FREE_EVALUATION_LIMIT = 2;
+const PRO_EVALUATION_LIMIT = 100;
+
+async function getCompletedSessionCount(supabase: any, userId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from("debate_sessions")
+    .select("id, phase, judge_verdict", { count: "exact" })
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("[debate-ai] Error counting sessions:", error);
+    return 0;
+  }
+
+  return (data ?? []).filter(
+    (s: any) =>
+      (s.phase === "judge" && !!s.judge_verdict) || s.phase === "final-ratings"
+  ).length;
+}
+
+async function isUserSubscribed(email: string): Promise<boolean> {
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+  if (!stripeKey) return false;
+
+  try {
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const customers = await stripe.customers.list({ email, limit: 1 });
+    if (customers.data.length === 0) return false;
+
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customers.data[0].id,
+      status: "active",
+      limit: 1,
+    });
+    return subscriptions.data.length > 0;
+  } catch (e) {
+    console.error("[debate-ai] Stripe check error:", e);
+    return false;
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -30,17 +71,50 @@ serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // --- Server-side usage limit enforcement ---
+    const { data: userData } = await supabase.auth.getUser(token);
+    const user = userData?.user;
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Use service role to count sessions (bypasses RLS for accurate count)
+    const serviceClient = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { persistSession: false } }
+    );
+
+    const completedCount = await getCompletedSessionCount(serviceClient, user.id);
+    const isPro = user.email ? await isUserSubscribed(user.email) : false;
+    const limit = isPro ? PRO_EVALUATION_LIMIT : FREE_EVALUATION_LIMIT;
+
+    if (completedCount >= limit) {
+      return new Response(
+        JSON.stringify({
+          error: isPro
+            ? "Monthly evaluation limit reached. Contact support for additional evaluations."
+            : "Free evaluation limit reached. Upgrade to Pro for more evaluations.",
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // --- Input validation ---
