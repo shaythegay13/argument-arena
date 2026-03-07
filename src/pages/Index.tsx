@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Persona, DebateState, Round } from "@/types/debate";
 import {
   generateRound1,
@@ -67,7 +68,8 @@ const Index = () => {
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [finishedCount, setFinishedCount] = useState(0);
-  const subscription = __useSubscription();
+  const subscription = useSubscription();
+  const isPro = subscription.isPro;
   const FREE_LIMIT = 2;
 
   const navigate = useNavigate();
