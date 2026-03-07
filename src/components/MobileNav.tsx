@@ -8,6 +8,7 @@ interface MobileNavProps {
   currentPage: "dashboard" | "debate";
   isPro?: boolean;
   onUpgradeClick?: () => void;
+  onNewDebate?: () => void;
 }
 
 export default function MobileNav({ currentPage, isPro, onUpgradeClick }: MobileNavProps) {
