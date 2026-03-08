@@ -131,7 +131,7 @@ const Index = () => {
       .then((loadedState) => {
         if (loadedState) {
           setState(loadedState);
-          setUseAllPersonas(loadedState.selectedPersonas.length === PERSONAS.length);
+          setPanelMode("custom"); // loaded session — treat as custom panel
           // Don't regenerate clips for loaded sessions — they are view-only
         }
         setSearchParams({});
