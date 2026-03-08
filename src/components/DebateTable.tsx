@@ -72,7 +72,7 @@ export default function DebateTable({
           {messagesInOrder.map((message, i) => {
             const persona = personas.find((p) => p.id === message.personaId);
             if (!persona) return null;
-            const colors = personaColors[persona.colorKey];
+            const colors = getPersonaColors(persona.colorKey);
             const rating = ratings.find((r) => r.personaId === persona.id);
             const isExpanded = expandedPersonaId === persona.id;
 
