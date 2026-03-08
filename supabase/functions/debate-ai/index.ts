@@ -96,6 +96,9 @@ serve(async (req) => {
       });
     }
 
+    // --- Input validation (parse early so sessionId is available for limit check) ---
+    const { systemPrompt, userPrompt, model, sessionId } = await req.json();
+
     // Use service role to count sessions (bypasses RLS for accurate count)
     const serviceClient = createClient(
       supabaseUrl,
@@ -117,9 +120,6 @@ serve(async (req) => {
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // --- Input validation ---
-    const { systemPrompt, userPrompt, model, sessionId } = await req.json();
 
     if (typeof systemPrompt !== "string" || systemPrompt.length > MAX_PROMPT_LENGTH) {
       return new Response(JSON.stringify({ error: "Invalid or too long systemPrompt (max 5000 chars)" }), {
