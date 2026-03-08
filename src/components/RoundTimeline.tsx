@@ -28,13 +28,15 @@ export default function RoundTimeline({
   phase,
   onJudgeClick,
   onGradesClick,
+  hasRatings = false,
+  hasVerdict = false,
 }: RoundTimelineProps) {
   if (totalRounds === 0 && phase === "setup") return null;
 
   const gradesActive = phase === "final-ratings";
-  const gradesEnabled = (totalRounds >= maxRounds && phase === "debating") || phase === "final-ratings" || phase === "judge";
+  const gradesEnabled = (totalRounds >= maxRounds && phase === "debating") || phase === "final-ratings" || phase === "judge" || hasRatings;
   const judgeActive = phase === "judge";
-  const judgeEnabled = phase === "final-ratings" || phase === "judge";
+  const judgeEnabled = phase === "final-ratings" || phase === "judge" || hasVerdict;
 
   return (
     <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
