@@ -437,8 +437,7 @@ const Index = () => {
   }, [resetSessionId]);
 
   const isSetup = state.phase === "setup";
-  const effectivePersonas = useAllPersonas ? PERSONAS : state.selectedPersonas;
-  const canStart = state.topic.trim().length > 0 && effectivePersonas.length >= 2;
+  const canStart = state.topic.trim().length > 0 && (panelMode !== "custom" || state.selectedPersonas.length >= 2);
   const isLiveDebating = state.phase === "debating" && state.isGenerating;
 
   // Show loading indicator while loading session
