@@ -435,6 +435,11 @@ const Index = () => {
     saveSession(state);
   }, [state.rounds, state.ratings, state.judgeVerdict, state.phase, saveSession, state.topic]);
 
+  // Sync session ID to AI module so edge function excludes current session from limit count
+  useEffect(() => {
+    setCurrentSessionId(sessionIdRef.current ?? undefined);
+  }, [sessionIdRef.current]);
+
   const handleReset = useCallback(() => {
     resetSessionId();
     setState(initialState);
