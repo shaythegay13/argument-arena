@@ -690,11 +690,17 @@ const Index = () => {
                 {allResponsesReady && state.currentRoundNumber >= MAX_ROUNDS && state.phase === "debating" && (
                   <div className="flex justify-center">
                     <Button
-                      onClick={handleGenerateRatings}
+                      onClick={() => {
+                        if (state.ratings.length > 0) {
+                          setState((prev) => ({ ...prev, phase: "final-ratings" }));
+                        } else {
+                          handleGenerateRatings();
+                        }
+                      }}
                       className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                     >
                       <Zap className="w-4 h-4 mr-2" />
-                      Get Panel Grades
+                      {state.ratings.length > 0 ? "View Panel Grades" : "Get Panel Grades"}
                     </Button>
                   </div>
                 )}
