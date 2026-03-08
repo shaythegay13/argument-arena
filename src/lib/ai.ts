@@ -264,24 +264,22 @@ export async function generateNextRound(
   const messages: RoundMessage[] = [];
   const shuffled = shuffleArray(personas);
 
-  await Promise.allSettled(
-    shuffled.map(async (persona) => {
-      const memory = getMemory?.(persona.id);
-      const { systemContext, userPrompt } = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
-      const system = enrichSystemPrompt(persona, topic) + "\n\n" + systemContext;
-      try {
-        const text = await callCompletion(system, userPrompt);
-        const msg: RoundMessage = { personaId: persona.id, text };
-        messages.push(msg);
-        onPersonaComplete(persona.id, text);
-      } catch (err) {
-        console.error(`[Round ${roundNumber}] ${persona.id} failed:`, err);
-        const fallback = "I wasn't able to weigh in this round — please continue.";
-        messages.push({ personaId: persona.id, text: fallback });
-        onPersonaComplete(persona.id, fallback);
-      }
-    })
-  );
+  await runStaggered(shuffled, async (persona) => {
+    const memory = getMemory?.(persona.id);
+    const { systemContext, userPrompt } = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
+    const system = enrichSystemPrompt(persona, topic) + "\n\n" + systemContext;
+    try {
+      const text = await callCompletion(system, userPrompt);
+      const msg: RoundMessage = { personaId: persona.id, text };
+      messages.push(msg);
+      onPersonaComplete(persona.id, text);
+    } catch (err) {
+      console.error(`[Round ${roundNumber}] ${persona.id} failed:`, err);
+      const fallback = "I wasn't able to weigh in this round — please continue.";
+      messages.push({ personaId: persona.id, text: fallback });
+      onPersonaComplete(persona.id, fallback);
+    }
+  });
 
   return messages;
 }
