@@ -192,7 +192,17 @@ const Index = () => {
       });
       return;
     }
-    const personas = useAllPersonas ? PERSONAS : state.selectedPersonas;
+    let personas: Persona[];
+    if (panelMode === "auto") {
+      const panel = selectPanelForIdea(state.topic);
+      personas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
+      setSelectedPanelId(panel.id);
+    } else if (panelMode === "panel" && selectedPanelId) {
+      const panel = PANELS.find((p) => p.id === selectedPanelId);
+      personas = panel ? panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean) : state.selectedPersonas;
+    } else {
+      personas = state.selectedPersonas;
+    }
     if (!personas.length) return;
 
     setState((prev) => ({
