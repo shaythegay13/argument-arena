@@ -30,7 +30,7 @@ export default function PersonaStage({
   return (
     <div className={`grid ${gridCols} gap-4`}>
       {personas.map((persona) => {
-        const colors = personaColorClasses[persona.colorKey];
+        const colors = getPersonaColors(persona.colorKey);
         const message = currentRound?.messages.find(
           (m) => m.personaId === persona.id
         );

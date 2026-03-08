@@ -171,7 +171,7 @@ export default function DebateTable({
         {/* Thinking indicators */}
         <AnimatePresence>
           {thinkingPersonas.map((persona, i) => {
-            const colors = personaColors[persona.colorKey];
+            const colors = getPersonaColors(persona.colorKey);
             return (
               <motion.div
                 key={`thinking-${persona.id}`}
