@@ -62,7 +62,7 @@ export default function ControlPanel({
         <div className="flex flex-wrap gap-2">
           {PERSONAS.map((persona) => {
             const selected = isSelected(persona);
-            const colors = personaColorClasses[persona.colorKey];
+            const colors = getPersonaColors(persona.colorKey);
             const disabled = !selected && selectedPersonas.length >= 4;
 
             return (
