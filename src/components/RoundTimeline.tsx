@@ -9,6 +9,8 @@ interface RoundTimelineProps {
   phase: "setup" | "debating" | "final-ratings" | "judge";
   onJudgeClick?: () => void;
   onGradesClick?: () => void;
+  hasRatings?: boolean;
+  hasVerdict?: boolean;
 }
 
 const ROUND_LABELS = [
