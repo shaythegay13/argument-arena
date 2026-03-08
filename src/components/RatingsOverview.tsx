@@ -115,7 +115,7 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
             {sortedRatings.map((r, i) => {
               const persona = personas.find((p) => p.id === r.personaId);
               if (!persona) return null;
-              const colors = personaColors[persona.colorKey];
+              const colors = getPersonaColors(persona.colorKey);
               return (
                 <motion.button
                   key={r.personaId}
