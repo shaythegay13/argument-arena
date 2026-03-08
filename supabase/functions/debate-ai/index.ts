@@ -20,7 +20,7 @@ const MAX_PROMPT_LENGTH = 20000;
 const FREE_EVALUATION_LIMIT = 2;
 const PRO_EVALUATION_LIMIT = 100;
 
-async function getCompletedSessionCount(supabase: any, userId: string): Promise<number> {
+async function getCompletedSessionCount(supabase: any, userId: string, excludeSessionId?: string): Promise<number> {
   const { data, error } = await supabase
     .from("debate_sessions")
     .select("id, phase, judge_verdict", { count: "exact" })
