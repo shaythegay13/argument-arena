@@ -132,7 +132,12 @@ const Index = () => {
         if (loadedState) {
           setState(loadedState);
           setPanelMode("custom"); // loaded session — treat as custom panel
-          // Don't regenerate clips for loaded sessions — they are view-only
+          // Regenerate host audio clips for all completed rounds
+          for (const round of loadedState.rounds) {
+            if (round.messages.length === loadedState.selectedPersonas.length) {
+              generateClip(round.roundNumber, loadedState.selectedPersonas, round);
+            }
+          }
         }
         setSearchParams({});
       })
@@ -252,7 +257,7 @@ const Index = () => {
 
   const allResponsesReady =
     currentRound &&
-    currentRound.messages.length === state.selectedPersonas.length &&
+    currentRound.messages.length >= state.selectedPersonas.length &&
     !state.isGenerating;
   const showFollowUp =
     allResponsesReady &&
