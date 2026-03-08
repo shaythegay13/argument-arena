@@ -1,25 +1,53 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Persona, Round, RoundMessage, PersonaRating } from "@/types/debate";
 
+const MAX_RETRIES = 2;
+const RETRY_BASE_MS = 1500;
+
 async function callCompletion(
   systemPrompt: string,
   userPrompt: string,
   model?: string
 ): Promise<string> {
-  const { data, error } = await supabase.functions.invoke("debate-ai", {
-    body: { systemPrompt, userPrompt, ...(model && { model }) },
-  });
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const { data, error } = await supabase.functions.invoke("debate-ai", {
+        body: { systemPrompt, userPrompt, ...(model && { model }) },
+      });
 
-  if (error) {
-    console.error("Edge function error:", error);
-    throw new Error(error.message || "AI call failed");
+      if (error) {
+        const msg = error.message || "AI call failed";
+        // Retry on rate-limit or transient errors
+        if (attempt < MAX_RETRIES && (msg.includes("429") || msg.includes("Rate limit") || msg.includes("temporarily"))) {
+          console.warn(`[callCompletion] Attempt ${attempt + 1} rate-limited, retrying in ${RETRY_BASE_MS * (attempt + 1)}ms`);
+          await delay(RETRY_BASE_MS * (attempt + 1));
+          continue;
+        }
+        console.error("Edge function error:", error);
+        throw new Error(msg);
+      }
+
+      if (data?.error) {
+        if (attempt < MAX_RETRIES && (data.error.includes("Rate limit") || data.error.includes("temporarily"))) {
+          console.warn(`[callCompletion] Attempt ${attempt + 1} transient error, retrying...`);
+          await delay(RETRY_BASE_MS * (attempt + 1));
+          continue;
+        }
+        throw new Error(data.error);
+      }
+
+      return data?.content ?? "No response generated.";
+    } catch (err) {
+      if (attempt >= MAX_RETRIES) throw err;
+      console.warn(`[callCompletion] Attempt ${attempt + 1} failed, retrying...`, err);
+      await delay(RETRY_BASE_MS * (attempt + 1));
+    }
   }
+  throw new Error("AI call failed after retries");
+}
 
-  if (data?.error) {
-    throw new Error(data.error);
-  }
-
-  return data?.content ?? "No response generated.";
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function inferIndustry(topic: string): string {
