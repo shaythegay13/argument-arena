@@ -443,6 +443,9 @@ Deliver your verdict as JSON.`;
     strengths?: string[];
     risks?: string[];
     nextStep?: string;
+    topPraise?: string;
+    skepticKillShot?: string;
+    percentile?: number;
   };
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
