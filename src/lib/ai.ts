@@ -4,6 +4,13 @@ import { Persona, Round, RoundMessage, PersonaRating } from "@/types/debate";
 const MAX_RETRIES = 2;
 const RETRY_BASE_MS = 1500;
 
+// Module-level session ID for current debate
+let _currentSessionId: string | undefined;
+
+export function setCurrentSessionId(id: string | undefined) {
+  _currentSessionId = id;
+}
+
 async function callCompletion(
   systemPrompt: string,
   userPrompt: string,
@@ -12,7 +19,7 @@ async function callCompletion(
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       const { data, error } = await supabase.functions.invoke("debate-ai", {
-        body: { systemPrompt, userPrompt, ...(model && { model }) },
+        body: { systemPrompt, userPrompt, ...(model && { model }), ...(_currentSessionId && { sessionId: _currentSessionId }) },
       });
 
       if (error) {
