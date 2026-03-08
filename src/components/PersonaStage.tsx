@@ -1,15 +1,5 @@
 import { Persona, Round } from "@/types/debate";
-
-const personaColorClasses: Record<string, { bg: string; text: string; border: string }> = {
-  angel: { bg: "bg-persona-angel", text: "text-persona-angel", border: "persona-glow-angel" },
-  vc: { bg: "bg-persona-vc", text: "text-persona-vc", border: "persona-glow-vc" },
-  customer: { bg: "bg-persona-customer", text: "text-persona-customer", border: "persona-glow-customer" },
-  operator: { bg: "bg-persona-operator", text: "text-persona-operator", border: "persona-glow-operator" },
-  skeptic: { bg: "bg-persona-skeptic", text: "text-persona-skeptic", border: "persona-glow-skeptic" },
-  quant: { bg: "bg-persona-quant", text: "text-persona-quant", border: "persona-glow-quant" },
-  insider: { bg: "bg-persona-insider", text: "text-persona-insider", border: "persona-glow-insider" },
-  visionary: { bg: "bg-persona-visionary", text: "text-persona-visionary", border: "persona-glow-visionary" },
-};
+import { getPersonaColors } from "@/data/personaColors";
 
 interface PersonaStageProps {
   personas: Persona[];
