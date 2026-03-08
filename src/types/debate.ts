@@ -39,6 +39,9 @@ export interface JudgeVerdict {
   strengths: [string, string, string]; // exactly 3
   risks: [string, string];        // exactly 2
   nextStep: string;               // 1 concrete action
+  topPraise: string;              // single best praise from the panel
+  skepticKillShot: string;        // sharpest critique from skeptic
+  percentile: number;             // 0-99, compared to other startups evaluated
 }
 
 export interface DebateState {
