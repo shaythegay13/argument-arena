@@ -9,6 +9,7 @@ import {
   generateRatingsOnly,
   generateJudgeVerdict,
   generateAutoResponse,
+  setCurrentSessionId,
 } from "@/lib/ai";
 import { trackEvent } from "@/lib/analytics";
 import { PERSONAS, PERSONA_MAP } from "@/data/personas";
@@ -433,6 +434,11 @@ const Index = () => {
     if (state.rounds.length === 0) return;
     saveSession(state);
   }, [state.rounds, state.ratings, state.judgeVerdict, state.phase, saveSession, state.topic]);
+
+  // Sync session ID to AI module so edge function excludes current session from limit count
+  useEffect(() => {
+    setCurrentSessionId(sessionIdRef.current ?? undefined);
+  }, [sessionIdRef.current]);
 
   const handleReset = useCallback(() => {
     resetSessionId();

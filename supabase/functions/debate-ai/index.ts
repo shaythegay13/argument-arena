@@ -20,7 +20,7 @@ const MAX_PROMPT_LENGTH = 20000;
 const FREE_EVALUATION_LIMIT = 2;
 const PRO_EVALUATION_LIMIT = 100;
 
-async function getCompletedSessionCount(supabase: any, userId: string): Promise<number> {
+async function getCompletedSessionCount(supabase: any, userId: string, excludeSessionId?: string): Promise<number> {
   const { data, error } = await supabase
     .from("debate_sessions")
     .select("id, phase, judge_verdict", { count: "exact" })
@@ -33,7 +33,8 @@ async function getCompletedSessionCount(supabase: any, userId: string): Promise<
 
   return (data ?? []).filter(
     (s: any) =>
-      (s.phase === "judge" && !!s.judge_verdict) || s.phase === "final-ratings"
+      s.id !== excludeSessionId &&
+      ((s.phase === "judge" && !!s.judge_verdict) || s.phase === "final-ratings")
   ).length;
 }
 
@@ -102,7 +103,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const completedCount = await getCompletedSessionCount(serviceClient, user.id);
+    const completedCount = await getCompletedSessionCount(serviceClient, user.id, sessionId);
     const isPro = user.email ? await isUserSubscribed(user.email) : false;
     const limit = isPro ? PRO_EVALUATION_LIMIT : FREE_EVALUATION_LIMIT;
 
@@ -118,7 +119,7 @@ serve(async (req) => {
     }
 
     // --- Input validation ---
-    const { systemPrompt, userPrompt, model } = await req.json();
+    const { systemPrompt, userPrompt, model, sessionId } = await req.json();
 
     if (typeof systemPrompt !== "string" || systemPrompt.length > MAX_PROMPT_LENGTH) {
       return new Response(JSON.stringify({ error: "Invalid or too long systemPrompt (max 5000 chars)" }), {
