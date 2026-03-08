@@ -2,17 +2,7 @@ import { Persona, PersonaRating } from "@/types/debate";
 import { Star, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-
-const personaColors: Record<string, { text: string; bg: string; border: string; barBg: string }> = {
-  angel: { text: "text-persona-angel", bg: "bg-persona-angel", border: "persona-glow-angel", barBg: "hsl(25, 95%, 53%)" },
-  vc: { text: "text-persona-vc", bg: "bg-persona-vc", border: "persona-glow-vc", barBg: "hsl(199, 89%, 60%)" },
-  customer: { text: "text-persona-customer", bg: "bg-persona-customer", border: "persona-glow-customer", barBg: "hsl(142, 71%, 45%)" },
-  operator: { text: "text-persona-operator", bg: "bg-persona-operator", border: "persona-glow-operator", barBg: "hsl(142, 60%, 50%)" },
-  skeptic: { text: "text-persona-skeptic", bg: "bg-persona-skeptic", border: "persona-glow-skeptic", barBg: "hsl(0, 84%, 60%)" },
-  quant: { text: "text-persona-quant", bg: "bg-persona-quant", border: "persona-glow-quant", barBg: "hsl(215, 16%, 65%)" },
-  insider: { text: "text-persona-insider", bg: "bg-persona-insider", border: "persona-glow-insider", barBg: "hsl(25, 75%, 50%)" },
-  visionary: { text: "text-persona-visionary", bg: "bg-persona-visionary", border: "persona-glow-visionary", barBg: "hsl(280, 55%, 55%)" },
-};
+import { getPersonaColors } from "@/data/personaColors";
 
 function scoreColor(score: number): string {
   if (score >= 8) return "text-verdict-go";
