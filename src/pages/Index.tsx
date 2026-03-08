@@ -772,6 +772,9 @@ const Index = () => {
                   onReset={handleReset}
                   onRefine={handleRefine}
                   sessionId={sessionIdRef.current ?? undefined}
+                  ratings={state.ratings}
+                  personas={state.selectedPersonas}
+                  topic={state.topic}
                 />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer
