@@ -248,7 +248,7 @@ const Index = () => {
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again.", variant: "destructive" });
     }
-  }, [state.topic, state.selectedPersonas, useAllPersonas, storeRoundMemories, generateClip, toast]);
+  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast]);
 
   const allResponsesReady =
     currentRound &&
