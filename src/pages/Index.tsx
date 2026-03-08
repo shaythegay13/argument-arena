@@ -257,7 +257,7 @@ const Index = () => {
 
   const allResponsesReady =
     currentRound &&
-    currentRound.messages.length === state.selectedPersonas.length &&
+    currentRound.messages.length >= state.selectedPersonas.length &&
     !state.isGenerating;
   const showFollowUp =
     allResponsesReady &&
