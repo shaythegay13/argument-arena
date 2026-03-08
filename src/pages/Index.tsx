@@ -355,8 +355,9 @@ const Index = () => {
     if (state.phase !== "debating") return;
     if (state.currentRoundNumber < MAX_ROUNDS) return;
     if (state.isGenerating || !allResponsesReady) return;
+    if (state.ratings.length > 0) return; // Already have ratings, don't regenerate
     handleGenerateRatings();
-  }, [autoDebate, state.phase, state.currentRoundNumber, state.isGenerating, allResponsesReady, handleGenerateRatings]);
+  }, [autoDebate, state.phase, state.currentRoundNumber, state.isGenerating, allResponsesReady, state.ratings.length, handleGenerateRatings]);
 
   const handleJudge = useCallback(async () => {
     setState((prev) => ({ ...prev, phase: "judge", isGeneratingJudge: true }));
@@ -689,11 +690,17 @@ const Index = () => {
                 {allResponsesReady && state.currentRoundNumber >= MAX_ROUNDS && state.phase === "debating" && (
                   <div className="flex justify-center">
                     <Button
-                      onClick={handleGenerateRatings}
+                      onClick={() => {
+                        if (state.ratings.length > 0) {
+                          setState((prev) => ({ ...prev, phase: "final-ratings" }));
+                        } else {
+                          handleGenerateRatings();
+                        }
+                      }}
                       className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                     >
                       <Zap className="w-4 h-4 mr-2" />
-                      Get Panel Grades
+                      {state.ratings.length > 0 ? "View Panel Grades" : "Get Panel Grades"}
                     </Button>
                   </div>
                 )}
