@@ -36,16 +36,21 @@ import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
 
-const personaColorClasses: Record<string, { bg: string; text: string; border: string }> = {
-  angel: { bg: "bg-persona-angel", text: "text-persona-angel", border: "persona-glow-angel" },
-  vc: { bg: "bg-persona-vc", text: "text-persona-vc", border: "persona-glow-vc" },
-  customer: { bg: "bg-persona-customer", text: "text-persona-customer", border: "persona-glow-customer" },
-  operator: { bg: "bg-persona-operator", text: "text-persona-operator", border: "persona-glow-operator" },
-  skeptic: { bg: "bg-persona-skeptic", text: "text-persona-skeptic", border: "persona-glow-skeptic" },
-  quant: { bg: "bg-persona-quant", text: "text-persona-quant", border: "persona-glow-quant" },
-  insider: { bg: "bg-persona-insider", text: "text-persona-insider", border: "persona-glow-insider" },
-  visionary: { bg: "bg-persona-visionary", text: "text-persona-visionary", border: "persona-glow-visionary" },
-};
+/** Score-based auto-panel selection using keyword hints */
+function selectPanelForIdea(topic: string): Panel {
+  const lower = topic.toLowerCase();
+  let bestPanel = PANELS[3]; // default: accelerator simulation
+  let bestScore = 0;
+  for (const panel of PANELS) {
+    const hints = PANEL_SELECTION_HINTS[panel.id] ?? [];
+    const score = hints.filter((h) => lower.includes(h.toLowerCase())).length;
+    if (score > bestScore) {
+      bestScore = score;
+      bestPanel = panel;
+    }
+  }
+  return bestPanel;
+}
 
 const initialState: DebateState = {
   topic: "",
