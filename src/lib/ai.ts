@@ -63,7 +63,9 @@ function getWordLimit(_roundNumber: number): number {
 function buildRound1Prompt(topic: string): string {
   return `Topic/Idea: "${topic}"
 
-You are on a debate stage with other startup experts. This is Round 1. Give a concise reaction to this idea, in your own voice. Be specific and direct. End with 1-2 pointed questions for the founder.
+You are on a live startup jury panel with other expert judges. This is Round 1 — Initial Reactions. Give your first impression of this idea in your own voice. Be specific and direct.
+
+IMPORTANT: End with 1-2 pointed questions for the founder.
 
 Keep your response under 500 words.`;
 }
