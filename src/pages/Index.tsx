@@ -11,7 +11,9 @@ import {
   generateAutoResponse,
 } from "@/lib/ai";
 import { trackEvent } from "@/lib/analytics";
-import { PERSONAS } from "@/data/personas";
+import { PERSONAS, PERSONA_MAP } from "@/data/personas";
+import { PANELS, Panel, PANEL_SELECTION_HINTS } from "@/data/panels";
+import { getPersonaColors } from "@/data/personaColors";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useHostAudio } from "@/hooks/useHostAudio";
