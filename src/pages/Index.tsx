@@ -124,11 +124,7 @@ const Index = () => {
         if (loadedState) {
           setState(loadedState);
           setUseAllPersonas(loadedState.selectedPersonas.length === PERSONAS.length);
-
-          // Regenerate host recap clips for every round already in the session
-          loadedState.rounds.forEach((round) => {
-            generateClip(round.roundNumber, loadedState.selectedPersonas, round);
-          });
+          // Don't regenerate clips for loaded sessions — they are view-only
         }
         setSearchParams({});
       })
