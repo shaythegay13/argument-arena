@@ -385,12 +385,17 @@ VERDICT THRESHOLDS:
 - 6.0 to 7.9 → "MAYBE"
 - Below 6.0 → "NO-GO"
 
+PERCENTILE CALCULATION: Based on the overall score, estimate what percentile this startup would fall in among typical startups pitched to investors. Score 9+ → 95th+, 8-9 → 80-95, 7-8 → 60-80, 6-7 → 40-60, 5-6 → 20-40, below 5 → below 20.
+
 You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
-{"verdict":"GO","overallScore":${overallScore},"why":"One crisp sentence explaining the verdict","strengths":["Pattern 1","Pattern 2","Pattern 3"],"risks":["Risk 1","Risk 2"],"nextStep":"One concrete action the founder should take now"}
+{"verdict":"GO","overallScore":${overallScore},"why":"One crisp sentence explaining the verdict","strengths":["Pattern 1","Pattern 2","Pattern 3"],"risks":["Risk 1","Risk 2"],"nextStep":"One concrete action the founder should take now","topPraise":"The single most compelling praise from any judge","skepticKillShot":"The sharpest, most devastating one-line critique from the skeptic judge","percentile":75}
 
 "verdict" must be exactly one of: "GO", "MAYBE", "NO-GO"
 "strengths" must be an array of exactly 3 strings
-"risks" must be an array of exactly 2 strings`;
+"risks" must be an array of exactly 2 strings
+"topPraise" must be a single compelling sentence of praise
+"skepticKillShot" must be a sharp, memorable one-liner critique
+"percentile" must be a number 0-99`;
 
   // Truncate each message to 80 chars so 4 rounds × 8 personas fits in userPrompt under 5000 chars.
   const roundsText = rounds
@@ -438,6 +443,9 @@ Deliver your verdict as JSON.`;
     strengths?: string[];
     risks?: string[];
     nextStep?: string;
+    topPraise?: string;
+    skepticKillShot?: string;
+    percentile?: number;
   };
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -460,6 +468,9 @@ Deliver your verdict as JSON.`;
     strengths: [strengths[0] ?? "Strong concept", strengths[1] ?? "Clear market need", strengths[2] ?? "Motivated founder"],
     risks: [risks[0] ?? "Execution risk", risks[1] ?? "Market timing uncertainty"],
     nextStep: parsed.nextStep ?? "Validate with 10 paying customers before building further.",
+    topPraise: parsed.topPraise ?? strengths[0] ?? "Shows genuine market understanding.",
+    skepticKillShot: parsed.skepticKillShot ?? risks[0] ?? "Execution risk remains the elephant in the room.",
+    percentile: parsed.percentile ?? Math.min(99, Math.max(1, Math.round(overallScore * 10))),
   };
 
   const script = `The Startup Jury has deliberated. Overall score: ${judgeVerdict.overallScore}/10. Verdict: ${judgeVerdict.verdict}. ${judgeVerdict.why} Key strength: ${judgeVerdict.strengths[0]}. Key risk: ${judgeVerdict.risks[0]}. Next step: ${judgeVerdict.nextStep}`;

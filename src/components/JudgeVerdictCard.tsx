@@ -1,10 +1,12 @@
-import { Gavel, Loader2, RotateCcw, RefreshCw, Download, Shield, AlertTriangle, Lightbulb, ArrowRight, Share2, Check } from "lucide-react";
-import { JudgeVerdict } from "@/types/debate";
+import { Gavel, RotateCcw, RefreshCw, Download, Shield, AlertTriangle, Lightbulb, ArrowRight, Share2, Check, Skull, Trophy, TrendingUp } from "lucide-react";
+import { JudgeVerdict, PersonaRating, Persona } from "@/types/debate";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getPersonaColors } from "@/data/personaColors";
+import html2canvas from "html2canvas";
 
 interface JudgeVerdictCardProps {
   verdict: JudgeVerdict | null;
@@ -12,6 +14,9 @@ interface JudgeVerdictCardProps {
   onReset: () => void;
   onRefine: () => void;
   sessionId?: string;
+  ratings?: PersonaRating[];
+  personas?: Persona[];
+  topic?: string;
 }
 
 const verdictConfig: Record<
@@ -98,17 +103,83 @@ function DeliberatingAnimation() {
   );
 }
 
+function IndividualScores({ ratings, personas }: { ratings: PersonaRating[]; personas: Persona[] }) {
+  const sorted = [...ratings].sort((a, b) => b.score - a.score);
+
+  return (
+    <div>
+      <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground mb-3">
+        Individual Judge Scores
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {sorted.map((r, i) => {
+          const persona = personas.find((p) => p.id === r.personaId);
+          const colors = persona ? getPersonaColors(persona.colorKey) : null;
+          const scoreColor = r.score >= 8 ? "text-verdict-go" : r.score >= 6 ? "text-verdict-maybe" : "text-verdict-nogo";
+
+          return (
+            <motion.div
+              key={r.personaId}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + i * 0.05 }}
+              className="rounded-[10px] border border-border bg-muted/30 px-3 py-2 text-center"
+            >
+              <p className="text-[10px] font-mono text-muted-foreground truncate" title={persona?.name}>
+                {persona?.name?.split(" ")[0] ?? "Judge"}
+              </p>
+              <p className={`text-lg font-bold ${scoreColor}`}>
+                {r.score}<span className="text-xs text-muted-foreground">/10</span>
+              </p>
+              <p className="text-[9px] text-muted-foreground truncate" title={persona?.subtitle}>
+                {persona?.subtitle?.split("—")[0]?.trim() ?? ""}
+              </p>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PercentileBadge({ percentile }: { percentile: number }) {
+  const color = percentile >= 80 ? "text-verdict-go" : percentile >= 50 ? "text-verdict-maybe" : "text-verdict-nogo";
+  const bgColor = percentile >= 80 ? "bg-verdict-go/10 border-verdict-go/30" : percentile >= 50 ? "bg-verdict-maybe/10 border-verdict-maybe/30" : "bg-verdict-nogo/10 border-verdict-nogo/30";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.6 }}
+      className={`rounded-[10px] border px-3 py-2 text-center ${bgColor}`}
+    >
+      <div className="flex items-center justify-center gap-1 mb-0.5">
+        <TrendingUp className={`w-3 h-3 ${color}`} />
+        <p className="text-[10px] font-mono text-muted-foreground">Percentile</p>
+      </div>
+      <p className={`text-2xl font-bold ${color}`}>
+        {percentile}<span className="text-xs text-muted-foreground">th</span>
+      </p>
+    </motion.div>
+  );
+}
+
 export default function JudgeVerdictCard({
   verdict,
   isGenerating,
   onReset,
   onRefine,
   sessionId,
+  ratings = [],
+  personas = [],
+  topic = "",
 }: JudgeVerdictCardProps) {
   const [revealed, setRevealed] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
   const [shared, setShared] = useState(false);
+  const [downloadingImage, setDownloadingImage] = useState(false);
   const { toast } = useToast();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (verdict && !isGenerating) {
@@ -118,13 +189,48 @@ export default function JudgeVerdictCard({
     setRevealed(false);
   }, [verdict, isGenerating]);
 
+  const shareUrl = sessionId ? `${window.location.origin}/result/${sessionId}` : window.location.href;
+  const shareText = verdict
+    ? `My startup idea just got a ${verdict.verdict} verdict (${verdict.overallScore * 10}/100) from Startup Jury AI! 🎯 Top ${verdict.percentile}th percentile.`
+    : "";
+
+  const handleShareTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(url, "_blank", "width=550,height=420");
+  };
+
+  const handleShareLinkedIn = () => {
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+    window.open(url, "_blank", "width=550,height=420");
+  };
+
+  const handleDownloadImage = async () => {
+    if (!cardRef.current) return;
+    setDownloadingImage(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: "#0a0a0f",
+        scale: 2,
+        useCORS: true,
+      });
+      const link = document.createElement("a");
+      link.download = `startup-jury-verdict-${verdict?.verdict?.toLowerCase() ?? "result"}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      toast({ title: "Image downloaded!" });
+    } catch {
+      toast({ title: "Failed to download image", variant: "destructive" });
+    }
+    setDownloadingImage(false);
+  };
+
   return (
     <section className="rounded-[14px] border border-border bg-card overflow-hidden">
       {/* Header */}
       <div className="px-4 sm:px-6 py-3 border-b border-border flex items-center gap-2">
         <Gavel className="w-4 h-4 text-primary" />
         <span className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
-          The Jury Foreperson
+          Startup Verdict Card
         </span>
         <span className="text-[10px] text-muted-foreground/60 font-mono ml-1">
           — Final Verdict
@@ -134,7 +240,7 @@ export default function JudgeVerdictCard({
       {isGenerating ? (
         <DeliberatingAnimation />
       ) : verdict ? (
-        <div className="space-y-0">
+        <div className="space-y-0" ref={cardRef}>
           {/* Verdict hero */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -142,6 +248,16 @@ export default function JudgeVerdictCard({
             transition={{ duration: 0.5 }}
             className={`relative px-6 sm:px-8 py-8 sm:py-10 bg-gradient-to-br ${verdictConfig[verdict.verdict].gradientFrom} ${verdictConfig[verdict.verdict].gradientTo}`}
           >
+            {topic && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-xs font-mono text-muted-foreground/70 mb-4 truncate"
+              >
+                ⚡ {topic}
+              </motion.p>
+            )}
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}
@@ -169,19 +285,21 @@ export default function JudgeVerdictCard({
                   {verdictConfig[verdict.verdict].tagline}
                 </motion.p>
               </div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
-                className="sm:ml-auto"
-              >
-                <div className={`px-4 py-2 rounded-[14px] border ${verdictConfig[verdict.verdict].border} ${verdictConfig[verdict.verdict].bg}`}>
-                  <p className="text-xs text-muted-foreground font-mono text-center">Overall Score</p>
-                  <p className={`text-3xl font-bold text-center ${verdictConfig[verdict.verdict].color}`}>
-                    {verdict.overallScore * 10}<span className="text-base text-muted-foreground">/100</span>
-                  </p>
-                </div>
-              </motion.div>
+              <div className="sm:ml-auto flex items-center gap-3">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <div className={`px-4 py-2 rounded-[14px] border ${verdictConfig[verdict.verdict].border} ${verdictConfig[verdict.verdict].bg}`}>
+                    <p className="text-xs text-muted-foreground font-mono text-center">Overall Score</p>
+                    <p className={`text-3xl font-bold text-center ${verdictConfig[verdict.verdict].color}`}>
+                      {verdict.overallScore * 10}<span className="text-base text-muted-foreground">/100</span>
+                    </p>
+                  </div>
+                </motion.div>
+                <PercentileBadge percentile={verdict.percentile} />
+              </div>
             </div>
           </motion.div>
 
@@ -194,13 +312,34 @@ export default function JudgeVerdictCard({
                 transition={{ delay: 0.2, duration: 0.4 }}
                 className="px-4 sm:px-6 py-5 sm:py-6 space-y-5"
               >
-                {/* Why */}
+                {/* Foreperson Summary */}
                 <div>
                   <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                     Foreperson's Summary
                   </p>
                   <p className="text-base text-foreground leading-relaxed">{verdict.why}</p>
                 </div>
+
+                {/* Individual Judge Scores */}
+                {ratings.length > 0 && personas.length > 0 && (
+                  <IndividualScores ratings={ratings} personas={personas} />
+                )}
+
+                {/* Top Praise */}
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="rounded-[14px] border border-verdict-go/20 bg-verdict-go/5 px-5 py-4"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Trophy className="w-4 h-4 text-verdict-go" />
+                    <p className="text-xs font-mono uppercase tracking-[0.2em] text-verdict-go font-semibold">
+                      Top Praise from the Panel
+                    </p>
+                  </div>
+                  <p className="text-sm text-foreground/90 italic">"{verdict.topPraise}"</p>
+                </motion.div>
 
                 {/* Strengths & Risks side by side */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -251,6 +390,24 @@ export default function JudgeVerdictCard({
                   </div>
                 </div>
 
+                {/* Skeptic Kill Shot */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="rounded-[14px] border border-verdict-nogo/30 bg-verdict-nogo/5 px-5 py-4"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Skull className="w-4 h-4 text-verdict-nogo" />
+                    <p className="text-xs font-mono uppercase tracking-[0.2em] text-verdict-nogo font-semibold">
+                      Skeptic Kill Shot
+                    </p>
+                  </div>
+                  <p className="text-sm font-medium text-foreground/90 italic">
+                    "{verdict.skepticKillShot}"
+                  </p>
+                </motion.div>
+
                 {/* Next Step */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -280,6 +437,17 @@ export default function JudgeVerdictCard({
                     <RefreshCw className="w-3.5 h-3.5" />
                     Refine & Re-pitch
                   </Button>
+
+                  {/* Social shares */}
+                  <Button variant="outline" size="sm" onClick={handleShareTwitter} className="gap-2 rounded-[10px]">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    Share on X
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleShareLinkedIn} className="gap-2 rounded-[10px]">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    Share on LinkedIn
+                  </Button>
+
                   {sessionId && (
                     <Button
                       variant={shared ? "default" : "outline"}
@@ -293,8 +461,7 @@ export default function JudgeVerdictCard({
                             .from("debate_sessions")
                             .update({ is_public: true } as any)
                             .eq("id", sessionId);
-                          const url = `${window.location.origin}/result/${sessionId}`;
-                          await navigator.clipboard.writeText(url);
+                          await navigator.clipboard.writeText(shareUrl);
                           setShared(true);
                           toast({ title: "Share link copied!", description: "Anyone with the link can view this result." });
                           setTimeout(() => setShared(false), 3000);
@@ -305,17 +472,19 @@ export default function JudgeVerdictCard({
                       }}
                     >
                       {shared ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
-                      {shared ? "Link Copied!" : "Share Result"}
+                      {shared ? "Link Copied!" : "Copy Link"}
                     </Button>
                   )}
+
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => window.print()}
+                    onClick={handleDownloadImage}
+                    disabled={downloadingImage}
                     className="gap-2 text-muted-foreground ml-auto rounded-[10px]"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    Export PDF
+                    {downloadingImage ? "Saving…" : "Download Image"}
                   </Button>
                 </div>
               </motion.div>
