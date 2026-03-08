@@ -103,7 +103,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const completedCount = await getCompletedSessionCount(serviceClient, user.id);
+    const completedCount = await getCompletedSessionCount(serviceClient, user.id, sessionId);
     const isPro = user.email ? await isUserSubscribed(user.email) : false;
     const limit = isPro ? PRO_EVALUATION_LIMIT : FREE_EVALUATION_LIMIT;
 
