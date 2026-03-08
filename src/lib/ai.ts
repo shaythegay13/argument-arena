@@ -399,7 +399,7 @@ You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
         .map((m) => {
           const p = personas.find((p) => p.id === m.personaId);
           const snippet = m.text.length > 80 ? m.text.slice(0, 80) + "…" : m.text;
-          return `  ${p?.subtitle ?? "Expert"}: "${snippet}"`;
+          return `  ${p?.name ?? "Expert"} (${p?.subtitle ?? "Expert"}): "${snippet}"`;
         })
         .join("\n");
       return `Round ${round.roundNumber}:\n${msgs}`;
