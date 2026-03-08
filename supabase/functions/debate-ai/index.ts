@@ -33,7 +33,8 @@ async function getCompletedSessionCount(supabase: any, userId: string): Promise<
 
   return (data ?? []).filter(
     (s: any) =>
-      (s.phase === "judge" && !!s.judge_verdict) || s.phase === "final-ratings"
+      s.id !== excludeSessionId &&
+      ((s.phase === "judge" && !!s.judge_verdict) || s.phase === "final-ratings")
   ).length;
 }
 
