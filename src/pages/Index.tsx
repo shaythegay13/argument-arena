@@ -514,74 +514,99 @@ const Index = () => {
               />
             </div>
 
-            {/* Panelist mode toggle */}
+            {/* Panel selection */}
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                Panelists
+                Jury Panel
               </label>
-              <div className="flex gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-3">
                 <button
-                  onClick={() => setUseAllPersonas(true)}
+                  onClick={() => { setPanelMode("auto"); setSelectedPanelId(null); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
-                    useAllPersonas
+                    panelMode === "auto"
                       ? "bg-primary/20 text-primary border-primary/40"
                       : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                   }`}
                 >
-                  <Users className="w-3.5 h-3.5" />
-                  All 8 Panelists
+                  <Zap className="w-3.5 h-3.5" />
+                  Auto-Select
                 </button>
+                {PANELS.map((panel) => (
+                  <button
+                    key={panel.id}
+                    onClick={() => { setPanelMode("panel"); setSelectedPanelId(panel.id); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                      panelMode === "panel" && selectedPanelId === panel.id
+                        ? "bg-primary/20 text-primary border-primary/40"
+                        : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                    }`}
+                  >
+                    {panel.name}
+                  </button>
+                ))}
                 <button
-                  onClick={() => setUseAllPersonas(false)}
+                  onClick={() => { setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] })); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
-                    !useAllPersonas
+                    panelMode === "custom"
                       ? "bg-primary/20 text-primary border-primary/40"
                       : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                   }`}
                 >
-                  Custom (2–8)
+                  Custom
                 </button>
               </div>
 
-              {!useAllPersonas && (
-                <div className="flex flex-wrap gap-2">
+              {/* Panel description */}
+              {panelMode === "auto" && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  The system will analyze your idea and pick the best panel of 8 judges automatically.
+                </p>
+              )}
+
+              {panelMode === "panel" && selectedPanelId && (
+                <div className="mb-3">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {PANELS.find((p) => p.id === selectedPanelId)?.description}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(PANELS.find((p) => p.id === selectedPanelId)?.personaIds ?? []).map((pid) => {
+                      const persona = PERSONA_MAP[pid];
+                      if (!persona) return null;
+                      const colors = getPersonaColors(persona.colorKey);
+                      return (
+                        <span key={pid} className={`px-2 py-1 rounded text-xs font-medium ${colors.text} bg-muted/30`}>
+                          {persona.name.split(" ")[0]}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {panelMode === "custom" && (
+                <div className="flex flex-wrap gap-2 mb-3">
                   {PERSONAS.map((persona) => {
                     const selected = state.selectedPersonas.some((p) => p.id === persona.id);
-                    const colors = personaColorClasses[persona.colorKey];
+                    const colors = getPersonaColors(persona.colorKey);
                     return (
                       <button
                         key={persona.id}
                         onClick={() => togglePersona(persona)}
                         className={`
-                          px-3 py-1.5 rounded-md text-sm font-medium border transition-all
-                          ${
-                            selected
-                              ? `${colors.bg} ${colors.text} ${colors.border} border`
-                              : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                          px-3 py-1.5 rounded-md text-sm font-medium border transition-all cursor-pointer
+                          ${selected
+                            ? `${colors.bg} ${colors.text} ${colors.border} border`
+                            : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                           }
-                          cursor-pointer
                         `}
                       >
-                        {persona.subtitle}
+                        {persona.name} — {persona.subtitle}
                       </button>
                     );
                   })}
-                </div>
-              )}
-
-              {useAllPersonas && (
-                <div className="flex flex-wrap gap-1.5">
-                  {PERSONAS.map((persona) => {
-                    const colors = personaColorClasses[persona.colorKey];
-                    return (
-                      <span
-                        key={persona.id}
-                        className={`px-2 py-1 rounded text-xs font-medium ${colors.text} bg-muted/30`}
-                      >
-                        {persona.name.split(" ")[0]}
-                      </span>
-                    );
-                  })}
+                  <p className="text-[10px] text-muted-foreground w-full">
+                    {state.selectedPersonas.length}/16 selected (min 2, max 8)
+                  </p>
                 </div>
               )}
             </div>
