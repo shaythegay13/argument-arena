@@ -9,6 +9,7 @@ import {
   generateRatingsOnly,
   generateJudgeVerdict,
   generateAutoResponse,
+  setCurrentSessionId,
 } from "@/lib/ai";
 import { trackEvent } from "@/lib/analytics";
 import { PERSONAS, PERSONA_MAP } from "@/data/personas";
