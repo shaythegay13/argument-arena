@@ -70,7 +70,8 @@ const initialState: DebateState = {
 
 const Index = () => {
   const [state, setState] = useState<DebateState>(initialState);
-  const [useAllPersonas, setUseAllPersonas] = useState(true);
+  const [panelMode, setPanelMode] = useState<"auto" | "panel" | "custom">("auto");
+  const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
