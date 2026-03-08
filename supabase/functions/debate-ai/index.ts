@@ -118,7 +118,7 @@ serve(async (req) => {
     }
 
     // --- Input validation ---
-    const { systemPrompt, userPrompt, model } = await req.json();
+    const { systemPrompt, userPrompt, model, sessionId } = await req.json();
 
     if (typeof systemPrompt !== "string" || systemPrompt.length > MAX_PROMPT_LENGTH) {
       return new Response(JSON.stringify({ error: "Invalid or too long systemPrompt (max 5000 chars)" }), {
