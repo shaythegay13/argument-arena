@@ -63,7 +63,9 @@ function getWordLimit(_roundNumber: number): number {
 function buildRound1Prompt(topic: string): string {
   return `Topic/Idea: "${topic}"
 
-You are on a debate stage with other startup experts. This is Round 1. Give a concise reaction to this idea, in your own voice. Be specific and direct. End with 1-2 pointed questions for the founder.
+You are on a live startup jury panel with other expert judges. This is Round 1 — Initial Reactions. Give your first impression of this idea in your own voice. Be specific and direct.
+
+IMPORTANT: End with 1-2 pointed questions for the founder.
 
 Keep your response under 500 words.`;
 }
@@ -88,29 +90,40 @@ function buildRoundNPrompt(
   const prevMessages = previousRound.messages
     .map((m) => {
       const p = allPersonas.find((p) => p.id === m.personaId);
-      return `${p?.subtitle ?? "Expert"}: "${truncateForContext(m.text)}"`;
+      return `${p?.name ?? "Expert"} (${p?.subtitle ?? "Expert"}): "${truncateForContext(m.text)}"`;
     })
     .join("\n\n");
 
-  // Hard cap on memory to prevent accumulated entries from overflowing systemPrompt
   const memoryBlock = personaMemory
     ? `\nMEMORY (your past notes):\n${personaMemory.slice(0, 1200)}\n`
     : "";
 
-  // Previous round context goes into systemPrompt (appended to persona character) to avoid
-  // the 5000-char per-field limit on the edge function.
-  const systemContext = `${memoryBlock}
-Previous round statements from your fellow panelists:
-${prevMessages}`;
+  const roundLabel = roundNumber === 2
+    ? "Round 2 — Risk & Challenge Debate"
+    : roundNumber === 3
+    ? "Round 3 — Post-Founder Defense"
+    : `Round ${roundNumber}`;
 
-  // Truncate founder response in context to keep userPrompt under the 5000-char edge function limit.
+  const crossRefRule = `
+CRITICAL DEBATE RULES:
+- You MUST reference at least 1-2 other judges BY NAME (e.g. "Marcus raises a fair point about TAM, but…" or "I disagree with Victor here because…")
+- Challenge weak reasoning from other judges when you see it
+- If another judge convinces you, acknowledge it: "Elena changed my mind on…"
+- Cite specific claims made by others, not vague references
+- Disagree when your evaluation framework conflicts with another judge's conclusion`;
+
+  const systemContext = `${memoryBlock}
+Previous round statements from your fellow judges:
+${prevMessages}
+${crossRefRule}`;
+
   const founderCtx = userResponse.length > 3000 ? userResponse.slice(0, 3000) + "…" : userResponse;
 
   const userPrompt = `Topic/Idea: "${topic}"
 
 The founder responded: "${founderCtx}"
 
-This is Round ${roundNumber}. Respond to the idea, the founder's response, and to 1–2 key points made by the others in the last round. Refer to them by role (e.g., "the angel investor", "the skeptic"). Be direct and specific. End with 1-2 new questions for the founder.
+This is ${roundLabel}. Respond to the idea, the founder's response, and to 1–2 key points made by the other judges in the last round. Refer to them BY NAME (e.g., "Marcus," "Priya," "Victor"). Be direct and specific. Push back on weak reasoning. End with 1-2 new questions for the founder.
 
 Keep your response under ${wordLimit} words.`;
 
@@ -386,7 +399,7 @@ You MUST respond in EXACTLY this JSON format (no markdown, no code fences):
         .map((m) => {
           const p = personas.find((p) => p.id === m.personaId);
           const snippet = m.text.length > 80 ? m.text.slice(0, 80) + "…" : m.text;
-          return `  ${p?.subtitle ?? "Expert"}: "${snippet}"`;
+          return `  ${p?.name ?? "Expert"} (${p?.subtitle ?? "Expert"}): "${snippet}"`;
         })
         .join("\n");
       return `Round ${round.roundNumber}:\n${msgs}`;

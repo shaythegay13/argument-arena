@@ -11,7 +11,9 @@ import {
   generateAutoResponse,
 } from "@/lib/ai";
 import { trackEvent } from "@/lib/analytics";
-import { PERSONAS } from "@/data/personas";
+import { PERSONAS, PERSONA_MAP } from "@/data/personas";
+import { PANELS, Panel, PANEL_SELECTION_HINTS } from "@/data/panels";
+import { getPersonaColors } from "@/data/personaColors";
 import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState";
 import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useHostAudio } from "@/hooks/useHostAudio";
@@ -34,16 +36,21 @@ import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
 
-const personaColorClasses: Record<string, { bg: string; text: string; border: string }> = {
-  angel: { bg: "bg-persona-angel", text: "text-persona-angel", border: "persona-glow-angel" },
-  vc: { bg: "bg-persona-vc", text: "text-persona-vc", border: "persona-glow-vc" },
-  customer: { bg: "bg-persona-customer", text: "text-persona-customer", border: "persona-glow-customer" },
-  operator: { bg: "bg-persona-operator", text: "text-persona-operator", border: "persona-glow-operator" },
-  skeptic: { bg: "bg-persona-skeptic", text: "text-persona-skeptic", border: "persona-glow-skeptic" },
-  quant: { bg: "bg-persona-quant", text: "text-persona-quant", border: "persona-glow-quant" },
-  insider: { bg: "bg-persona-insider", text: "text-persona-insider", border: "persona-glow-insider" },
-  visionary: { bg: "bg-persona-visionary", text: "text-persona-visionary", border: "persona-glow-visionary" },
-};
+/** Score-based auto-panel selection using keyword hints */
+function selectPanelForIdea(topic: string): Panel {
+  const lower = topic.toLowerCase();
+  let bestPanel = PANELS[3]; // default: accelerator simulation
+  let bestScore = 0;
+  for (const panel of PANELS) {
+    const hints = PANEL_SELECTION_HINTS[panel.id] ?? [];
+    const score = hints.filter((h) => lower.includes(h.toLowerCase())).length;
+    if (score > bestScore) {
+      bestScore = score;
+      bestPanel = panel;
+    }
+  }
+  return bestPanel;
+}
 
 const initialState: DebateState = {
   topic: "",
@@ -63,7 +70,8 @@ const initialState: DebateState = {
 
 const Index = () => {
   const [state, setState] = useState<DebateState>(initialState);
-  const [useAllPersonas, setUseAllPersonas] = useState(true);
+  const [panelMode, setPanelMode] = useState<"auto" | "panel" | "custom">("auto");
+  const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -123,7 +131,7 @@ const Index = () => {
       .then((loadedState) => {
         if (loadedState) {
           setState(loadedState);
-          setUseAllPersonas(loadedState.selectedPersonas.length === PERSONAS.length);
+          setPanelMode("custom"); // loaded session — treat as custom panel
           // Don't regenerate clips for loaded sessions — they are view-only
         }
         setSearchParams({});
@@ -154,14 +162,22 @@ const Index = () => {
     });
   }, []);
 
-  // When useAllPersonas toggles, sync selectedPersonas
+  // When panelMode changes, sync selectedPersonas
   useEffect(() => {
     if (state.phase !== "setup") return;
-    setState((prev) => ({
-      ...prev,
-      selectedPersonas: useAllPersonas ? PERSONAS : [],
-    }));
-  }, [useAllPersonas, state.phase]);
+    if (panelMode === "auto") {
+      // Auto-selection deferred to handleStartDebate
+      return;
+    }
+    if (panelMode === "panel" && selectedPanelId) {
+      const panel = PANELS.find((p) => p.id === selectedPanelId);
+      if (panel) {
+        const panelPersonas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
+        setState((prev) => ({ ...prev, selectedPersonas: panelPersonas }));
+      }
+    }
+    // custom mode: user manually picks
+  }, [panelMode, selectedPanelId, state.phase]);
 
   const handleStartDebate = useCallback(async () => {
     if (finishedCount >= FREE_LIMIT && !isPro) {
@@ -176,7 +192,17 @@ const Index = () => {
       });
       return;
     }
-    const personas = useAllPersonas ? PERSONAS : state.selectedPersonas;
+    let personas: Persona[];
+    if (panelMode === "auto") {
+      const panel = selectPanelForIdea(state.topic);
+      personas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
+      setSelectedPanelId(panel.id);
+    } else if (panelMode === "panel" && selectedPanelId) {
+      const panel = PANELS.find((p) => p.id === selectedPanelId);
+      personas = panel ? panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean) : state.selectedPersonas;
+    } else {
+      personas = state.selectedPersonas;
+    }
     if (!personas.length) return;
 
     setState((prev) => ({
@@ -222,7 +248,7 @@ const Index = () => {
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again.", variant: "destructive" });
     }
-  }, [state.topic, state.selectedPersonas, useAllPersonas, storeRoundMemories, generateClip, toast]);
+  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast]);
 
   const allResponsesReady =
     currentRound &&
@@ -411,8 +437,7 @@ const Index = () => {
   }, [resetSessionId]);
 
   const isSetup = state.phase === "setup";
-  const effectivePersonas = useAllPersonas ? PERSONAS : state.selectedPersonas;
-  const canStart = state.topic.trim().length > 0 && effectivePersonas.length >= 2;
+  const canStart = state.topic.trim().length > 0 && (panelMode !== "custom" || state.selectedPersonas.length >= 2);
   const isLiveDebating = state.phase === "debating" && state.isGenerating;
 
   // Show loading indicator while loading session
@@ -489,74 +514,99 @@ const Index = () => {
               />
             </div>
 
-            {/* Panelist mode toggle */}
+            {/* Panel selection */}
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                Panelists
+                Jury Panel
               </label>
-              <div className="flex gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-3">
                 <button
-                  onClick={() => setUseAllPersonas(true)}
+                  onClick={() => { setPanelMode("auto"); setSelectedPanelId(null); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
-                    useAllPersonas
+                    panelMode === "auto"
                       ? "bg-primary/20 text-primary border-primary/40"
                       : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                   }`}
                 >
-                  <Users className="w-3.5 h-3.5" />
-                  All 8 Panelists
+                  <Zap className="w-3.5 h-3.5" />
+                  Auto-Select
                 </button>
+                {PANELS.map((panel) => (
+                  <button
+                    key={panel.id}
+                    onClick={() => { setPanelMode("panel"); setSelectedPanelId(panel.id); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                      panelMode === "panel" && selectedPanelId === panel.id
+                        ? "bg-primary/20 text-primary border-primary/40"
+                        : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                    }`}
+                  >
+                    {panel.name}
+                  </button>
+                ))}
                 <button
-                  onClick={() => setUseAllPersonas(false)}
+                  onClick={() => { setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] })); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
-                    !useAllPersonas
+                    panelMode === "custom"
                       ? "bg-primary/20 text-primary border-primary/40"
                       : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                   }`}
                 >
-                  Custom (2–8)
+                  Custom
                 </button>
               </div>
 
-              {!useAllPersonas && (
-                <div className="flex flex-wrap gap-2">
+              {/* Panel description */}
+              {panelMode === "auto" && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  The system will analyze your idea and pick the best panel of 8 judges automatically.
+                </p>
+              )}
+
+              {panelMode === "panel" && selectedPanelId && (
+                <div className="mb-3">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {PANELS.find((p) => p.id === selectedPanelId)?.description}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(PANELS.find((p) => p.id === selectedPanelId)?.personaIds ?? []).map((pid) => {
+                      const persona = PERSONA_MAP[pid];
+                      if (!persona) return null;
+                      const colors = getPersonaColors(persona.colorKey);
+                      return (
+                        <span key={pid} className={`px-2 py-1 rounded text-xs font-medium ${colors.text} bg-muted/30`}>
+                          {persona.name.split(" ")[0]}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {panelMode === "custom" && (
+                <div className="flex flex-wrap gap-2 mb-3">
                   {PERSONAS.map((persona) => {
                     const selected = state.selectedPersonas.some((p) => p.id === persona.id);
-                    const colors = personaColorClasses[persona.colorKey];
+                    const colors = getPersonaColors(persona.colorKey);
                     return (
                       <button
                         key={persona.id}
                         onClick={() => togglePersona(persona)}
                         className={`
-                          px-3 py-1.5 rounded-md text-sm font-medium border transition-all
-                          ${
-                            selected
-                              ? `${colors.bg} ${colors.text} ${colors.border} border`
-                              : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
+                          px-3 py-1.5 rounded-md text-sm font-medium border transition-all cursor-pointer
+                          ${selected
+                            ? `${colors.bg} ${colors.text} ${colors.border} border`
+                            : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                           }
-                          cursor-pointer
                         `}
                       >
-                        {persona.subtitle}
+                        {persona.name} — {persona.subtitle}
                       </button>
                     );
                   })}
-                </div>
-              )}
-
-              {useAllPersonas && (
-                <div className="flex flex-wrap gap-1.5">
-                  {PERSONAS.map((persona) => {
-                    const colors = personaColorClasses[persona.colorKey];
-                    return (
-                      <span
-                        key={persona.id}
-                        className={`px-2 py-1 rounded text-xs font-medium ${colors.text} bg-muted/30`}
-                      >
-                        {persona.name.split(" ")[0]}
-                      </span>
-                    );
-                  })}
+                  <p className="text-[10px] text-muted-foreground w-full">
+                    {state.selectedPersonas.length}/16 selected (min 2, max 8)
+                  </p>
                 </div>
               )}
             </div>

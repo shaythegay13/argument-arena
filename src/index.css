@@ -49,7 +49,7 @@
     --verdict-maybe: 38 92% 50%;
     --verdict-nogo: 0 84% 60%;
 
-    /* Persona accent colors */
+    /* Persona accent colors — original 8 */
     --persona-angel: 25 95% 53%;
     --persona-vc: 199 89% 60%;
     --persona-customer: 142 71% 45%;
@@ -58,6 +58,16 @@
     --persona-quant: 215 16% 65%;
     --persona-insider: 25 75% 50%;
     --persona-visionary: 280 55% 55%;
+
+    /* Persona accent colors — new 8 */
+    --persona-accelerator: 45 90% 50%;
+    --persona-growth: 330 70% 55%;
+    --persona-scout: 170 60% 45%;
+    --persona-strategist: 220 50% 55%;
+    --persona-marketplace: 15 80% 55%;
+    --persona-ux: 300 50% 60%;
+    --persona-tech: 190 70% 50%;
+    --persona-institutional: 250 45% 55%;
 
     /* Stage glow */
     --stage-glow: 25 95% 53%;
@@ -109,6 +119,14 @@
   .persona-glow-quant { border-color: hsl(var(--persona-quant) / 0.4); }
   .persona-glow-insider { border-color: hsl(var(--persona-insider) / 0.4); }
   .persona-glow-visionary { border-color: hsl(var(--persona-visionary) / 0.4); }
+  .persona-glow-accelerator { border-color: hsl(var(--persona-accelerator) / 0.4); }
+  .persona-glow-growth { border-color: hsl(var(--persona-growth) / 0.4); }
+  .persona-glow-scout { border-color: hsl(var(--persona-scout) / 0.4); }
+  .persona-glow-strategist { border-color: hsl(var(--persona-strategist) / 0.4); }
+  .persona-glow-marketplace { border-color: hsl(var(--persona-marketplace) / 0.4); }
+  .persona-glow-ux { border-color: hsl(var(--persona-ux) / 0.4); }
+  .persona-glow-tech { border-color: hsl(var(--persona-tech) / 0.4); }
+  .persona-glow-institutional { border-color: hsl(var(--persona-institutional) / 0.4); }
 
   .text-persona-angel { color: hsl(var(--persona-angel)); }
   .text-persona-vc { color: hsl(var(--persona-vc)); }
@@ -118,6 +136,14 @@
   .text-persona-quant { color: hsl(var(--persona-quant)); }
   .text-persona-insider { color: hsl(var(--persona-insider)); }
   .text-persona-visionary { color: hsl(var(--persona-visionary)); }
+  .text-persona-accelerator { color: hsl(var(--persona-accelerator)); }
+  .text-persona-growth { color: hsl(var(--persona-growth)); }
+  .text-persona-scout { color: hsl(var(--persona-scout)); }
+  .text-persona-strategist { color: hsl(var(--persona-strategist)); }
+  .text-persona-marketplace { color: hsl(var(--persona-marketplace)); }
+  .text-persona-ux { color: hsl(var(--persona-ux)); }
+  .text-persona-tech { color: hsl(var(--persona-tech)); }
+  .text-persona-institutional { color: hsl(var(--persona-institutional)); }
 
   .bg-persona-angel { background-color: hsl(var(--persona-angel) / 0.12); }
   .bg-persona-vc { background-color: hsl(var(--persona-vc) / 0.12); }
@@ -127,6 +153,14 @@
   .bg-persona-quant { background-color: hsl(var(--persona-quant) / 0.12); }
   .bg-persona-insider { background-color: hsl(var(--persona-insider) / 0.12); }
   .bg-persona-visionary { background-color: hsl(var(--persona-visionary) / 0.12); }
+  .bg-persona-accelerator { background-color: hsl(var(--persona-accelerator) / 0.12); }
+  .bg-persona-growth { background-color: hsl(var(--persona-growth) / 0.12); }
+  .bg-persona-scout { background-color: hsl(var(--persona-scout) / 0.12); }
+  .bg-persona-strategist { background-color: hsl(var(--persona-strategist) / 0.12); }
+  .bg-persona-marketplace { background-color: hsl(var(--persona-marketplace) / 0.12); }
+  .bg-persona-ux { background-color: hsl(var(--persona-ux) / 0.12); }
+  .bg-persona-tech { background-color: hsl(var(--persona-tech) / 0.12); }
+  .bg-persona-institutional { background-color: hsl(var(--persona-institutional) / 0.12); }
 
   /* Verdict utilities */
   .verdict-go { color: hsl(var(--verdict-go)); }

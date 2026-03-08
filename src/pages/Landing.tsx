@@ -217,10 +217,10 @@ const Landing = () => {
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
               {[
-                { name: "Alex Ventura", role: "Angel", score: 82, color: "text-primary" },
-                { name: "Jordan Reyes", role: "VC", score: 74, color: "text-accent" },
-                { name: "Riley Novak", role: "Skeptic", score: 61, color: "text-verdict-nogo" },
-                { name: "Casey Patel", role: "Analyst", score: 78, color: "text-muted-foreground" },
+                { name: "Elena Ramirez", role: "Angel", score: 82, color: "text-primary" },
+                { name: "Marcus Thornton", role: "VC", score: 74, color: "text-accent" },
+                { name: "Victor Volkov", role: "Skeptic", score: 61, color: "text-verdict-nogo" },
+                { name: "Priya Shah", role: "Analyst", score: 78, color: "text-muted-foreground" },
               ].map(j => (
                 <div key={j.name} className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1">
                   <span className={`text-xs font-semibold ${j.color}`}>{j.score}</span>
