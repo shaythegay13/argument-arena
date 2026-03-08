@@ -623,8 +623,22 @@ const Index = () => {
                 }))
               }
               phase={state.phase}
-              onJudgeClick={handleJudge}
-              onGradesClick={handleGenerateRatings}
+              onJudgeClick={() => {
+                if (state.judgeVerdict) {
+                  setState((prev) => ({ ...prev, phase: "judge" }));
+                } else {
+                  handleJudge();
+                }
+              }}
+              onGradesClick={() => {
+                if (state.ratings.length > 0) {
+                  setState((prev) => ({ ...prev, phase: "final-ratings" }));
+                } else {
+                  handleGenerateRatings();
+                }
+              }}
+              hasRatings={state.ratings.length > 0}
+              hasVerdict={!!state.judgeVerdict}
             />
 
             {state.phase !== "judge" && state.phase !== "final-ratings" && (

@@ -1,37 +1,33 @@
 
 
-## Problem
+## Fix: Remove CopilotKit to Eliminate Blank Screen Crash
 
-When a user completes the full flow (rounds → grades → verdict) and then navigates back via the RoundTimeline, clicking "Grades" or "Verdict" **re-generates** all the data from scratch instead of displaying the already-computed results. This triggers unnecessary AI calls, which then hit the evaluation limit (429 error).
+### Problem
+CopilotKit v1.51.4 crashes the app with "Agent 'default' not found after runtime sync" during its agent discovery protocol. Multiple attempts to fix the `/info` endpoint and client-side agent registration have failed due to version incompatibilities between the client SDK and the edge function runtime.
 
-The root cause is in `Index.tsx`:
-- `onGradesClick` → `handleGenerateRatings` always wipes ratings (`ratings: []`) and regenerates
-- `onJudgeClick` → `handleJudge` always regenerates the verdict
-- Clicking a round sets `phase: "debating"`, hiding ratings/verdict — but there's no way to **view** them again without regenerating
+### Impact Assessment
+CopilotKit is used for two things in this project:
+1. **`useCopilotReadable` hooks** in `useDebateAgentState.ts` -- exposes debate state as readable context for a CopilotKit agent. This is observability/debug tooling only.
+2. **`emitAgUIEvent` function** -- logs events to the console. Does not depend on CopilotKit at all.
 
-## Solution
+Neither feature affects the core debate flow, AI generation, Tavus video clips, voice input, or any user-facing functionality.
 
-Make the timeline navigation **view-only** when data already exists:
+### Plan
 
-### 1. `Index.tsx` — Add view-only navigation handlers
+**1. Remove CopilotKit wrapper from `src/App.tsx`**
+- Remove the `CopilotKit` provider and its import
+- Remove the `@copilotkit/react-ui/styles.css` import
+- Keep all other providers (QueryClient, Tooltip, Router) unchanged
 
-- **New `handleViewGrades` function**: If `state.ratings.length > 0`, just set `phase: "final-ratings"` (no regeneration). If no ratings exist, fall through to `handleGenerateRatings`.
-- **New `handleViewJudge` function**: If `state.judgeVerdict` exists, just set `phase: "judge"` (no regeneration). If no verdict exists, fall through to `handleJudge`.
-- Wire these new handlers to `RoundTimeline`'s `onGradesClick` and `onJudgeClick` props instead of the generation functions.
+**2. Simplify `src/hooks/useDebateAgentState.ts`**
+- Remove all `useCopilotReadable` calls
+- Keep the `useEffect` console logging (useful for debugging)
+- Keep the `emitAgUIEvent` function (no CopilotKit dependency)
 
-### 2. `Index.tsx` — Fix round navigation to preserve phase context
+**3. Clean up**
+- The `copilotkit` edge function can remain deployed (harmless) or be removed later
+- No other files reference CopilotKit
 
-When clicking a round number (line 617-624), currently it forces `phase: "debating"`. This should still set `currentRoundNumber` but also show the debate table. The existing logic already handles this correctly since the debate table renders when phase is `"debating"`. No change needed here — rounds already work as view-only since round data is stored in `state.rounds`.
-
-### 3. `RoundTimeline.tsx` — Allow navigating back to Grades/Verdict after viewing rounds
-
-Currently `gradesEnabled` and `judgeEnabled` are computed based on phase. When viewing a round (phase="debating"), verdict/grades buttons should still be clickable if data exists. Pass additional props:
-
-- Add `hasRatings: boolean` and `hasVerdict: boolean` props
-- Update `gradesEnabled`: also true when `hasRatings` is true
-- Update `judgeEnabled`: also true when `hasVerdict` is true
-
-### Files changed
-- `src/pages/Index.tsx` — Add `handleViewGrades`, `handleViewJudge`, pass new props to RoundTimeline
-- `src/components/RoundTimeline.tsx` — Accept `hasRatings`/`hasVerdict` props, update enabled logic
+### Result
+The app will load without the blank screen crash. All debate functionality, AI generation, Tavus video recaps, and voice input will continue working exactly as before.
 
