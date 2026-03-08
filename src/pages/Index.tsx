@@ -162,14 +162,22 @@ const Index = () => {
     });
   }, []);
 
-  // When useAllPersonas toggles, sync selectedPersonas
+  // When panelMode changes, sync selectedPersonas
   useEffect(() => {
     if (state.phase !== "setup") return;
-    setState((prev) => ({
-      ...prev,
-      selectedPersonas: useAllPersonas ? PERSONAS : [],
-    }));
-  }, [useAllPersonas, state.phase]);
+    if (panelMode === "auto") {
+      // Auto-selection deferred to handleStartDebate
+      return;
+    }
+    if (panelMode === "panel" && selectedPanelId) {
+      const panel = PANELS.find((p) => p.id === selectedPanelId);
+      if (panel) {
+        const panelPersonas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
+        setState((prev) => ({ ...prev, selectedPersonas: panelPersonas }));
+      }
+    }
+    // custom mode: user manually picks
+  }, [panelMode, selectedPanelId, state.phase]);
 
   const handleStartDebate = useCallback(async () => {
     if (finishedCount >= FREE_LIMIT && !isPro) {
