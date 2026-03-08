@@ -468,6 +468,9 @@ Deliver your verdict as JSON.`;
     strengths: [strengths[0] ?? "Strong concept", strengths[1] ?? "Clear market need", strengths[2] ?? "Motivated founder"],
     risks: [risks[0] ?? "Execution risk", risks[1] ?? "Market timing uncertainty"],
     nextStep: parsed.nextStep ?? "Validate with 10 paying customers before building further.",
+    topPraise: parsed.topPraise ?? strengths[0] ?? "Shows genuine market understanding.",
+    skepticKillShot: parsed.skepticKillShot ?? risks[0] ?? "Execution risk remains the elephant in the room.",
+    percentile: parsed.percentile ?? Math.min(99, Math.max(1, Math.round(overallScore * 10))),
   };
 
   const script = `The Startup Jury has deliberated. Overall score: ${judgeVerdict.overallScore}/10. Verdict: ${judgeVerdict.verdict}. ${judgeVerdict.why} Key strength: ${judgeVerdict.strengths[0]}. Key risk: ${judgeVerdict.risks[0]}. Next step: ${judgeVerdict.nextStep}`;

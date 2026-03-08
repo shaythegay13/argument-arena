@@ -410,6 +410,9 @@ const Index = () => {
           strengths: ["Unable to determine", "Unable to determine", "Unable to determine"],
           risks: ["Unable to determine", "Please try again"],
           nextStep: "Retry the judge verdict.",
+          topPraise: "Unable to determine.",
+          skepticKillShot: "Unable to determine.",
+          percentile: 50,
         },
       }));
     }
