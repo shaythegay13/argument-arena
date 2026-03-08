@@ -355,8 +355,9 @@ const Index = () => {
     if (state.phase !== "debating") return;
     if (state.currentRoundNumber < MAX_ROUNDS) return;
     if (state.isGenerating || !allResponsesReady) return;
+    if (state.ratings.length > 0) return; // Already have ratings, don't regenerate
     handleGenerateRatings();
-  }, [autoDebate, state.phase, state.currentRoundNumber, state.isGenerating, allResponsesReady, handleGenerateRatings]);
+  }, [autoDebate, state.phase, state.currentRoundNumber, state.isGenerating, allResponsesReady, state.ratings.length, handleGenerateRatings]);
 
   const handleJudge = useCallback(async () => {
     setState((prev) => ({ ...prev, phase: "judge", isGeneratingJudge: true }));
