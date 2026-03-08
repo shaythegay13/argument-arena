@@ -211,6 +211,20 @@ SCORE: [0-10]/10 | [one-sentence verdict]. METRICS: ${metricsFormat}
 EXAMPLE: SCORE: 8/10 | Founder-market fit is strong with clear unfair advantage. METRICS: ${persona.scoringWeights.map((w) => `${w.label}=8`).join(", ")}`;
 }
 
+/** Run persona calls in staggered batches to avoid rate limiting */
+async function runStaggered<T>(
+  items: T[],
+  fn: (item: T) => Promise<void>,
+  batchSize = 4,
+  delayMs = 800
+): Promise<void> {
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    await Promise.allSettled(batch.map(fn));
+    if (i + batchSize < items.length) await delay(delayMs);
+  }
+}
+
 export async function generateRound1(
   topic: string,
   personas: Persona[],
@@ -220,22 +234,20 @@ export async function generateRound1(
   const messages: RoundMessage[] = [];
   const shuffled = shuffleArray(personas);
 
-  await Promise.allSettled(
-    shuffled.map(async (persona) => {
-      const system = enrichSystemPrompt(persona, topic);
-      try {
-        const text = await callCompletion(system, userPrompt);
-        const msg: RoundMessage = { personaId: persona.id, text };
-        messages.push(msg);
-        onPersonaComplete(persona.id, text);
-      } catch (err) {
-        console.error(`[Round 1] ${persona.id} failed:`, err);
-        const fallback = "I wasn't able to weigh in this round — please continue.";
-        messages.push({ personaId: persona.id, text: fallback });
-        onPersonaComplete(persona.id, fallback);
-      }
-    })
-  );
+  await runStaggered(shuffled, async (persona) => {
+    const system = enrichSystemPrompt(persona, topic);
+    try {
+      const text = await callCompletion(system, userPrompt);
+      const msg: RoundMessage = { personaId: persona.id, text };
+      messages.push(msg);
+      onPersonaComplete(persona.id, text);
+    } catch (err) {
+      console.error(`[Round 1] ${persona.id} failed:`, err);
+      const fallback = "I wasn't able to weigh in this round — please continue.";
+      messages.push({ personaId: persona.id, text: fallback });
+      onPersonaComplete(persona.id, fallback);
+    }
+  });
 
   return messages;
 }
