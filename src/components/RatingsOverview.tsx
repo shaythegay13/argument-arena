@@ -146,7 +146,7 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
             {sortedRatings.map((rating, i) => {
               const persona = personas.find((p) => p.id === rating.personaId);
               if (!persona) return null;
-              const colors = personaColors[persona.colorKey];
+              const colors = getPersonaColors(persona.colorKey);
               const metricEntries = Object.entries(rating.metrics);
               const isExpanded = expandedId === rating.personaId;
 
