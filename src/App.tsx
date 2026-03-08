@@ -86,8 +86,8 @@ const App = () => (
           <Route path="/accept-terms" element={<TermsGate><AcceptTerms /></TermsGate>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/debate" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/terms" element={<AuthRoute><Terms /></AuthRoute>} />
-          <Route path="/privacy" element={<AuthRoute><PrivacyPolicy /></AuthRoute>} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/app/terms" element={<ProtectedRoute><TermsAuthenticated /></ProtectedRoute>} />
           <Route path="/app/privacy" element={<ProtectedRoute><PrivacyPolicyAuthenticated /></ProtectedRoute>} />
           <Route path="/app/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />

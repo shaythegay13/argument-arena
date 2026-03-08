@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Zap, Users, Star, ArrowRight, Shield, Brain, MessageSquare, BarChart3, Share2, CheckCircle2 } from "lucide-react";
+import { Zap, Users, Star, ArrowRight, Shield, Brain, MessageSquare, BarChart3, Share2, CheckCircle2, ExternalLink } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
+
+// Set to a public result URL (e.g. "/result/your-demo-id") to enable the live example CTA
+const DEMO_RESULT_URL = "";
 
 const features = [
   {
@@ -105,12 +108,7 @@ const Landing = () => {
 
       {/* Hero */}
       <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-32 text-center space-y-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-6"
-        >
+        <div className="space-y-6">
           <span className="inline-block text-xs font-mono uppercase tracking-[0.2em] text-primary px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10">
             AI-Powered Startup Validation
           </span>
@@ -126,14 +124,9 @@ const Landing = () => {
             <span className="text-verdict-nogo font-medium">NO-GO</span>{" "}
             verdict in minutes.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button
             size="lg"
             onClick={() => navigate("/auth")}
@@ -151,24 +144,25 @@ const Landing = () => {
           >
             Learn More
           </Button>
-        </motion.div>
+          {DEMO_RESULT_URL && (
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => window.open(DEMO_RESULT_URL, "_blank")}
+              className="font-medium text-sm sm:text-base px-6 w-full sm:w-auto h-12 rounded-[10px] text-muted-foreground hover:text-foreground gap-1.5"
+            >
+              <ExternalLink className="w-4 h-4" />
+              See Live Example
+            </Button>
+          )}
+        </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-xs text-muted-foreground"
-        >
+        <p className="text-xs text-muted-foreground">
           2 free evaluations · No credit card required
-        </motion.p>
+        </p>
 
         {/* Social proof strip */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="flex items-center justify-center gap-8 sm:gap-12 pt-4 flex-wrap"
-        >
+        <div className="flex items-center justify-center gap-8 sm:gap-12 pt-4 flex-wrap">
           {[
             { value: "2,400+", label: "Ideas Evaluated" },
             { value: "< 5 min", label: "Per Verdict" },
@@ -179,7 +173,70 @@ const Landing = () => {
               <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{stat.label}</div>
             </div>
           ))}
-        </motion.div>
+        </div>
+
+        {/* Mock verdict preview — shows users what output looks like before signing up */}
+        <div className="mt-8 max-w-2xl mx-auto text-left">
+          <p className="text-center text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground mb-4">Sample Output</p>
+          <div className="rounded-[14px] border border-verdict-go/30 bg-verdict-go/5 p-5 sm:p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-5">
+              <span className="text-4xl">🚀</span>
+              <div className="flex-1">
+                <div className="text-2xl font-bold text-verdict-go">GO</div>
+                <div className="text-xs text-muted-foreground">AI-powered onboarding tool for SaaS companies</div>
+              </div>
+              <div className="rounded-[10px] border border-verdict-go/20 bg-card/50 px-4 py-2 text-center">
+                <div className="text-xs text-muted-foreground font-mono">Score</div>
+                <div className="text-2xl font-bold text-verdict-go">74<span className="text-sm text-muted-foreground">/100</span></div>
+              </div>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              Strong market timing — SaaS churn is a $1.6T problem and onboarding is the #1 lever. The AI angle is differentiated. Main risk is enterprise sales cycle length vs. your runway.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-[10px] border border-verdict-go/20 bg-verdict-go/5 p-3">
+                <div className="text-[10px] font-mono uppercase text-verdict-go font-semibold mb-1.5">Strengths</div>
+                <ul className="space-y-1">
+                  {["Clear, quantifiable pain point", "Viral product-led growth loop", "Defensible data moat over time"].map(s => (
+                    <li key={s} className="flex items-start gap-1.5 text-xs text-foreground/75">
+                      <span className="w-1 h-1 rounded-full bg-verdict-go mt-1.5 shrink-0" />{s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-[10px] border border-verdict-nogo/20 bg-verdict-nogo/5 p-3">
+                <div className="text-[10px] font-mono uppercase text-verdict-nogo font-semibold mb-1.5">Risks</div>
+                <ul className="space-y-1">
+                  {["Crowded market — Appcues, Pendo, Intercom", "High enterprise CAC vs. SMB LTV", "Integration complexity slows GTM"].map(r => (
+                    <li key={r} className="flex items-start gap-1.5 text-xs text-foreground/75">
+                      <span className="w-1 h-1 rounded-full bg-verdict-nogo mt-1.5 shrink-0" />{r}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {[
+                { name: "Alex Ventura", role: "Angel", score: 82, color: "text-primary" },
+                { name: "Jordan Reyes", role: "VC", score: 74, color: "text-accent" },
+                { name: "Riley Novak", role: "Skeptic", score: 61, color: "text-verdict-nogo" },
+                { name: "Casey Patel", role: "Analyst", score: 78, color: "text-muted-foreground" },
+              ].map(j => (
+                <div key={j.name} className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1">
+                  <span className={`text-xs font-semibold ${j.color}`}>{j.score}</span>
+                  <span className="text-xs text-muted-foreground">{j.role}</span>
+                </div>
+              ))}
+              <div className="flex items-center rounded-full border border-border bg-card px-3 py-1">
+                <span className="text-xs text-muted-foreground">+4 more judges</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-center text-xs text-muted-foreground mt-3">
+            Your real verdict will reflect your actual idea — submit yours free →{" "}
+            <button onClick={() => navigate("/auth")} className="text-primary hover:underline font-medium">Get started</button>
+          </p>
+        </div>
       </section>
 
       {/* How It Works */}

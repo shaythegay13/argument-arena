@@ -202,10 +202,174 @@
     }
     </script>
 
+  <style>
+    /* Critical above-fold styles — shown before JS bundle loads */
+    #app-shell {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: hsl(222, 47%, 11%);
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    #app-shell * { box-sizing: border-box; }
+    #app-shell header {
+      border-bottom: 1px solid hsl(217, 24%, 22%);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: hsla(222, 47%, 11%, 0.9);
+    }
+    #app-shell .shell-nav-btns { display: flex; gap: 10px; align-items: center; }
+    #app-shell .shell-btn-ghost {
+      color: hsl(215, 16%, 65%);
+      font-size: 13px;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    #app-shell .shell-btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: hsl(25, 95%, 53%);
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 8px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    #app-shell .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px 64px;
+      text-align: center;
+    }
+    #app-shell .shell-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: hsl(25, 95%, 53%);
+      border: 1px solid hsla(25, 95%, 53%, 0.3);
+      background: hsla(25, 95%, 53%, 0.1);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      margin-bottom: 32px;
+    }
+    #app-shell h1 {
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      font-weight: 700;
+      color: white;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin: 0 0 20px;
+    }
+    #app-shell h1 span { color: hsl(25, 95%, 53%); }
+    #app-shell .shell-subtitle {
+      color: hsl(215, 16%, 65%);
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      max-width: 600px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+    #app-shell .shell-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    #app-shell .shell-btn-lg {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: hsl(25, 95%, 53%);
+      color: white;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 14px 32px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    #app-shell .shell-btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: hsl(199, 89%, 60%);
+      font-weight: 500;
+      font-size: 15px;
+      padding: 14px 32px;
+      border-radius: 10px;
+      border: 1px solid hsl(199, 89%, 60%);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    #app-shell .shell-tagline {
+      color: hsl(215, 16%, 55%);
+      font-size: 12px;
+      margin-bottom: 40px;
+    }
+    #app-shell .shell-stats {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    #app-shell .shell-stat-value {
+      color: white;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    #app-shell .shell-stat-label {
+      color: hsl(215, 16%, 55%);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 2px;
+    }
+  </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="app-shell">
+      <header>
+        <div class="shell-nav-btns">
+          <a href="/about" class="shell-btn-ghost">About</a>
+          <a href="/pricing" class="shell-btn-ghost">Pricing</a>
+          <a href="/auth" class="shell-btn-ghost">Sign In</a>
+          <a href="/auth" class="shell-btn-primary">Get Started</a>
+        </div>
+      </header>
+      <div class="hero">
+        <div class="shell-badge">AI-Powered Startup Validation</div>
+        <h1>Pitch Your Startup<br><span>to the AI Jury</span></h1>
+        <p class="shell-subtitle">8 AI expert personas — investors, operators, and skeptics — debate your idea across 4 rounds and deliver a scored GO / MAYBE / NO-GO verdict in minutes.</p>
+        <div class="shell-ctas">
+          <a href="/auth" class="shell-btn-lg">⚡ Start Free Evaluation →</a>
+          <a href="#how-it-works" class="shell-btn-outline">Learn More</a>
+        </div>
+        <p class="shell-tagline">2 free evaluations · No credit card required</p>
+        <div class="shell-stats">
+          <div><div class="shell-stat-value">2,400+</div><div class="shell-stat-label">Ideas Evaluated</div></div>
+          <div><div class="shell-stat-value">&lt; 5 min</div><div class="shell-stat-label">Per Verdict</div></div>
+          <div><div class="shell-stat-value">8</div><div class="shell-stat-label">AI Judges</div></div>
+        </div>
+      </div>
+    </div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

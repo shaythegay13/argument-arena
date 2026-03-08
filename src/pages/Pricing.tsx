@@ -51,6 +51,32 @@ const Pricing = () => {
 
   useEffect(() => {
     document.title = "Pricing — Startup Jury AI";
+    const setMeta = (sel: string, val: string) => {
+      const el = document.querySelector(sel);
+      if (el) el.setAttribute("content", val);
+    };
+    const setLink = (rel: string, href: string) => {
+      let el = document.querySelector(`link[rel="${rel}"]`);
+      if (!el) { el = document.createElement("link"); el.setAttribute("rel", rel); document.head.appendChild(el); }
+      el.setAttribute("href", href);
+    };
+    setMeta('meta[name="description"]', "Start free with 2 startup idea evaluations. Upgrade to Pro for $8.99/month — unlimited evaluations, full session history, cancel anytime.");
+    setMeta('meta[property="og:title"]', "Pricing — Startup Jury AI");
+    setMeta('meta[property="og:description"]', "Start free with 2 startup idea evaluations. Upgrade to Pro for $8.99/month — unlimited evaluations, cancel anytime.");
+    setMeta('meta[property="og:url"]', "https://startupjuryai.com/pricing");
+    setMeta('meta[name="twitter:title"]', "Pricing — Startup Jury AI");
+    setMeta('meta[name="twitter:description"]', "Start free with 2 startup idea evaluations. Upgrade to Pro for $8.99/month — unlimited evaluations, cancel anytime.");
+    setLink("canonical", "https://startupjuryai.com/pricing");
+    return () => {
+      document.title = "Startup Jury AI - Validate Your Startup Idea with AI Judges";
+      setMeta('meta[name="description"]', "8 AI personas debate your startup idea across 4 rounds and deliver a GO/NO-GO verdict in minutes. Validate before you build.");
+      setMeta('meta[property="og:title"]', "Startup Jury AI - Validate Your Startup Idea with AI Judges");
+      setMeta('meta[property="og:description"]', "8 AI expert personas debate your startup idea across 4 rounds and deliver a GO/NO-GO verdict in minutes. Free to try — no pitch deck needed.");
+      setMeta('meta[property="og:url"]', "https://startupjuryai.com/");
+      setMeta('meta[name="twitter:title"]', "Startup Jury AI - Validate Your Startup Idea with AI Judges");
+      setMeta('meta[name="twitter:description"]', "8 AI expert personas debate your startup idea across 4 rounds and deliver a GO/NO-GO verdict in minutes. Free to try — no pitch deck needed.");
+      setLink("canonical", "https://startupjuryai.com/");
+    };
   }, []);
 
   return (
