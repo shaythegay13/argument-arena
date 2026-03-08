@@ -202,6 +202,10 @@ const Index = () => {
       const panel = selectPanelForIdea(state.topic);
       personas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
       setSelectedPanelId(panel.id);
+      toast({
+        title: `🎯 Panel Selected: ${panel.name}`,
+        description: `Focus: ${panel.focus} — ${panel.description}`,
+      });
     } else if (panelMode === "panel" && selectedPanelId) {
       const panel = PANELS.find((p) => p.id === selectedPanelId);
       personas = panel ? panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean) : state.selectedPersonas;
