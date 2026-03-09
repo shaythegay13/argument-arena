@@ -433,6 +433,13 @@ export default function JudgeVerdictCard({
                   <VersionComparison sessionId={sessionId} />
                 )}
 
+                {/* Community Vote */}
+                {sessionId && (
+                  <div className="pt-3 border-t border-border">
+                    <CommunityVote sessionId={sessionId} />
+                  </div>
+                )}
+
                 {/* CTA buttons */}
                 <div className="flex flex-wrap gap-3 pt-3 border-t border-border">
                   <Button variant="outline" size="sm" onClick={onReset} className="gap-2 rounded-[10px]">

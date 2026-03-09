@@ -9,7 +9,7 @@ export function useSessionPersistence(userId: string | undefined) {
   const iterationRef = useRef<{ parentSessionId: string; version: number } | null>(null);
 
   const saveSession = useCallback(
-    async (state: DebateState) => {
+    async (state: DebateState, options?: { visibility?: string }) => {
       if (!userId) return;
       if (savingRef.current) return;
       savingRef.current = true;
@@ -25,6 +25,11 @@ export function useSessionPersistence(userId: string | undefined) {
           judge_verdict: state.judgeVerdict as any,
           phase: state.phase,
         };
+
+        if (options?.visibility) {
+          payload.visibility = options.visibility;
+          payload.is_public = options.visibility !== "private";
+        }
 
         // Attach iteration info on first insert
         if (!sessionIdRef.current && iterationRef.current) {

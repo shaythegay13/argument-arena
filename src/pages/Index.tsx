@@ -492,7 +492,7 @@ const Index = () => {
   useEffect(() => {
     if (state.phase === "setup" || !state.topic) return;
     if (state.rounds.length === 0) return;
-    saveSession(state);
+    saveSession(state, { visibility });
   }, [state.rounds, state.ratings, state.judgeVerdict, state.phase, saveSession, state.topic]);
 
   // Sync session ID to AI module so edge function excludes current session from limit count
