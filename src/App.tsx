@@ -94,6 +94,7 @@ const App = () => (
           <Route path="/app/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/result/:id" element={<ResultPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
