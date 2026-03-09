@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail } from "lucide-react";
 import IdeaSubmissionForm from "@/components/IdeaSubmissionForm";
+import VisibilitySelector from "@/components/VisibilitySelector";
 import MobileNav from "@/components/MobileNav";
 import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
