@@ -108,7 +108,12 @@ export function useSessionPersistence(userId: string | undefined) {
 
   const resetSessionId = useCallback(() => {
     sessionIdRef.current = null;
+    iterationRef.current = null;
   }, []);
 
-  return { saveSession, loadSession, resetSessionId, sessionId: sessionIdRef };
+  const setIteration = useCallback((parentSessionId: string, version: number) => {
+    iterationRef.current = { parentSessionId, version };
+  }, []);
+
+  return { saveSession, loadSession, resetSessionId, setIteration, sessionId: sessionIdRef };
 }
