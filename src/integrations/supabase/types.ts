@@ -71,6 +71,7 @@ export type Database = {
           id: string
           is_public: boolean
           judge_verdict: Json | null
+          parent_session_id: string | null
           phase: string
           ratings: Json
           rounds: Json
@@ -79,12 +80,14 @@ export type Database = {
           updated_at: string
           user_id: string
           user_responses: Json
+          version: number
         }
         Insert: {
           created_at?: string
           id?: string
           is_public?: boolean
           judge_verdict?: Json | null
+          parent_session_id?: string | null
           phase?: string
           ratings?: Json
           rounds?: Json
@@ -93,12 +96,14 @@ export type Database = {
           updated_at?: string
           user_id: string
           user_responses?: Json
+          version?: number
         }
         Update: {
           created_at?: string
           id?: string
           is_public?: boolean
           judge_verdict?: Json | null
+          parent_session_id?: string | null
           phase?: string
           ratings?: Json
           rounds?: Json
@@ -107,8 +112,17 @@ export type Database = {
           updated_at?: string
           user_id?: string
           user_responses?: Json
+          version?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "debate_sessions_parent_session_id_fkey"
+            columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "debate_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_agreements: {
         Row: {
