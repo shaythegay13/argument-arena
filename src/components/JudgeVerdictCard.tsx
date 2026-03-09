@@ -1,5 +1,6 @@
 import { Gavel, RotateCcw, RefreshCw, Download, Shield, AlertTriangle, Lightbulb, ArrowRight, Share2, Check, Skull, Trophy, TrendingUp } from "lucide-react";
 import VersionComparison from "@/components/VersionComparison";
+import CommunityVote from "@/components/CommunityVote";
 import { JudgeVerdict, PersonaRating, Persona } from "@/types/debate";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
