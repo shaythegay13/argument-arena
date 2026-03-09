@@ -6,6 +6,7 @@ import { PERSONAS } from "@/data/personas";
 import { Persona, PersonaRating, JudgeVerdict, Round } from "@/types/debate";
 import { Loader2, ArrowLeft, Share2, ExternalLink, Gavel, Star, Shield, AlertTriangle, Lightbulb, ArrowRight, Zap, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CommunityVote from "@/components/CommunityVote";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
