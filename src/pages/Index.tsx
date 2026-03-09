@@ -506,11 +506,17 @@ const Index = () => {
   }, [resetSessionId]);
 
   const handleRefine = useCallback(() => {
+    const currentId = sessionIdRef.current;
     resetSessionId();
+    if (currentId) {
+      // Navigate to iterate mode which loads the topic and sets up version tracking
+      navigate(`/debate?iterate=${currentId}`);
+      return;
+    }
     setState((prev) => ({ ...initialState, topic: prev.topic, phase: "setup" }));
     setAutoDebate(false);
     setIsAutoResponding(false);
-  }, [resetSessionId]);
+  }, [resetSessionId, navigate]);
 
   const isSetup = state.phase === "setup";
   const canStart = state.topic.trim().length > 0 && (panelMode !== "custom" || state.selectedPersonas.length >= 2);
