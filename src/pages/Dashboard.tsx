@@ -33,6 +33,8 @@ interface SessionRow {
   selected_persona_ids: string[];
   rounds: any[];
   is_public: boolean;
+  parent_session_id: string | null;
+  version: number;
 }
 
 function verdictEmoji(verdict?: string) {
