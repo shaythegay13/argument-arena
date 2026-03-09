@@ -34,7 +34,8 @@ describe("inferIndustry", () => {
   });
 
   it("is case-insensitive", () => {
-    expect(inferIndustry("AI-powered SaaS dashboard")).toBe("artificial intelligence");
+    expect(inferIndustry("AI-powered SaaS dashboard")).toBe("SaaS");
+    expect(inferIndustry("An AI chatbot for pets")).toBe("artificial intelligence");
   });
 });
 
