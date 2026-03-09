@@ -21,6 +21,7 @@ import AcceptTerms from "./pages/AcceptTerms";
 import ResultPage from "./pages/ResultPage";
 import About from "./pages/About";
 import Pricing from "./pages/Pricing";
+import Leaderboard from "./pages/Leaderboard";
 import AIDisclosureModal from "./components/AIDisclosureModal";
 import { Loader2 } from "lucide-react";
 
