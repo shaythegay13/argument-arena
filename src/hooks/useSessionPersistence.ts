@@ -33,17 +33,17 @@ export function useSessionPersistence(userId: string | undefined) {
         }
 
         if (sessionIdRef.current) {
-          await supabase
+          await (supabase
             .from("debate_sessions")
-            .update(payload)
+            .update(payload) as any)
             .eq("id", sessionIdRef.current);
         } else {
-          const { data } = await supabase
+          const { data } = await (supabase
             .from("debate_sessions")
-            .insert(payload)
+            .insert(payload as any) as any)
             .select("id")
             .single();
-          if (data) sessionIdRef.current = data.id;
+          if (data) sessionIdRef.current = (data as any).id;
         }
       } finally {
         savingRef.current = false;
