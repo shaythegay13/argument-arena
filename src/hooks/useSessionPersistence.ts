@@ -6,16 +6,16 @@ import { PERSONAS } from "@/data/personas";
 export function useSessionPersistence(userId: string | undefined) {
   const sessionIdRef = useRef<string | null>(null);
   const savingRef = useRef(false);
+  const iterationRef = useRef<{ parentSessionId: string; version: number } | null>(null);
 
   const saveSession = useCallback(
     async (state: DebateState) => {
       if (!userId) return;
-      // Prevent concurrent inserts that create duplicate sessions
       if (savingRef.current) return;
       savingRef.current = true;
 
       try {
-        const payload = {
+        const payload: Record<string, any> = {
           user_id: userId,
           topic: state.topic,
           selected_persona_ids: state.selectedPersonas.map((p) => p.id),
@@ -26,18 +26,24 @@ export function useSessionPersistence(userId: string | undefined) {
           phase: state.phase,
         };
 
+        // Attach iteration info on first insert
+        if (!sessionIdRef.current && iterationRef.current) {
+          payload.parent_session_id = iterationRef.current.parentSessionId;
+          payload.version = iterationRef.current.version;
+        }
+
         if (sessionIdRef.current) {
-          await supabase
+          await (supabase
             .from("debate_sessions")
-            .update(payload)
+            .update(payload) as any)
             .eq("id", sessionIdRef.current);
         } else {
-          const { data } = await supabase
+          const { data } = await (supabase
             .from("debate_sessions")
-            .insert(payload)
+            .insert(payload as any) as any)
             .select("id")
             .single();
-          if (data) sessionIdRef.current = data.id;
+          if (data) sessionIdRef.current = (data as any).id;
         }
       } finally {
         savingRef.current = false;
@@ -102,7 +108,12 @@ export function useSessionPersistence(userId: string | undefined) {
 
   const resetSessionId = useCallback(() => {
     sessionIdRef.current = null;
+    iterationRef.current = null;
   }, []);
 
-  return { saveSession, loadSession, resetSessionId, sessionId: sessionIdRef };
+  const setIteration = useCallback((parentSessionId: string, version: number) => {
+    iterationRef.current = { parentSessionId, version };
+  }, []);
+
+  return { saveSession, loadSession, resetSessionId, setIteration, sessionId: sessionIdRef };
 }

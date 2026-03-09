@@ -1,4 +1,5 @@
 import { Gavel, RotateCcw, RefreshCw, Download, Shield, AlertTriangle, Lightbulb, ArrowRight, Share2, Check, Skull, Trophy, TrendingUp } from "lucide-react";
+import VersionComparison from "@/components/VersionComparison";
 import { JudgeVerdict, PersonaRating, Persona } from "@/types/debate";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -426,6 +427,10 @@ export default function JudgeVerdictCard({
                     {verdict.nextStep}
                   </p>
                 </motion.div>
+                {/* Version Comparison */}
+                {sessionId && (
+                  <VersionComparison sessionId={sessionId} />
+                )}
 
                 {/* CTA buttons */}
                 <div className="flex flex-wrap gap-3 pt-3 border-t border-border">

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
-import { Zap, Loader2, Trash2, CheckCircle2, Timer, Share2, Crown, Settings } from "lucide-react";
+import { Zap, Loader2, Trash2, CheckCircle2, Timer, Share2, Crown, Settings, RotateCcw } from "lucide-react";
 import MobileNav from "@/components/MobileNav";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +33,8 @@ interface SessionRow {
   selected_persona_ids: string[];
   rounds: any[];
   is_public: boolean;
+  parent_session_id: string | null;
+  version: number;
 }
 
 function verdictEmoji(verdict?: string) {
@@ -91,7 +93,7 @@ const Dashboard = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("debate_sessions")
-      .select("id, topic, phase, judge_verdict, ratings, created_at, selected_persona_ids, rounds, is_public")
+      .select("id, topic, phase, judge_verdict, ratings, created_at, selected_persona_ids, rounds, is_public, parent_session_id, version" as any)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -239,6 +241,15 @@ const Dashboard = () => {
                 ? Math.round((session.ratings.reduce((s, r) => s + r.score, 0) / session.ratings.length) * 10) / 10
                 : null;
 
+              // Find other versions of this idea
+              const rootId = (session as any).parent_session_id || session.id;
+              const versionSiblings = sessions.filter((s) => {
+                const sRoot = (s as any).parent_session_id || s.id;
+                return sRoot === rootId && s.id !== session.id;
+              });
+              const hasVersions = versionSiblings.length > 0;
+              const sessionVersion = (session as any).version || 1;
+
               return (
                 <motion.div
                   key={session.id}
@@ -260,7 +271,14 @@ const Dashboard = () => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
+                        {(hasVersions || sessionVersion > 1) && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                            v{sessionVersion}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[11px] text-muted-foreground">
                           {new Date(session.created_at).toLocaleDateString("en-US", {
@@ -292,6 +310,20 @@ const Dashboard = () => {
                         <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-[10px] border ${verdictColor(v.verdict)}`}>
                           {v.verdict}
                         </span>
+                      )}
+                      {done && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/debate?iterate=${session.id}`);
+                          }}
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 transition-opacity h-8 w-8 p-0"
+                          title="Re-evaluate with improvements"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </Button>
                       )}
                       <Button
                         variant="ghost"
