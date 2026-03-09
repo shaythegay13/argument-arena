@@ -93,7 +93,7 @@ const Dashboard = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("debate_sessions")
-      .select("id, topic, phase, judge_verdict, ratings, created_at, selected_persona_ids, rounds, is_public")
+      .select("id, topic, phase, judge_verdict, ratings, created_at, selected_persona_ids, rounds, is_public, parent_session_id, version" as any)
       .order("created_at", { ascending: false });
 
     if (error) {
