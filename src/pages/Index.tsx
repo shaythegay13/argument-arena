@@ -695,6 +695,9 @@ const Index = () => {
               )}
             </div>
 
+            {/* Visibility */}
+            <VisibilitySelector value={visibility} onChange={setVisibility} disabled={state.isGenerating} />
+
             {/* Options row */}
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
