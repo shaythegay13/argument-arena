@@ -6,16 +6,16 @@ import { PERSONAS } from "@/data/personas";
 export function useSessionPersistence(userId: string | undefined) {
   const sessionIdRef = useRef<string | null>(null);
   const savingRef = useRef(false);
+  const iterationRef = useRef<{ parentSessionId: string; version: number } | null>(null);
 
   const saveSession = useCallback(
     async (state: DebateState) => {
       if (!userId) return;
-      // Prevent concurrent inserts that create duplicate sessions
       if (savingRef.current) return;
       savingRef.current = true;
 
       try {
-        const payload = {
+        const payload: Record<string, any> = {
           user_id: userId,
           topic: state.topic,
           selected_persona_ids: state.selectedPersonas.map((p) => p.id),
@@ -25,6 +25,12 @@ export function useSessionPersistence(userId: string | undefined) {
           judge_verdict: state.judgeVerdict as any,
           phase: state.phase,
         };
+
+        // Attach iteration info on first insert
+        if (!sessionIdRef.current && iterationRef.current) {
+          payload.parent_session_id = iterationRef.current.parentSessionId;
+          payload.version = iterationRef.current.version;
+        }
 
         if (sessionIdRef.current) {
           await supabase
