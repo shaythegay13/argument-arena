@@ -37,10 +37,34 @@ import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
 
-/** Score-based auto-panel selection using keyword hints */
-function selectPanelForIdea(topic: string): Panel {
+/** AI-powered panel selection with keyword fallback */
+async function selectPanelForIdea(topic: string): Promise<Panel> {
+  // Try AI selection first
+  try {
+    const panelDescriptions = PANELS.map(
+      (p) => `${p.id}: "${p.name}" — Focus: ${p.focus}. ${p.description}`
+    ).join("\n");
+
+    const { data, error } = await supabase.functions.invoke("debate-ai", {
+      body: {
+        systemPrompt: `You are a panel routing assistant. Given a startup idea, pick the single best panel. Respond with ONLY the panel id (one of: ${PANELS.map((p) => p.id).join(", ")}). Nothing else.`,
+        userPrompt: `Panels:\n${panelDescriptions}\n\nStartup idea: "${topic.slice(0, 500)}"\n\nWhich panel id is the best fit?`,
+        model: "google/gemini-2.5-flash-lite",
+      },
+    });
+
+    if (!error && data?.content) {
+      const chosen = data.content.trim().toLowerCase().replace(/[^a-z]/g, "");
+      const match = PANELS.find((p) => p.id === chosen);
+      if (match) return match;
+    }
+  } catch (e) {
+    console.warn("[selectPanelForIdea] AI selection failed, using keyword fallback:", e);
+  }
+
+  // Keyword fallback
   const lower = topic.toLowerCase();
-  let bestPanel = PANELS[3]; // default: accelerator simulation
+  let bestPanel = PANELS[0]; // default: investor panel
   let bestScore = 0;
   for (const panel of PANELS) {
     const hints = PANEL_SELECTION_HINTS[panel.id] ?? [];
