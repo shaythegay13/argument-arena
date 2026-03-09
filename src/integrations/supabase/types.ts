@@ -67,6 +67,7 @@ export type Database = {
       }
       debate_sessions: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           is_public: boolean
@@ -76,13 +77,17 @@ export type Database = {
           ratings: Json
           rounds: Json
           selected_persona_ids: string[]
+          startup_name: string | null
           topic: string
           updated_at: string
           user_id: string
           user_responses: Json
           version: number
+          view_count: number
+          visibility: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           is_public?: boolean
@@ -92,13 +97,17 @@ export type Database = {
           ratings?: Json
           rounds?: Json
           selected_persona_ids?: string[]
+          startup_name?: string | null
           topic: string
           updated_at?: string
           user_id: string
           user_responses?: Json
           version?: number
+          view_count?: number
+          visibility?: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           is_public?: boolean
@@ -108,16 +117,51 @@ export type Database = {
           ratings?: Json
           rounds?: Json
           selected_persona_ids?: string[]
+          startup_name?: string | null
           topic?: string
           updated_at?: string
           user_id?: string
           user_responses?: Json
           version?: number
+          view_count?: number
+          visibility?: string
         }
         Relationships: [
           {
             foreignKeyName: "debate_sessions_parent_session_id_fkey"
             columns: ["parent_session_id"]
+            isOneToOne: false
+            referencedRelation: "debate_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaderboard_votes: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          vote_type: string
+          voter_fingerprint: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          vote_type: string
+          voter_fingerprint: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          vote_type?: string
+          voter_fingerprint?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_votes_session_id_fkey"
+            columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "debate_sessions"
             referencedColumns: ["id"]

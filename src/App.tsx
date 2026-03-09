@@ -21,6 +21,7 @@ import AcceptTerms from "./pages/AcceptTerms";
 import ResultPage from "./pages/ResultPage";
 import About from "./pages/About";
 import Pricing from "./pages/Pricing";
+import Leaderboard from "./pages/Leaderboard";
 import AIDisclosureModal from "./components/AIDisclosureModal";
 import { Loader2 } from "lucide-react";
 
@@ -93,6 +94,7 @@ const App = () => (
           <Route path="/app/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/result/:id" element={<ResultPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

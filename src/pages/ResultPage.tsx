@@ -6,6 +6,7 @@ import { PERSONAS } from "@/data/personas";
 import { Persona, PersonaRating, JudgeVerdict, Round } from "@/types/debate";
 import { Loader2, ArrowLeft, Share2, ExternalLink, Gavel, Star, Shield, AlertTriangle, Lightbulb, ArrowRight, Zap, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CommunityVote from "@/components/CommunityVote";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
@@ -320,6 +321,19 @@ export default function ResultPage() {
                 );
               })}
             </div>
+          </motion.section>
+        )}
+
+        {/* Community Vote */}
+        {id && (
+          <motion.section
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="rounded-[14px] border border-border bg-card p-4 sm:p-5 flex flex-col items-center gap-3"
+          >
+            <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">What do you think?</p>
+            <CommunityVote sessionId={id} />
           </motion.section>
         )}
 

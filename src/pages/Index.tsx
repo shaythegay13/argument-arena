@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail } from "lucide-react";
 import IdeaSubmissionForm from "@/components/IdeaSubmissionForm";
+import VisibilitySelector from "@/components/VisibilitySelector";
 import MobileNav from "@/components/MobileNav";
 import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
@@ -100,6 +101,7 @@ const Index = () => {
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("private");
   const [finishedCount, setFinishedCount] = useState(0);
   const subscription = useSubscription();
   const isPro = subscription.isPro;
@@ -490,7 +492,7 @@ const Index = () => {
   useEffect(() => {
     if (state.phase === "setup" || !state.topic) return;
     if (state.rounds.length === 0) return;
-    saveSession(state);
+    saveSession(state, { visibility });
   }, [state.rounds, state.ratings, state.judgeVerdict, state.phase, saveSession, state.topic]);
 
   // Sync session ID to AI module so edge function excludes current session from limit count
@@ -692,6 +694,9 @@ const Index = () => {
                 </div>
               )}
             </div>
+
+            {/* Visibility */}
+            <VisibilitySelector value={visibility} onChange={setVisibility} disabled={state.isGenerating} />
 
             {/* Options row */}
             <div className="flex items-center gap-4">

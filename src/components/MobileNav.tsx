@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, Zap, LayoutDashboard, Mail, LogOut, Crown } from "lucide-react";
+import { Menu, X, Zap, LayoutDashboard, Mail, LogOut, Crown, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -27,6 +27,7 @@ export default function MobileNav({ currentPage, isPro, onUpgradeClick, onNewDeb
     ...(currentPage !== "debate"
       ? [{ label: "New Debate", icon: Zap, onClick: () => (onNewDebate ? onNewDebate() : navigate("/debate")) }]
       : []),
+    { label: "Leaderboard", icon: Trophy, onClick: () => navigate("/leaderboard") },
     { label: "Contact Us", icon: Mail, onClick: () => navigate("/app/contact") },
     { label: "Sign Out", icon: LogOut, onClick: handleSignOut },
   ];
