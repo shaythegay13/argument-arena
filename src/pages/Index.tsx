@@ -110,10 +110,11 @@ const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
 
-  // Capture the session param once at mount so it survives URL clearing
+  // Capture the session and iterate params once at mount
   const sessionParamRef = useRef(searchParams.get("session"));
-  const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current);
-  const { saveSession, loadSession, resetSessionId, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
+  const iterateParamRef = useRef(searchParams.get("iterate"));
+  const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current || !!iterateParamRef.current);
+  const { saveSession, loadSession, resetSessionId, setIteration, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
 
   const { toast } = useToast();
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
