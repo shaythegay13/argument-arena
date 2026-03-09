@@ -142,23 +142,56 @@ const Index = () => {
   // Load session from URL parameter — wait for auth to resolve first so userId is available
   useEffect(() => {
     const sessionId = sessionParamRef.current;
-    if (!sessionId) return;       // no session param in URL
-    if (authLoading) return;      // wait for auth to finish
-    if (!user?.id) {              // not logged in — bail out
+    const iterateId = iterateParamRef.current;
+    
+    if (!sessionId && !iterateId) return;
+    if (authLoading) return;
+    if (!user?.id) {
       setIsLoadingSession(false);
       setSearchParams({});
       sessionParamRef.current = null;
+      iterateParamRef.current = null;
       return;
     }
 
-    sessionParamRef.current = null; // prevent double-load
+    // Handle iterate: load the parent session topic but start fresh
+    if (iterateId) {
+      iterateParamRef.current = null;
+      sessionParamRef.current = null;
 
-    loadSession(sessionId)
+      // Load parent session to get the topic and compute version
+      supabase
+        .from("debate_sessions")
+        .select("topic, parent_session_id, version" as any)
+        .eq("id", iterateId)
+        .eq("user_id", user.id)
+        .single()
+        .then(({ data, error }: any) => {
+          if (data && !error) {
+            // Find the root session id (walk up if this is already an iteration)
+            const rootId = data.parent_session_id || iterateId;
+            const nextVersion = (data.version || 1) + 1;
+            
+            setIteration(rootId, nextVersion);
+            setState({ ...initialState, topic: data.topic, phase: "setup" });
+            toast({
+              title: `🔄 Iteration v${nextVersion}`,
+              description: "Refine your pitch and re-evaluate. The jury will score it fresh.",
+            });
+          }
+          setSearchParams({});
+          setIsLoadingSession(false);
+        });
+      return;
+    }
+
+    sessionParamRef.current = null;
+
+    loadSession(sessionId!)
       .then((loadedState) => {
         if (loadedState) {
           setState(loadedState);
-          setPanelMode("custom"); // loaded session — treat as custom panel
-          // Regenerate host audio clips for all completed rounds
+          setPanelMode("custom");
           for (const round of loadedState.rounds) {
             if (round.messages.length === loadedState.selectedPersonas.length) {
               generateClip(round.roundNumber, loadedState.selectedPersonas, round);
@@ -174,7 +207,7 @@ const Index = () => {
       .finally(() => {
         setIsLoadingSession(false);
       });
-  }, [authLoading, user?.id, loadSession, setSearchParams, generateClip]);
+  }, [authLoading, user?.id, loadSession, setSearchParams, generateClip, setIteration, toast]);
 
   const currentRound = state.rounds.find((r) => r.roundNumber === state.currentRoundNumber);
 
