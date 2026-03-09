@@ -224,7 +224,7 @@ const Index = () => {
     }
     let personas: Persona[];
     if (panelMode === "auto") {
-      const panel = selectPanelForIdea(state.topic);
+      const panel = await selectPanelForIdea(state.topic);
       personas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
       setSelectedPanelId(panel.id);
       toast({
