@@ -427,6 +427,10 @@ export default function JudgeVerdictCard({
                     {verdict.nextStep}
                   </p>
                 </motion.div>
+                {/* Version Comparison */}
+                {sessionId && (
+                  <VersionComparison sessionId={sessionId} />
+                )}
 
                 {/* CTA buttons */}
                 <div className="flex flex-wrap gap-3 pt-3 border-t border-border">
