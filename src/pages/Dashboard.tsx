@@ -387,7 +387,7 @@ const Dashboard = () => {
         </div>
       </footer>
 
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} isPro={subscription.isPro} credits={subscription.credits} subscriptionEnd={subscription.subscriptionEnd} onCheckout={subscription.startCheckout} onPurchaseCredits={subscription.purchaseCredits} onManage={subscription.manageSubscription} />
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} isPro={subscription.isPro} isStudio={subscription.isStudio} tier={subscription.tier} credits={subscription.credits} subscriptionEnd={subscription.subscriptionEnd} onCheckout={subscription.startCheckout} onPurchaseCredits={subscription.purchaseCredits} onManage={subscription.manageSubscription} />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
