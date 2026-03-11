@@ -304,7 +304,7 @@ const About = () => {
           className="text-center space-y-4 mb-14"
         >
           <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">The Jury</div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">Meet your 8 judges</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">Meet your judges</h2>
           <p className="text-muted-foreground text-base sm:text-lg font-light max-w-2xl mx-auto">
             Each judge brings a unique perspective, scoring methodology, and threshold for what makes an idea worth pursuing.
           </p>
