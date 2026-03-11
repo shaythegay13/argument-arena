@@ -4,7 +4,23 @@ export const STRIPE_PRO = {
   product_id: "prod_U7OtWtNsHfTIoU",
   price_id: "price_1T9A5NIN6aHiJNfpbFsvvKTr",
   price: 19,
-  monthlyCredits: 10,
+  monthlyCredits: 15,
+} as const;
+
+export const STRIPE_STUDIO = {
+  product_id: "prod_U85rRKfBRN9oEQ",
+  price_id: "price_1T9pg3IN6aHiJNfpZEArQYTJ",
+  price: 79,
+} as const;
+
+export const SINGLE_EVAL = {
+  id: "single",
+  name: "Single Evaluation",
+  product_id: "prod_U85r5NULrggnG7",
+  price_id: "price_1T9pfvIN6aHiJNfpBCp1cnsD",
+  credits: 1,
+  price: 3,
+  perCredit: 3,
 } as const;
 
 export const CREDIT_PACKS = [
@@ -23,9 +39,9 @@ export const CREDIT_PACKS = [
     name: "Builder Pack",
     product_id: "prod_U7PppbYmYQ99wv",
     price_id: "price_1T9AzaIN6aHiJNfp7y0yJW7k",
-    credits: 20,
+    credits: 15,
     price: 29,
-    perCredit: 1.45,
+    perCredit: 1.93,
     popular: true,
   },
   {
@@ -33,9 +49,9 @@ export const CREDIT_PACKS = [
     name: "Founder Pack",
     product_id: "prod_U85Ttrs2dF7rwc",
     price_id: "price_1T9pIAIN6aHiJNfp3213kJyd",
-    credits: 50,
+    credits: 40,
     price: 59,
-    perCredit: 1.18,
+    perCredit: 1.48,
     popular: false,
   },
 ] as const;

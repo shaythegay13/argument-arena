@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface SubscriptionState {
   isPro: boolean;
+  isStudio: boolean;
+  tier: string | null;
   subscriptionEnd: string | null;
   credits: number;
   loading: boolean;
@@ -11,6 +13,8 @@ interface SubscriptionState {
 export function useSubscription() {
   const [state, setState] = useState<SubscriptionState>({
     isPro: false,
+    isStudio: false,
+    tier: null,
     subscriptionEnd: null,
     credits: 0,
     loading: true,
@@ -20,15 +24,18 @@ export function useSubscription() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setState({ isPro: false, subscriptionEnd: null, credits: 0, loading: false });
+        setState({ isPro: false, isStudio: false, tier: null, subscriptionEnd: null, credits: 0, loading: false });
         return;
       }
 
       const { data, error } = await supabase.functions.invoke("check-subscription");
       if (error) throw error;
 
+      const tier = data?.tier ?? null;
       setState({
-        isPro: data?.subscribed ?? false,
+        isPro: tier === "pro" || tier === "studio",
+        isStudio: tier === "studio",
+        tier,
         subscriptionEnd: data?.subscription_end ?? null,
         credits: data?.credits ?? 0,
         loading: false,
@@ -52,8 +59,10 @@ export function useSubscription() {
     return () => subscription.unsubscribe();
   }, [checkSubscription]);
 
-  const startCheckout = async () => {
-    const { data, error } = await supabase.functions.invoke("create-checkout");
+  const startCheckout = async (plan: string = "pro") => {
+    const { data, error } = await supabase.functions.invoke("create-checkout", {
+      body: { plan },
+    });
     if (error) throw error;
     if (data?.url) {
       window.open(data.url, "_blank");

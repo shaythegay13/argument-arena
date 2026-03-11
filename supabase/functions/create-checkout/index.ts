@@ -7,6 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const PLANS: Record<string, string> = {
+  pro: "price_1T9A5NIN6aHiJNfpbFsvvKTr",
+  studio: "price_1T9pg3IN6aHiJNfpZEArQYTJ",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -31,6 +36,15 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
+    // Default to pro if no plan specified
+    let plan = "pro";
+    try {
+      const body = await req.json();
+      if (body?.plan && PLANS[body.plan]) plan = body.plan;
+    } catch { /* no body = default pro */ }
+
+    const priceId = PLANS[plan];
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
@@ -41,16 +55,10 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // New Pro plan at $19/mo
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: "price_1T9A5NIN6aHiJNfpbFsvvKTr",
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/dashboard?upgrade=success`,
       cancel_url: `${req.headers.get("origin")}/dashboard?upgrade=canceled`,
