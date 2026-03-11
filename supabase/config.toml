@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.add-credits]
 verify_jwt = false
+
+[functions.og-result]
+verify_jwt = false
