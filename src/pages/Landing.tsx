@@ -403,11 +403,13 @@ const Landing = () => {
                 <div className="text-4xl font-bold text-foreground">$0</div>
                 <div className="text-sm text-muted-foreground">2 free evaluations</div>
               </div>
+              <div className="sm:hidden w-2/3 h-px bg-border" />
               <div className="hidden sm:block w-px h-14 bg-border" />
               <div className="space-y-2">
                 <div className="text-4xl font-bold text-primary">$19<span className="text-base font-normal text-muted-foreground">/mo</span></div>
                 <div className="text-sm text-muted-foreground">15 evaluations · Pro</div>
               </div>
+              <div className="sm:hidden w-2/3 h-px bg-border" />
               <div className="hidden sm:block w-px h-14 bg-border" />
               <div className="space-y-2">
                 <div className="text-4xl font-bold text-primary">$79<span className="text-base font-normal text-muted-foreground">/mo</span></div>
