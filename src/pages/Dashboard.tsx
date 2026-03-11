@@ -114,20 +114,12 @@ const Dashboard = () => {
     setDeleteTarget(null);
   }, [deleteTarget, toast]);
 
-  const finishedCount = sessions.filter(isFinished).length;
-  const isAtLimit = finishedCount >= FREE_EVALUATION_LIMIT;
-  const subscription = useSubscription();
-  const isPro = subscription.isPro;
+  const credits = subscription.credits;
+  const hasCredits = isPro || credits > 0;
 
   const handleNewDebate = () => {
-    if (isAtLimit && !isPro) {
+    if (!hasCredits) {
       setShowUpgrade(true);
-    } else if (isPro && finishedCount >= PRO_EVALUATION_LIMIT) {
-      toast({
-        title: "Monthly limit reached",
-        description: `You've used all ${PRO_EVALUATION_LIMIT} evaluations. Contact us if you need more.`,
-        variant: "destructive",
-      });
     } else {
       navigate("/debate");
     }
