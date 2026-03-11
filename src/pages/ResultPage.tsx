@@ -61,7 +61,7 @@ export default function ResultPage() {
     if (!id) return;
     supabase
       .from("debate_sessions")
-      .select("topic, ratings, judge_verdict, selected_persona_ids, rounds, created_at")
+      .select("topic, ratings, judge_verdict, selected_persona_ids, rounds, created_at, startup_name")
       .eq("id", id)
       .eq("is_public", true)
       .single()
@@ -81,6 +81,45 @@ export default function ResultPage() {
         setLoading(false);
       });
   }, [id]);
+
+  // Dynamic OG meta tags
+  useEffect(() => {
+    if (!session) return;
+    const verdict = session.judge_verdict;
+    const title = `${verdict?.verdict ?? "Jury"} Verdict — Startup Jury AI`;
+    const description = session.topic.length > 155
+      ? session.topic.slice(0, 152) + "..."
+      : session.topic;
+    const score = verdict ? `Score: ${verdict.overallScore * 10}/100` : "";
+    const ogDescription = score ? `${score}. ${description}` : description;
+    const url = window.location.href;
+
+    document.title = title;
+
+    const setMeta = (property: string, content: string) => {
+      let el = document.querySelector(`meta[property="${property}"]`) || document.querySelector(`meta[name="${property}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(property.startsWith("og:") || property.startsWith("article:") ? "property" : "name", property);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+
+    setMeta("og:title", title);
+    setMeta("og:description", ogDescription);
+    setMeta("og:url", url);
+    setMeta("og:type", "article");
+    setMeta("og:site_name", "Startup Jury AI");
+    setMeta("twitter:card", "summary_large_image");
+    setMeta("twitter:title", title);
+    setMeta("twitter:description", ogDescription);
+    setMeta("description", ogDescription);
+
+    return () => {
+      document.title = "Startup Jury AI - Validate Your Startup Idea with AI Judges";
+    };
+  }, [session]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
