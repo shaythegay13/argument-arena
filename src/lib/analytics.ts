@@ -6,7 +6,9 @@ type EventName =
   | "verdict_viewed"
   | "result_shared"
   | "pdf_downloaded"
-  | "idea_validated";
+  | "idea_validated"
+  | "verdict_card_downloaded"
+  | "verdict_card_shared";
 
 /** Allowed metadata keys – only non-sensitive, application-level data. */
 const ALLOWED_METADATA_KEYS = new Set([
@@ -15,6 +17,7 @@ const ALLOWED_METADATA_KEYS = new Set([
   "score",
   "sessionId",
   "roundCount",
+  "method",
 ]);
 
 /**
