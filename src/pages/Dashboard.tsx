@@ -351,23 +351,23 @@ const Dashboard = () => {
         )}
 
         {/* Upgrade prompt */}
-        {isAtLimit && !isPro && !loading && (
+        {!hasCredits && !loading && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-[14px] border border-primary/30 bg-primary/5 p-5 text-center space-y-3"
           >
             <Crown className="w-8 h-8 text-primary mx-auto" />
-            <h3 className="text-base font-semibold text-foreground">You've used all free evaluations</h3>
+            <h3 className="text-base font-semibold text-foreground">No credits remaining</h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Upgrade to Pro for unlimited debates, full judge scorecards, downloadable reports, and advanced analysis.
+              Purchase credit packs or subscribe to Pro for monthly evaluations and advanced features.
             </p>
             <Button
               onClick={() => setShowUpgrade(true)}
               className="rounded-[10px]"
             >
               <Crown className="w-4 h-4 mr-2" />
-              Upgrade to Pro
+              Get More Credits
             </Button>
           </motion.div>
         )}
