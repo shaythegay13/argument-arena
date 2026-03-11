@@ -16,6 +16,7 @@ export const CREDIT_PACKS = [
     credits: 5,
     price: 10,
     perCredit: 2,
+    popular: false,
   },
   {
     id: "builder",
@@ -35,6 +36,7 @@ export const CREDIT_PACKS = [
     credits: 50,
     price: 59,
     perCredit: 1.18,
+    popular: false,
   },
 ] as const;
 
