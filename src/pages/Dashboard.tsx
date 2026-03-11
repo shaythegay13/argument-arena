@@ -146,16 +146,31 @@ const Dashboard = () => {
 
       <main className="max-w-[1200px] mx-auto px-6 py-6 sm:py-8 space-y-5">
         {/* Pro manage button */}
-        {!loading && isPro && (
+        {!loading && (
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => subscription.manageSubscription()}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
-            >
-              <Crown className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-mono font-semibold text-primary">Pro</span>
-              <Settings className="w-3 h-3 text-primary/60 ml-1" />
-            </button>
+            {isPro && (
+              <button
+                onClick={() => subscription.manageSubscription()}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+              >
+                <Crown className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-mono font-semibold text-primary">Pro</span>
+                <Settings className="w-3 h-3 text-primary/60 ml-1" />
+              </button>
+            )}
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-[14px] bg-muted/40 border border-border">
+              <span className="text-xs font-mono text-muted-foreground">
+                {credits} credit{credits !== 1 ? "s" : ""} remaining
+              </span>
+              {!isPro && (
+                <button
+                  onClick={() => setShowUpgrade(true)}
+                  className="text-[10px] font-mono font-bold text-primary hover:underline ml-1"
+                >
+                  + Buy more
+                </button>
+              )}
+            </div>
           </div>
         )}
 
