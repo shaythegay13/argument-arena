@@ -114,6 +114,8 @@ const Dashboard = () => {
     setDeleteTarget(null);
   }, [deleteTarget, toast]);
 
+  const subscription = useSubscription();
+  const isPro = subscription.isPro;
   const credits = subscription.credits;
   const hasCredits = isPro || credits > 0;
 
