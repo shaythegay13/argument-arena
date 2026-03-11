@@ -17,26 +17,7 @@ const ALLOWED_MODELS = [
 ];
 
 const MAX_PROMPT_LENGTH = 20000;
-const FREE_EVALUATION_LIMIT = 2;
-const PRO_EVALUATION_LIMIT = 100;
-
-async function getCompletedSessionCount(supabase: any, userId: string, excludeSessionId?: string): Promise<number> {
-  const { data, error } = await supabase
-    .from("debate_sessions")
-    .select("id, phase, judge_verdict", { count: "exact" })
-    .eq("user_id", userId);
-
-  if (error) {
-    console.error("[debate-ai] Error counting sessions:", error);
-    return 0;
-  }
-
-  return (data ?? []).filter(
-    (s: any) =>
-      s.id !== excludeSessionId &&
-      ((s.phase === "judge" && !!s.judge_verdict) || s.phase === "final-ratings")
-  ).length;
-}
+const PRO_PRODUCT_ID = "prod_U7OtWtNsHfTIoU";
 
 async function isUserSubscribed(email: string): Promise<boolean> {
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -52,7 +33,10 @@ async function isUserSubscribed(email: string): Promise<boolean> {
       status: "active",
       limit: 1,
     });
-    return subscriptions.data.length > 0;
+    
+    if (subscriptions.data.length === 0) return false;
+    const productId = subscriptions.data[0].items.data[0]?.price?.product;
+    return productId === PRO_PRODUCT_ID;
   } catch (e) {
     console.error("[debate-ai] Stripe check error:", e);
     return false;
@@ -65,7 +49,6 @@ serve(async (req) => {
   }
 
   try {
-    // --- Auth check ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -87,7 +70,6 @@ serve(async (req) => {
       });
     }
 
-    // --- Server-side usage limit enforcement ---
     const { data: userData } = await supabase.auth.getUser(token);
     const user = userData?.user;
     if (!user) {
@@ -96,38 +78,85 @@ serve(async (req) => {
       });
     }
 
-    // --- Input validation (parse early so sessionId is available for limit check) ---
     const { systemPrompt, userPrompt, model, sessionId } = await req.json();
 
-    // Use service role to count sessions (bypasses RLS for accurate count)
+    // Use service role to check credits
     const serviceClient = createClient(
       supabaseUrl,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { persistSession: false } }
     );
 
-    const completedCount = await getCompletedSessionCount(serviceClient, user.id, sessionId);
+    // Check subscription status
     const isPro = user.email ? await isUserSubscribed(user.email) : false;
-    const limit = isPro ? PRO_EVALUATION_LIMIT : FREE_EVALUATION_LIMIT;
 
-    if (completedCount >= limit) {
+    // Check credits
+    const { data: creditRow } = await serviceClient
+      .from("user_credits")
+      .select("credits")
+      .eq("user_id", user.id)
+      .single();
+
+    const currentCredits = creditRow?.credits ?? 0;
+
+    // If not pro and no credits, block
+    if (!isPro && currentCredits <= 0) {
       return new Response(
         JSON.stringify({
-          error: isPro
-            ? "Monthly evaluation limit reached. Contact support for additional evaluations."
-            : "Free evaluation limit reached. Upgrade to Pro for more evaluations.",
+          error: "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
         }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Pro users with monthly credits don't consume purchased credits
+    // But we still check if this is the start of a new evaluation (first AI call for session)
+    // We only deduct credits when we detect it's a "new session start" via checking session phase
+    const { data: sessionData } = sessionId ? await serviceClient
+      .from("debate_sessions")
+      .select("phase")
+      .eq("id", sessionId)
+      .single() : { data: null };
+
+    const isNewEvaluation = !sessionData || sessionData.phase === "setup" || sessionData.phase === "debating";
+
+    // For non-pro users, deduct a credit on first round of a new evaluation
+    // We check if session has rounds already - if no rounds yet, this is the first call
+    if (!isPro && isNewEvaluation) {
+      const { data: sessionRounds } = sessionId ? await serviceClient
+        .from("debate_sessions")
+        .select("rounds")
+        .eq("id", sessionId)
+        .single() : { data: null };
+
+      const rounds = sessionRounds?.rounds as any[] ?? [];
+      
+      // Deduct credit only on the very first AI call (before any rounds exist)
+      if (rounds.length === 0) {
+        if (currentCredits <= 0) {
+          return new Response(
+            JSON.stringify({
+              error: "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
+            }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        await serviceClient
+          .from("user_credits")
+          .update({ credits: currentCredits - 1, updated_at: new Date().toISOString() })
+          .eq("user_id", user.id);
+      }
+    }
+
+    // Input validation
     if (typeof systemPrompt !== "string" || systemPrompt.length > MAX_PROMPT_LENGTH) {
-      return new Response(JSON.stringify({ error: "Invalid or too long systemPrompt (max 5000 chars)" }), {
+      return new Response(JSON.stringify({ error: "Invalid or too long systemPrompt" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (typeof userPrompt !== "string" || userPrompt.length > MAX_PROMPT_LENGTH) {
-      return new Response(JSON.stringify({ error: "Invalid or too long userPrompt (max 5000 chars)" }), {
+      return new Response(JSON.stringify({ error: "Invalid or too long userPrompt" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

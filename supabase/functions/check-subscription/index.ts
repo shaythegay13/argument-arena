@@ -7,6 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const PRO_PRODUCT_ID = "prod_U7OtWtNsHfTIoU";
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
@@ -39,12 +41,28 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { email: user.email });
 
+    // Ensure user has a credits row
+    const { data: creditRow } = await supabaseClient
+      .from("user_credits")
+      .select("credits")
+      .eq("user_id", user.id)
+      .single();
+
+    let credits = 2; // default free credits
+    if (!creditRow) {
+      await supabaseClient
+        .from("user_credits")
+        .insert({ user_id: user.id, credits: 2 });
+    } else {
+      credits = creditRow.credits;
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
       logStep("No customer found");
-      return new Response(JSON.stringify({ subscribed: false }), {
+      return new Response(JSON.stringify({ subscribed: false, credits }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -59,16 +77,20 @@ serve(async (req) => {
 
     const hasActiveSub = subscriptions.data.length > 0;
     let subscriptionEnd = null;
+    let isProSubscription = false;
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { endDate: subscriptionEnd });
+      const productId = subscription.items.data[0]?.price?.product;
+      isProSubscription = productId === PRO_PRODUCT_ID;
+      logStep("Active subscription found", { endDate: subscriptionEnd, productId });
     }
 
     return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
+      subscribed: hasActiveSub && isProSubscription,
       subscription_end: subscriptionEnd,
+      credits,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
