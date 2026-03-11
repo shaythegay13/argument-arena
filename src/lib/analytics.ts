@@ -17,6 +17,7 @@ const ALLOWED_METADATA_KEYS = new Set([
   "score",
   "sessionId",
   "roundCount",
+  "method",
 ]);
 
 /**
