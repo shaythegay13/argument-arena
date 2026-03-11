@@ -405,8 +405,13 @@ const Landing = () => {
               </div>
               <div className="hidden sm:block w-px h-14 bg-border" />
               <div className="space-y-2">
-                <div className="text-4xl font-bold text-primary">$8.99<span className="text-base font-normal text-muted-foreground">/mo</span></div>
-                <div className="text-sm text-muted-foreground">Unlimited evaluations</div>
+                <div className="text-4xl font-bold text-primary">$19<span className="text-base font-normal text-muted-foreground">/mo</span></div>
+                <div className="text-sm text-muted-foreground">15 evaluations · Pro</div>
+              </div>
+              <div className="hidden sm:block w-px h-14 bg-border" />
+              <div className="space-y-2">
+                <div className="text-4xl font-bold text-primary">$79<span className="text-base font-normal text-muted-foreground">/mo</span></div>
+                <div className="text-sm text-muted-foreground">Unlimited · Studio</div>
               </div>
             </div>
             <div className="flex flex-col items-center gap-3">
