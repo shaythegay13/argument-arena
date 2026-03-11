@@ -9,9 +9,10 @@ const corsHeaders = {
 
 // Credit pack configuration
 const CREDIT_PACKS: Record<string, { price_id: string; credits: number }> = {
+  single:  { price_id: "price_1T9pfvIN6aHiJNfpBCp1cnsD", credits: 1 },
   starter: { price_id: "price_1T9ASKIN6aHiJNfpOaigNoJR", credits: 5 },
-  builder: { price_id: "price_1T9AzaIN6aHiJNfp7y0yJW7k", credits: 20 },
-  founder: { price_id: "price_1T9pIAIN6aHiJNfp3213kJyd", credits: 50 },
+  builder: { price_id: "price_1T9AzaIN6aHiJNfp7y0yJW7k", credits: 15 },
+  founder: { price_id: "price_1T9pIAIN6aHiJNfp3213kJyd", credits: 40 },
 };
 
 serve(async (req) => {

@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 const PRO_PRODUCT_ID = "prod_U7OtWtNsHfTIoU";
+const STUDIO_PRODUCT_ID = "prod_U85rRKfBRN9oEQ";
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -48,7 +49,7 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    let credits = 2; // default free credits
+    let credits = 2;
     if (!creditRow) {
       await supabaseClient
         .from("user_credits")
@@ -62,7 +63,7 @@ serve(async (req) => {
 
     if (customers.data.length === 0) {
       logStep("No customer found");
-      return new Response(JSON.stringify({ subscribed: false, credits }), {
+      return new Response(JSON.stringify({ subscribed: false, tier: null, credits }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -72,23 +73,32 @@ serve(async (req) => {
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
-      limit: 1,
+      limit: 10,
     });
 
     const hasActiveSub = subscriptions.data.length > 0;
     let subscriptionEnd = null;
-    let isProSubscription = false;
+    let tier: string | null = null;
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      const productId = subscription.items.data[0]?.price?.product;
-      isProSubscription = productId === PRO_PRODUCT_ID;
-      logStep("Active subscription found", { endDate: subscriptionEnd, productId });
+      for (const subscription of subscriptions.data) {
+        const productId = subscription.items.data[0]?.price?.product;
+        if (productId === STUDIO_PRODUCT_ID) {
+          tier = "studio";
+          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+          break;
+        }
+        if (productId === PRO_PRODUCT_ID) {
+          tier = "pro";
+          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+        }
+      }
+      logStep("Subscription found", { tier, endDate: subscriptionEnd });
     }
 
     return new Response(JSON.stringify({
-      subscribed: hasActiveSub && isProSubscription,
+      subscribed: !!tier,
+      tier,
       subscription_end: subscriptionEnd,
       credits,
     }), {
