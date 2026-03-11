@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Zap, Coins, Crown } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, Coins, Crown, Sparkles, Target, MessageSquareWarning, Award, Quote } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CREDIT_PACKS, STRIPE_PRO } from "@/data/pricing";
+import { CREDIT_PACKS, STRIPE_PRO, STRIPE_STUDIO, SINGLE_EVAL } from "@/data/pricing";
 
 const freeFeatures = [
-  "2 free startup evaluations",
+  "2 full jury evaluations",
   "8 AI expert judges",
   "4-round debate format",
   "GO / MAYBE / NO-GO verdict",
@@ -17,13 +17,46 @@ const freeFeatures = [
 ];
 
 const proFeatures = [
-  "10 evaluations per month",
-  "All jury panels",
-  "Downloadable PDF reports",
-  "Priority AI processing",
+  "15 evaluations per month",
+  "Access to all jury panels",
+  "Startup Verdict Cards",
+  "Downloadable Jury Reports",
+  "Pitch Simulation Mode",
+  "Priority processing",
   "Unused credits roll over 1 month",
-  "Full session history",
-  "Re-evaluate refined ideas",
+];
+
+const studioFeatures = [
+  "Unlimited jury evaluations",
+  "All jury panels",
+  "Advanced jury reports",
+  "Pitch simulation mode",
+  "Idea iteration tracking",
+  "Early access to new features",
+];
+
+const benefits = [
+  {
+    icon: Target,
+    title: "Real Investor Simulation",
+    description: "Experience what it feels like to pitch your startup to investors, operators, and industry experts.",
+  },
+  {
+    icon: MessageSquareWarning,
+    title: "Brutally Honest Feedback",
+    description: "Judges debate each other and challenge your assumptions to surface real risks.",
+  },
+  {
+    icon: Award,
+    title: "Clear Verdicts",
+    description: "Receive a structured score, verdict, and actionable insights for improving your startup.",
+  },
+];
+
+const testimonials = [
+  { quote: "I thought my idea was great until the Skeptic judge destroyed it.", author: "Early-stage founder" },
+  { quote: "The panel surfaced risks I hadn't considered.", author: "Solo founder" },
+  { quote: "It's the closest thing to pitching investors without actually raising money.", author: "First-time founder" },
 ];
 
 const faqs = [
@@ -37,11 +70,15 @@ const faqs = [
   },
   {
     q: "Can I cancel my subscription anytime?",
-    a: "Yes. Cancel anytime from your account settings. Your Pro access continues until the end of your billing period.",
+    a: "Yes. Cancel anytime from your account settings. Your Pro or Studio access continues until the end of your billing period.",
   },
   {
     q: "Is my startup idea kept private?",
     a: "By default, submissions are private and only visible to you. You can optionally share them on the public leaderboard.",
+  },
+  {
+    q: "What's the difference between Pro and Studio?",
+    a: "Pro gives you 15 monthly evaluations with full features. Studio is unlimited and includes idea iteration tracking plus early access to new features — ideal for accelerators and power users.",
   },
   {
     q: "Do you offer refunds?",
@@ -63,12 +100,12 @@ const Pricing = () => {
       if (!el) { el = document.createElement("link"); el.setAttribute("rel", rel); document.head.appendChild(el); }
       el.setAttribute("href", href);
     };
-    setMeta('meta[name="description"]', "Start free with 2 evaluations. Buy credit packs from $10 or subscribe to Pro for $19/month.");
+    setMeta('meta[name="description"]', "Stress-test your startup idea with 8 expert AI judges. Start free with 2 evaluations. Credit packs from $3 or subscribe from $19/month.");
     setMeta('meta[property="og:title"]', "Pricing — Startup Jury AI");
-    setMeta('meta[property="og:description"]', "Start free with 2 evaluations. Buy credit packs or subscribe to Pro.");
+    setMeta('meta[property="og:description"]', "Pitch your startup to an AI investor panel. Start free with 2 evaluations.");
     setMeta('meta[property="og:url"]', "https://startupjuryai.com/pricing");
     setMeta('meta[name="twitter:title"]', "Pricing — Startup Jury AI");
-    setMeta('meta[name="twitter:description"]', "Start free with 2 evaluations. Buy credit packs or subscribe to Pro.");
+    setMeta('meta[name="twitter:description"]', "Pitch your startup to an AI investor panel. Start free.");
     setLink("canonical", "https://startupjuryai.com/pricing");
     return () => {
       document.title = "Startup Jury AI - Validate Your Startup Idea with AI Judges";
@@ -96,36 +133,63 @@ const Pricing = () => {
             Pricing
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
-            Pay as you pitch
+            Pitch Your Startup to an<br className="hidden sm:block" /> AI Investor Panel
           </h1>
-          <p className="text-base sm:text-lg text-muted-foreground font-light max-w-xl mx-auto">
-            Start free with 2 evaluations. Buy credits when you need them, or subscribe for monthly access.
+          <p className="text-base sm:text-lg text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
+            Stress-test your startup idea with 8 expert AI judges across multiple rounds of debate.
+            Identify risks, uncover blind spots, and see if your idea actually holds up.
           </p>
         </motion.div>
       </section>
 
-      {/* Free + Pro */}
+      {/* Value Propositions */}
       <section className="max-w-[1200px] mx-auto px-6 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          {benefits.map((b, i) => (
+            <motion.div
+              key={b.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="text-center space-y-3 px-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
+                <b.icon className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="text-sm font-bold text-foreground">{b.title}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">{b.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Plans: Free + Pro + Studio */}
+      <section className="max-w-[1200px] mx-auto px-6 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {/* Free */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="rounded-[14px] border border-border bg-card p-8 space-y-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="rounded-[14px] border border-border bg-card p-7 space-y-6">
             <div className="space-y-2">
               <div className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Free</div>
               <div className="text-4xl font-bold text-foreground">$0</div>
               <div className="text-sm text-muted-foreground">2 evaluations, forever free</div>
             </div>
-            <Button variant="outline" size="lg" onClick={() => navigate("/auth")} className="w-full h-11 rounded-[10px]">Get Started Free</Button>
-            <ul className="space-y-3">
+            <Button variant="outline" size="lg" onClick={() => navigate("/auth")} className="w-full h-11 rounded-[10px]">Start Free Evaluation</Button>
+            <ul className="space-y-2.5">
               {freeFeatures.map((f) => (
-                <li key={f} className="flex items-center gap-3 text-sm text-muted-foreground">
+                <li key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-verdict-go flex-shrink-0" />{f}
                 </li>
               ))}
             </ul>
           </motion.div>
 
-          {/* Pro */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="rounded-[14px] border border-primary/30 bg-primary/5 p-8 space-y-8">
+          {/* Pro — Highlighted */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="rounded-[14px] border-2 border-primary/40 bg-primary/5 p-7 space-y-6 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="text-[10px] font-mono font-bold px-3 py-1 rounded-full bg-primary text-primary-foreground whitespace-nowrap">
+                MOST FOUNDERS CHOOSE THIS
+              </span>
+            </div>
             <div className="space-y-2">
               <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary flex items-center gap-1.5">
                 <Crown className="w-3.5 h-3.5" /> Pro
@@ -134,14 +198,39 @@ const Pricing = () => {
                 <span className="text-4xl font-bold text-foreground">${STRIPE_PRO.price}</span>
                 <span className="text-base text-muted-foreground mb-1">/month</span>
               </div>
-              <div className="text-sm text-muted-foreground">{STRIPE_PRO.monthlyCredits} evaluations/month, cancel anytime</div>
+              <div className="text-sm text-muted-foreground">{STRIPE_PRO.monthlyCredits} evaluations/month</div>
+              <div className="text-xs text-muted-foreground/70">≈ ${(STRIPE_PRO.price / STRIPE_PRO.monthlyCredits).toFixed(2)} per evaluation</div>
             </div>
             <Button size="lg" onClick={() => navigate("/auth")} className="w-full h-11 rounded-[10px] font-semibold">
               Start Pro <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-            <ul className="space-y-3">
+            <ul className="space-y-2.5">
               {proFeatures.map((f) => (
-                <li key={f} className="flex items-center gap-3 text-sm text-foreground">
+                <li key={f} className="flex items-center gap-2.5 text-sm text-foreground">
+                  <CheckCircle2 className="w-4 h-4 text-verdict-go flex-shrink-0" />{f}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+
+          {/* Studio */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} className="rounded-[14px] border border-border bg-card p-7 space-y-6">
+            <div className="space-y-2">
+              <div className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" /> Studio
+              </div>
+              <div className="flex items-end gap-1">
+                <span className="text-4xl font-bold text-foreground">${STRIPE_STUDIO.price}</span>
+                <span className="text-base text-muted-foreground mb-1">/month</span>
+              </div>
+              <div className="text-sm text-muted-foreground">Unlimited evaluations</div>
+            </div>
+            <Button variant="outline" size="lg" onClick={() => navigate("/auth")} className="w-full h-11 rounded-[10px]">
+              Start Studio <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <ul className="space-y-2.5">
+              {studioFeatures.map((f) => (
+                <li key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                   <CheckCircle2 className="w-4 h-4 text-verdict-go flex-shrink-0" />{f}
                 </li>
               ))}
@@ -157,23 +246,38 @@ const Pricing = () => {
             <Coins className="w-3.5 h-3.5" /> Credit Packs
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Buy credits, no subscription needed</h2>
-          <p className="text-muted-foreground text-sm">Credits never expire. Use them whenever you're ready.</p>
+          <p className="text-muted-foreground text-sm">Credits never expire. Each full 4-round evaluation consumes 1 credit.</p>
         </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          {/* Single eval */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="rounded-[14px] border border-border bg-card p-6 space-y-4 text-center"
+          >
+            <div>
+              <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Single Evaluation</p>
+              <p className="text-3xl font-bold text-foreground mt-2">${SINGLE_EVAL.price}</p>
+              <p className="text-sm text-muted-foreground mt-1">1 evaluation</p>
+            </div>
+            <Button variant="outline" onClick={() => navigate("/auth")} className="w-full rounded-[10px]">Buy Now</Button>
+          </motion.div>
+
           {CREDIT_PACKS.map((pack, i) => (
             <motion.div
               key={pack.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: (i + 1) * 0.1 }}
               className={`rounded-[14px] border p-6 space-y-4 text-center ${
                 pack.popular ? "border-primary/50 bg-primary/5 relative" : "border-border bg-card"
               }`}
             >
               {pack.popular && (
                 <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">BEST VALUE</span>
+                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground whitespace-nowrap">BEST VALUE</span>
                 </div>
               )}
               <div>
@@ -190,36 +294,67 @@ const Pricing = () => {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* Social Proof */}
       <section className="bg-card/60 border-y border-border">
-        <div className="max-w-2xl mx-auto px-6 py-20 sm:py-28">
+        <div className="max-w-4xl mx-auto px-6 py-20 sm:py-24">
           <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-10">
             <div className="text-center space-y-3">
-              <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">FAQ</div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Common questions</h2>
+              <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Social Proof</div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Why founders use Startup Jury</h2>
             </div>
-            <div className="rounded-[14px] border border-border bg-card overflow-hidden">
-              <Accordion type="single" collapsible>
-                {faqs.map((faq, i) => (
-                  <AccordionItem key={i} value={`faq-${i}`} className={i === faqs.length - 1 ? "border-b-0" : ""}>
-                    <AccordionTrigger className="px-6 text-sm font-medium text-foreground text-left hover:no-underline">{faq.q}</AccordionTrigger>
-                    <AccordionContent className="px-6 text-sm text-muted-foreground leading-relaxed">{faq.a}</AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {testimonials.map((t, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="rounded-[14px] border border-border bg-card p-6 space-y-4"
+                >
+                  <Quote className="w-5 h-5 text-primary/40" />
+                  <p className="text-sm text-foreground leading-relaxed italic">"{t.quote}"</p>
+                  <p className="text-xs text-muted-foreground font-medium">— {t.author}</p>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="max-w-2xl mx-auto px-6 py-20 sm:py-28">
+        <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-10">
+          <div className="text-center space-y-3">
+            <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">FAQ</div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Common questions</h2>
+          </div>
+          <div className="rounded-[14px] border border-border bg-card overflow-hidden">
+            <Accordion type="single" collapsible>
+              {faqs.map((faq, i) => (
+                <AccordionItem key={i} value={`faq-${i}`} className={i === faqs.length - 1 ? "border-b-0" : ""}>
+                  <AccordionTrigger className="px-6 text-sm font-medium text-foreground text-left hover:no-underline">{faq.q}</AccordionTrigger>
+                  <AccordionContent className="px-6 text-sm text-muted-foreground leading-relaxed">{faq.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </motion.div>
+      </section>
+
       {/* CTA */}
       <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28 text-center">
         <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-6">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">Start with 2 free verdicts</h2>
-          <p className="text-muted-foreground text-base font-light">No credit card. No commitment. Just honest feedback.</p>
-          <Button size="lg" onClick={() => navigate("/auth")} className="font-semibold px-10 h-12 rounded-[10px]">
-            Get Started Free <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">Test your idea before you build it.</h2>
+          <p className="text-muted-foreground text-base font-light max-w-lg mx-auto">No credit card. No commitment. Just honest feedback from an AI investor panel.</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button size="lg" onClick={() => navigate("/auth")} className="font-semibold px-10 h-12 rounded-[10px]">
+              Start Free Evaluation <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <Button variant="outline" size="lg" onClick={() => navigate("/about")} className="px-8 h-12 rounded-[10px]">
+              See How It Works
+            </Button>
+          </div>
           <p className="text-xs text-muted-foreground">
             Questions? Email <a href="mailto:info@startupjuryai.com" className="text-primary hover:underline">info@startupjuryai.com</a>
           </p>
