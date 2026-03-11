@@ -885,7 +885,7 @@ const Index = () => {
           </button>
         </div>
       </footer>
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} isPro={subscription.isPro} subscriptionEnd={subscription.subscriptionEnd} onCheckout={subscription.startCheckout} onManage={subscription.manageSubscription} />
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} isPro={subscription.isPro} credits={subscription.credits} subscriptionEnd={subscription.subscriptionEnd} onCheckout={subscription.startCheckout} onPurchaseCredits={subscription.purchaseCredits} onManage={subscription.manageSubscription} />
     </div>
   );
 };
