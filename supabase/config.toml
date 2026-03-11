@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.customer-portal]
 verify_jwt = false
+
+[functions.purchase-credits]
+verify_jwt = false
+
+[functions.add-credits]
+verify_jwt = false

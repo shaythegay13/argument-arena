@@ -1,39 +1,36 @@
-import { Crown, Check, Zap, X, Settings } from "lucide-react";
+import { Crown, Check, Zap, X, Settings, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CREDIT_PACKS, STRIPE_PRO } from "@/data/pricing";
 
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
   isPro?: boolean;
+  credits?: number;
   subscriptionEnd?: string | null;
   onCheckout: () => Promise<void>;
+  onPurchaseCredits: (pack: string) => Promise<void>;
   onManage?: () => Promise<void>;
 }
 
-const FREE_FEATURES = [
-  "2 startup evaluations",
-  "Basic verdict (GO / MAYBE / NO-GO)",
-  "4 rounds of debate",
-];
-
 const PRO_FEATURES = [
-  "Unlimited debates",
-  "Full judge scorecards & metrics",
-  "Shareable result pages",
+  "10 evaluations / month",
+  "All jury panels",
   "Downloadable PDF reports",
-  "Advanced analysis & insights",
   "Priority AI processing",
+  "Unused credits roll over 1 month",
 ];
 
-export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, onCheckout, onManage }: UpgradeModalProps) {
+export default function UpgradeModal({ open, onClose, isPro, credits = 0, subscriptionEnd, onCheckout, onPurchaseCredits, onManage }: UpgradeModalProps) {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const dragControls = useDragControls();
+  const [tab, setTab] = useState<"credits" | "pro">("credits");
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     if (info.offset.y > 100 || info.velocity.y > 300) {
@@ -42,29 +39,39 @@ export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, on
   }, [onClose]);
 
   const handleUpgrade = async () => {
-    setLoading(true);
+    setLoading("pro");
     try {
       await onCheckout();
-      toast({
-        title: "Checkout opened",
-        description: "Complete payment in the new tab to activate Pro.",
-      });
+      toast({ title: "Checkout opened", description: "Complete payment in the new tab to activate Pro." });
       onClose();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
-      setLoading(false);
+      setLoading(null);
+    }
+  };
+
+  const handleBuyPack = async (packId: string) => {
+    setLoading(packId);
+    try {
+      await onPurchaseCredits(packId);
+      toast({ title: "Checkout opened", description: "Complete payment to add credits." });
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(null);
     }
   };
 
   const handleManage = async () => {
-    setLoading(true);
+    setLoading("manage");
     try {
       await onManage?.();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -89,79 +96,108 @@ export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, on
             dragConstraints={{ top: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            className="relative w-full sm:max-w-lg rounded-t-[20px] sm:rounded-[14px] border border-border bg-card shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col touch-none sm:touch-auto"
+            className="relative w-full sm:max-w-xl rounded-t-[20px] sm:rounded-[14px] border border-border bg-card shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col touch-none sm:touch-auto"
           >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10"
-            >
+            <button onClick={onClose} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10">
               <X className="w-5 h-5" />
             </button>
 
-            {/* Drag handle on mobile */}
-            <div
-              className="flex justify-center pt-3 pb-0 sm:hidden cursor-grab active:cursor-grabbing"
-              onPointerDown={(e) => dragControls.start(e)}
-            >
+            <div className="flex justify-center pt-3 pb-0 sm:hidden cursor-grab active:cursor-grabbing" onPointerDown={(e) => dragControls.start(e)}>
               <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
             </div>
 
             <div className="overflow-y-auto flex-1">
               <div className="px-5 sm:px-6 pt-6 sm:pt-8 pb-4 text-center">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary/15 border border-primary/25 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
+                  {isPro ? <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-primary" /> : <Coins className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />}
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                  {isPro ? "Pro Plan Active" : "Upgrade to Pro"}
+                  {isPro ? "Pro Plan Active" : "Get More Evaluations"}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   {isPro
-                    ? `Your subscription renews ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString() : "soon"}`
-                    : "Unlock unlimited evaluations and advanced features"}
+                    ? `Renews ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString() : "soon"} · ${credits} credits remaining`
+                    : `You have ${credits} credit${credits !== 1 ? "s" : ""} remaining`}
                 </p>
               </div>
 
-              <div className="px-5 sm:px-6 pb-4">
-                {/* Mobile: Pro plan first, stacked. Desktop: side-by-side */}
-                <div className="flex flex-col-reverse sm:grid sm:grid-cols-2 gap-3">
-                  <div className="rounded-[14px] border border-border p-4 space-y-3">
-                    <div>
-                      <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">Free</p>
-                      <p className="text-2xl font-bold text-foreground mt-1">$0</p>
-                      <p className="text-[10px] text-muted-foreground">forever</p>
-                    </div>
-                    <ul className="space-y-1.5">
-                      {FREE_FEATURES.map((f) => (
-                        <li key={f} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                          <Check className="w-3 h-3 mt-0.5 shrink-0 text-muted-foreground" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button variant="outline" size="sm" className="w-full rounded-[10px]" disabled>
-                      {isPro ? "Free Tier" : "Current Plan"}
-                    </Button>
+              {/* Tab selector */}
+              {!isPro && (
+                <div className="px-5 sm:px-6 pb-4">
+                  <div className="flex items-center gap-1 p-1 rounded-[14px] bg-muted/40 border border-border">
+                    <button
+                      onClick={() => setTab("credits")}
+                      className={`flex-1 px-3 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
+                        tab === "credits" ? "bg-background text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Coins className="w-3 h-3 inline mr-1" />
+                      Credit Packs
+                    </button>
+                    <button
+                      onClick={() => setTab("pro")}
+                      className={`flex-1 px-3 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
+                        tab === "pro" ? "bg-background text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Crown className="w-3 h-3 inline mr-1" />
+                      Pro Subscription
+                    </button>
                   </div>
+                </div>
+              )}
 
-                  <div className="rounded-[14px] border-2 border-primary/50 bg-primary/5 p-4 space-y-3 relative">
+              <div className="px-5 sm:px-6 pb-4">
+                {/* Credit Packs */}
+                {(tab === "credits" && !isPro) && (
+                  <div className="space-y-2.5">
+                    {CREDIT_PACKS.map((pack) => (
+                      <div
+                        key={pack.id}
+                        className={`rounded-[14px] border p-4 flex items-center justify-between gap-3 ${
+                          pack.popular ? "border-primary/50 bg-primary/5" : "border-border"
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-foreground">{pack.name}</p>
+                            {pack.popular && (
+                              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
+                                BEST VALUE
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {pack.credits} evaluations · ${pack.perCredit.toFixed(2)}/each
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={pack.popular ? "default" : "outline"}
+                          className="rounded-[10px] shrink-0"
+                          onClick={() => handleBuyPack(pack.id)}
+                          disabled={!!loading}
+                        >
+                          {loading === pack.id ? "Loading…" : `$${pack.price}`}
+                        </Button>
+                      </div>
+                    ))}
+                    <p className="text-[10px] text-muted-foreground text-center pt-1">Credits never expire</p>
+                  </div>
+                )}
+
+                {/* Pro Subscription */}
+                {(tab === "pro" || isPro) && (
+                  <div className="rounded-[14px] border-2 border-primary/50 bg-primary/5 p-5 space-y-4 relative">
                     {isPro && (
                       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                          YOUR PLAN
-                        </span>
-                      </div>
-                    )}
-                    {!isPro && (
-                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                          RECOMMENDED
-                        </span>
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">YOUR PLAN</span>
                       </div>
                     )}
                     <div>
-                      <p className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Pro</p>
+                      <p className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Startup Jury Pro</p>
                       <div className="flex items-baseline gap-1 mt-1">
-                        <p className="text-2xl font-bold text-foreground">$8.99</p>
+                        <p className="text-2xl font-bold text-foreground">${STRIPE_PRO.price}</p>
                         <p className="text-xs text-muted-foreground">/month</p>
                       </div>
                     </div>
@@ -174,35 +210,24 @@ export default function UpgradeModal({ open, onClose, isPro, subscriptionEnd, on
                       ))}
                     </ul>
                     {isPro ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full rounded-[10px]"
-                        onClick={handleManage}
-                        disabled={loading}
-                      >
+                      <Button size="sm" variant="outline" className="w-full rounded-[10px]" onClick={handleManage} disabled={!!loading}>
                         <Settings className="w-3.5 h-3.5 mr-1.5" />
-                        Manage
+                        Manage Subscription
                       </Button>
                     ) : (
-                      <Button
-                        size="sm"
-                        className="w-full font-semibold rounded-[10px]"
-                        onClick={handleUpgrade}
-                        disabled={loading}
-                      >
+                      <Button size="sm" className="w-full font-semibold rounded-[10px]" onClick={handleUpgrade} disabled={!!loading}>
                         <Zap className="w-3.5 h-3.5 mr-1.5" />
-                        {loading ? "Loading…" : "Upgrade Now"}
+                        {loading === "pro" ? "Loading…" : "Subscribe to Pro"}
                       </Button>
                     )}
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
             <div className="px-5 sm:px-6 py-3 border-t border-border bg-muted/20 text-center shrink-0">
               <p className="text-[10px] text-muted-foreground">
-                Cancel anytime · No long-term commitment · Secure payment via Stripe
+                Cancel anytime · Secure payment via Stripe
               </p>
             </div>
           </motion.div>

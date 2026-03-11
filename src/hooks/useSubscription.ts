@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface SubscriptionState {
   isPro: boolean;
   subscriptionEnd: string | null;
+  credits: number;
   loading: boolean;
 }
 
@@ -11,6 +12,7 @@ export function useSubscription() {
   const [state, setState] = useState<SubscriptionState>({
     isPro: false,
     subscriptionEnd: null,
+    credits: 0,
     loading: true,
   });
 
@@ -18,7 +20,7 @@ export function useSubscription() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setState({ isPro: false, subscriptionEnd: null, loading: false });
+        setState({ isPro: false, subscriptionEnd: null, credits: 0, loading: false });
         return;
       }
 
@@ -28,6 +30,7 @@ export function useSubscription() {
       setState({
         isPro: data?.subscribed ?? false,
         subscriptionEnd: data?.subscription_end ?? null,
+        credits: data?.credits ?? 0,
         loading: false,
       });
     } catch (err) {
@@ -42,7 +45,6 @@ export function useSubscription() {
     return () => clearInterval(interval);
   }, [checkSubscription]);
 
-  // Re-check on auth state change
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       checkSubscription();
@@ -52,6 +54,16 @@ export function useSubscription() {
 
   const startCheckout = async () => {
     const { data, error } = await supabase.functions.invoke("create-checkout");
+    if (error) throw error;
+    if (data?.url) {
+      window.open(data.url, "_blank");
+    }
+  };
+
+  const purchaseCredits = async (pack: string) => {
+    const { data, error } = await supabase.functions.invoke("purchase-credits", {
+      body: { pack },
+    });
     if (error) throw error;
     if (data?.url) {
       window.open(data.url, "_blank");
@@ -70,6 +82,7 @@ export function useSubscription() {
     ...state,
     checkSubscription,
     startCheckout,
+    purchaseCredits,
     manageSubscription,
   };
 }

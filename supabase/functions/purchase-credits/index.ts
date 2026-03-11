@@ -7,6 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Credit pack configuration
+const CREDIT_PACKS: Record<string, { price_id: string; credits: number }> = {
+  starter: { price_id: "price_1T9ASKIN6aHiJNfpOaigNoJR", credits: 5 },
+  builder: { price_id: "price_1T9AzaIN6aHiJNfp7y0yJW7k", credits: 20 },
+  founder: { price_id: "price_1T9pIAIN6aHiJNfp3213kJyd", credits: 50 },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,17 +26,16 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (!authHeader) throw new Error("Unauthorized");
 
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
+
+    const { pack } = await req.json();
+    const packConfig = CREDIT_PACKS[pack];
+    if (!packConfig) throw new Error("Invalid credit pack");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -41,19 +47,18 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // New Pro plan at $19/mo
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price: "price_1T9A5NIN6aHiJNfpbFsvvKTr",
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: `${req.headers.get("origin")}/dashboard?upgrade=success`,
-      cancel_url: `${req.headers.get("origin")}/dashboard?upgrade=canceled`,
+      line_items: [{ price: packConfig.price_id, quantity: 1 }],
+      mode: "payment",
+      metadata: {
+        user_id: user.id,
+        pack,
+        credits: String(packConfig.credits),
+      },
+      success_url: `${req.headers.get("origin")}/dashboard?credits=success&pack=${pack}`,
+      cancel_url: `${req.headers.get("origin")}/dashboard?credits=canceled`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
@@ -61,7 +66,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    console.error("[create-checkout] Error:", error);
+    console.error("[purchase-credits] Error:", error);
     return new Response(JSON.stringify({ error: "Request failed. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
