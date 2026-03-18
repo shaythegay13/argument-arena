@@ -8,6 +8,8 @@ export interface Persona {
   name: string;
   subtitle: string;
   colorKey: string;
+  emoji: string;        // visual icon for quick scanning
+  vibe: string;         // short personality tagline
   systemPrompt: string;
   scoringWeights: ScoringWeight[];
   inverseScore?: boolean; // true for Riley (skeptic) — high risk score = low idea score
