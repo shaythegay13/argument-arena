@@ -238,6 +238,8 @@ SCORING METHOD (Round 4 only): Score using AcqPotential(35%)/CompLandscape(30%)/
     name: "Andre Baptiste",
     subtitle: "Marketplace Expert",
     colorKey: "marketplace",
+    emoji: "🏪",
+    vibe: "Battle-tested · Chicken-and-egg solver · Unit-econ hawk",
     scoringWeights: [
       { label: "Liquidity", weight: 0.35 },
       { label: "NetworkFx", weight: 0.3 },
