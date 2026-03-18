@@ -324,6 +324,14 @@ export default function JudgeVerdictCard({
                   <p className="text-base text-foreground leading-relaxed">{verdict.why}</p>
                 </div>
 
+                {/* Scoring methodology note */}
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-[10px] bg-muted/30 border border-border">
+                  <Lightbulb className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-foreground/70">What's being scored:</span> Each judge evaluates <span className="text-foreground/70 font-medium">business viability</span> — market potential, execution feasibility, competitive positioning, and founder readiness. This is not a pitch-quality grade; it's an assessment of whether the idea can succeed as a business.
+                  </p>
+                </div>
+
                 {/* Individual Judge Scores */}
                 {ratings.length > 0 && personas.length > 0 && (
                   <IndividualScores ratings={ratings} personas={personas} />
