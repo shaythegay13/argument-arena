@@ -301,6 +301,8 @@ SCORING METHOD (Round 4 only): Score using Feasibility(35%)/Scalability(30%)/Tec
     name: "Olivia Bennett",
     subtitle: "Institutional Investor",
     colorKey: "institutional",
+    emoji: "🏛️",
+    vibe: "Gravitas · IPO-ready mindset · Long-term dominance",
     scoringWeights: [
       { label: "Sustainability", weight: 0.35 },
       { label: "MarketDom", weight: 0.3 },
