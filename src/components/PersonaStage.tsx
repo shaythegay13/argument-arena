@@ -46,14 +46,18 @@ export default function PersonaStage({
             `}
           >
             {/* Header */}
-            <div>
-              <h3 className={`font-semibold text-base ${colors.text}`}>
-                {persona.name}
-              </h3>
-              <p className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
-                {persona.subtitle}
-              </p>
+            <div className="flex items-center gap-2">
+              <span className="text-lg leading-none">{persona.emoji}</span>
+              <div>
+                <h3 className={`font-semibold text-base ${colors.text}`}>
+                  {persona.name}
+                </h3>
+                <p className="text-xs font-mono text-muted-foreground uppercase tracking-wide">
+                  {persona.subtitle}
+                </p>
+              </div>
             </div>
+            <p className="text-[10px] italic text-muted-foreground/60 -mt-1">{persona.vibe}</p>
 
             {/* Divider */}
             <div className={`h-px w-full opacity-30`} style={{ background: `currentColor` }} />
