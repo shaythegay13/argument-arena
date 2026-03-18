@@ -99,8 +99,18 @@ serve(async (req) => {
 
     const currentCredits = creditRow?.credits ?? 0;
 
-    // If not pro and no credits, block
-    if (!isPro && currentCredits <= 0) {
+    // Check if this session has already started (paid its credit)
+    const { data: sessionRounds } = sessionId ? await serviceClient
+      .from("debate_sessions")
+      .select("rounds")
+      .eq("id", sessionId)
+      .single() : { data: null };
+
+    const rounds = (sessionRounds?.rounds as any[]) ?? [];
+    const sessionAlreadyStarted = rounds.length > 0;
+
+    // If not pro, no credits, AND this isn't a session that already paid — block
+    if (!isPro && currentCredits <= 0 && !sessionAlreadyStarted) {
       return new Response(
         JSON.stringify({
           error: "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
@@ -109,44 +119,12 @@ serve(async (req) => {
       );
     }
 
-    // Pro users with monthly credits don't consume purchased credits
-    // But we still check if this is the start of a new evaluation (first AI call for session)
-    // We only deduct credits when we detect it's a "new session start" via checking session phase
-    const { data: sessionData } = sessionId ? await serviceClient
-      .from("debate_sessions")
-      .select("phase")
-      .eq("id", sessionId)
-      .single() : { data: null };
-
-    const isNewEvaluation = !sessionData || sessionData.phase === "setup" || sessionData.phase === "debating";
-
-    // For non-pro users, deduct a credit on first round of a new evaluation
-    // We check if session has rounds already - if no rounds yet, this is the first call
-    if (!isPro && isNewEvaluation) {
-      const { data: sessionRounds } = sessionId ? await serviceClient
-        .from("debate_sessions")
-        .select("rounds")
-        .eq("id", sessionId)
-        .single() : { data: null };
-
-      const rounds = sessionRounds?.rounds as any[] ?? [];
-      
-      // Deduct credit only on the very first AI call (before any rounds exist)
-      if (rounds.length === 0) {
-        if (currentCredits <= 0) {
-          return new Response(
-            JSON.stringify({
-              error: "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
-            }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        await serviceClient
-          .from("user_credits")
-          .update({ credits: currentCredits - 1, updated_at: new Date().toISOString() })
-          .eq("user_id", user.id);
-      }
+    // Deduct credit only on the very first AI call of a new session
+    if (!isPro && !sessionAlreadyStarted) {
+      await serviceClient
+        .from("user_credits")
+        .update({ credits: currentCredits - 1, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
     }
 
     // Input validation
