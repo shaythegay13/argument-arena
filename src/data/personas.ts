@@ -153,6 +153,8 @@ SCORING METHOD (Round 4 only): Score using Pain(40%)/BeatComps(30%)/Retention(20
     name: "Victor Volkov",
     subtitle: "Skeptical Founder",
     colorKey: "skeptic",
+    emoji: "🔥",
+    vibe: "Contrarian · Cynical · Kill-the-idea",
     scoringWeights: [
       { label: "Competition", weight: 0.4 },
       { label: "Regs", weight: 0.3 },
