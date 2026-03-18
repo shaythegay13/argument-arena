@@ -90,6 +90,8 @@ SCORING METHOD (Round 4 only): Score using Roadmap(35%)/Narrative(30%)/Platform(
     name: "Liam O'Connor",
     subtitle: "COO / Startup Operator",
     colorKey: "operator",
+    emoji: "⚙️",
+    vibe: "Pragmatic · War-room mentality · Ops-focused",
     scoringWeights: [
       { label: "MVPSpec", weight: 0.35 },
       { label: "Resourcing", weight: 0.25 },
