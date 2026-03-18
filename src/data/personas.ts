@@ -322,6 +322,8 @@ SCORING METHOD (Round 4 only): Score using Sustainability(35%)/MarketDom(30%)/Pr
     name: "Daniel Kim",
     subtitle: "Industry Insider",
     colorKey: "insider",
+    emoji: "🏭",
+    vibe: "Authoritative · Regulation-aware · 20yr veteran",
     scoringWeights: [
       { label: "WorkflowFit", weight: 0.4 },
       { label: "Gatekeepers", weight: 0.3 },
