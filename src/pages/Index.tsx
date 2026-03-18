@@ -642,9 +642,15 @@ const Index = () => {
 
               {/* Panel description */}
               {panelMode === "auto" && (
-                <p className="text-xs text-muted-foreground mb-3">
-                  The system will analyze your idea and pick the best panel of 8 judges automatically.
-                </p>
+                <div className="mb-3 space-y-1.5">
+                  <p className="text-xs text-muted-foreground">
+                    AI reads your idea and selects the best-fit panel of 8 judges — adapting to your industry, stage, and business model.
+                  </p>
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono text-primary/70">
+                    <Zap className="w-3 h-3" />
+                    <span>Panels adapt dynamically based on your pitch content</span>
+                  </div>
+                </div>
               )}
 
               {panelMode === "panel" && selectedPanelId && (

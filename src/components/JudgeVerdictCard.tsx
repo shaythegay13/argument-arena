@@ -182,13 +182,21 @@ export default function JudgeVerdictCard({
   const [shared, setShared] = useState(false);
   const [downloadingImage, setDownloadingImage] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
+  const hasAutoShownShare = useRef(false);
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (verdict && !isGenerating) {
       const timer = setTimeout(() => setRevealed(true), 300);
-      return () => clearTimeout(timer);
+      // Auto-expand share card after verdict reveals
+      const shareTimer = setTimeout(() => {
+        if (!hasAutoShownShare.current) {
+          setShowShareCard(true);
+          hasAutoShownShare.current = true;
+        }
+      }, 2000);
+      return () => { clearTimeout(timer); clearTimeout(shareTimer); };
     }
     setRevealed(false);
   }, [verdict, isGenerating]);
@@ -324,6 +332,14 @@ export default function JudgeVerdictCard({
                   <p className="text-base text-foreground leading-relaxed">{verdict.why}</p>
                 </div>
 
+                {/* Scoring methodology note */}
+                <div className="flex items-start gap-2 px-3 py-2.5 rounded-[10px] bg-muted/30 border border-border">
+                  <Lightbulb className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-foreground/70">What's being scored:</span> Each judge evaluates <span className="text-foreground/70 font-medium">business viability</span> — market potential, execution feasibility, competitive positioning, and founder readiness. This is not a pitch-quality grade; it's an assessment of whether the idea can succeed as a business.
+                  </p>
+                </div>
+
                 {/* Individual Judge Scores */}
                 {ratings.length > 0 && personas.length > 0 && (
                   <IndividualScores ratings={ratings} personas={personas} />
@@ -455,11 +471,11 @@ export default function JudgeVerdictCard({
                   <Button
                     variant="default"
                     size="sm"
-                    onClick={() => setShowShareCard(true)}
-                    className="gap-2 rounded-[10px]"
+                    onClick={() => setShowShareCard((v) => !v)}
+                    className="gap-2 rounded-[10px] bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     <Share2 className="w-3.5 h-3.5" />
-                    Share Verdict Card
+                    {showShareCard ? "Hide Verdict Card" : "🔥 Share My Score"}
                   </Button>
                 </div>
 
