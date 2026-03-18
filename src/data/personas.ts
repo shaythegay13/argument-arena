@@ -196,6 +196,8 @@ SCORING METHOD (Round 4 only): Score using Acquisition(30%)/GrowthLoops(30%)/Vir
     name: "Rachel Green",
     subtitle: "Venture Scout",
     colorKey: "scout",
+    emoji: "🔍",
+    vibe: "Fast instincts · Deal-memo energy · Momentum-reader",
     scoringWeights: [
       { label: "FounderSignals", weight: 0.35 },
       { label: "Momentum", weight: 0.3 },
