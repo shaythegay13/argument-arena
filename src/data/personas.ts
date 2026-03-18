@@ -175,6 +175,8 @@ SCORING METHOD (Round 4 only): Score using Competition(40%)/Regs(30%)/Timing(20%
     name: "Maya Singh",
     subtitle: "Growth Expert",
     colorKey: "growth",
+    emoji: "📈",
+    vibe: "Tactical · Funnel-obsessed · Loop builder",
     scoringWeights: [
       { label: "Acquisition", weight: 0.3 },
       { label: "GrowthLoops", weight: 0.3 },
