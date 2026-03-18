@@ -259,6 +259,8 @@ SCORING METHOD (Round 4 only): Score using Liquidity(35%)/NetworkFx(30%)/SupplyD
     name: "Sarah Kaplan",
     subtitle: "UX & Product Design Lead",
     colorKey: "ux",
+    emoji: "🎨",
+    vibe: "User-first · Friction hunter · Delight designer",
     scoringWeights: [
       { label: "Experience", weight: 0.35 },
       { label: "Friction", weight: 0.25 },
