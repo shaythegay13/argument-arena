@@ -85,8 +85,18 @@ export default function IdeaSubmissionForm({ onTopicChange, disabled }: IdeaSubm
           value={form.problem}
           onChange={(e) => update("problem", e.target.value)}
           disabled={disabled}
+          maxLength={2000}
           className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground min-h-[60px] resize-none focus:ring-1 focus:ring-primary"
         />
+        <div className="flex items-center justify-between mt-1">
+          <VoiceInputButton
+            onTranscript={(text) => update("problem", form.problem + (form.problem ? " " : "") + text)}
+            className=""
+          />
+          <span className={`text-[10px] font-mono ${form.problem.length > 1800 ? "text-destructive" : "text-muted-foreground"}`}>
+            {form.problem.length}/2000
+          </span>
+        </div>
         <VoiceInputButton
           onTranscript={(text) => update("problem", form.problem + (form.problem ? " " : "") + text)}
           className="mt-1"
