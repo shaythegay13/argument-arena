@@ -48,6 +48,8 @@ SCORING METHOD (Round 4 only): Score using Grit(40%)/Timing(30%)/Upside(30%)`,
     name: "Marcus Thornton",
     subtitle: "VC Partner",
     colorKey: "vc",
+    emoji: "💼",
+    vibe: "Sharp · Skeptical · Billion-or-bust",
     scoringWeights: [
       { label: "TAM", weight: 0.35 },
       { label: "Moat", weight: 0.3 },
