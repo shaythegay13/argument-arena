@@ -97,10 +97,6 @@ export default function IdeaSubmissionForm({ onTopicChange, disabled }: IdeaSubm
             {form.problem.length}/2000
           </span>
         </div>
-        <VoiceInputButton
-          onTranscript={(text) => update("problem", form.problem + (form.problem ? " " : "") + text)}
-          className="mt-1"
-        />
       </div>
 
       {/* Solution — required */}
