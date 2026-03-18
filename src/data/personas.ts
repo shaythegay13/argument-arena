@@ -217,6 +217,8 @@ SCORING METHOD (Round 4 only): Score using FounderSignals(35%)/Momentum(30%)/Nar
     name: "Tom Gallagher",
     subtitle: "Corporate Strategist",
     colorKey: "strategist",
+    emoji: "♟️",
+    vibe: "Formal · Analytical · Build-vs-buy calculus",
     scoringWeights: [
       { label: "AcqPotential", weight: 0.35 },
       { label: "CompLandscape", weight: 0.3 },
