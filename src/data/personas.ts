@@ -28,6 +28,8 @@ SCORING METHOD (Round 4 only): Score using FounderQuality(30%)/Execution(25%)/PM
     name: "Elena Ramirez",
     subtitle: "Angel Investor",
     colorKey: "angel",
+    emoji: "👼",
+    vibe: "Supportive · Probing · Founder-first",
     scoringWeights: [
       { label: "Grit", weight: 0.4 },
       { label: "Timing", weight: 0.3 },
