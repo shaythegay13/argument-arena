@@ -189,7 +189,14 @@ export default function JudgeVerdictCard({
   useEffect(() => {
     if (verdict && !isGenerating) {
       const timer = setTimeout(() => setRevealed(true), 300);
-      return () => clearTimeout(timer);
+      // Auto-expand share card after verdict reveals
+      const shareTimer = setTimeout(() => {
+        if (!hasAutoShownShare.current) {
+          setShowShareCard(true);
+          hasAutoShownShare.current = true;
+        }
+      }, 2000);
+      return () => { clearTimeout(timer); clearTimeout(shareTimer); };
     }
     setRevealed(false);
   }, [verdict, isGenerating]);
