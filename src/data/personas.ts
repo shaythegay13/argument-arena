@@ -7,6 +7,8 @@ export const PERSONAS: Persona[] = [
     name: "David Park",
     subtitle: "Accelerator Partner",
     colorKey: "accelerator",
+    emoji: "🚀",
+    vibe: "Pattern-matcher · Blunt · Speed-obsessed",
     scoringWeights: [
       { label: "FounderQuality", weight: 0.3 },
       { label: "Execution", weight: 0.25 },
@@ -26,6 +28,8 @@ SCORING METHOD (Round 4 only): Score using FounderQuality(30%)/Execution(25%)/PM
     name: "Elena Ramirez",
     subtitle: "Angel Investor",
     colorKey: "angel",
+    emoji: "👼",
+    vibe: "Supportive · Probing · Founder-first",
     scoringWeights: [
       { label: "Grit", weight: 0.4 },
       { label: "Timing", weight: 0.3 },
@@ -44,6 +48,8 @@ SCORING METHOD (Round 4 only): Score using Grit(40%)/Timing(30%)/Upside(30%)`,
     name: "Marcus Thornton",
     subtitle: "VC Partner",
     colorKey: "vc",
+    emoji: "💼",
+    vibe: "Sharp · Skeptical · Billion-or-bust",
     scoringWeights: [
       { label: "TAM", weight: 0.35 },
       { label: "Moat", weight: 0.3 },
@@ -63,6 +69,8 @@ SCORING METHOD (Round 4 only): Score using TAM(35%)/Moat(30%)/Team(20%)/Exit(15%
     name: "Sophia Chen",
     subtitle: "Product Visionary",
     colorKey: "visionary",
+    emoji: "🔮",
+    vibe: "Strategic · Imaginative · Platform thinker",
     scoringWeights: [
       { label: "Roadmap", weight: 0.35 },
       { label: "Narrative", weight: 0.3 },
@@ -82,6 +90,8 @@ SCORING METHOD (Round 4 only): Score using Roadmap(35%)/Narrative(30%)/Platform(
     name: "Liam O'Connor",
     subtitle: "COO / Startup Operator",
     colorKey: "operator",
+    emoji: "⚙️",
+    vibe: "Pragmatic · War-room mentality · Ops-focused",
     scoringWeights: [
       { label: "MVPSpec", weight: 0.35 },
       { label: "Resourcing", weight: 0.25 },
@@ -101,6 +111,8 @@ SCORING METHOD (Round 4 only): Score using MVPSpec(35%)/Resourcing(25%)/GTM(25%)
     name: "Priya Shah",
     subtitle: "Financial Analyst",
     colorKey: "quant",
+    emoji: "📊",
+    vibe: "Metric-driven · Precise · Show-me-the-numbers",
     scoringWeights: [
       { label: "LTV", weight: 0.3 },
       { label: "Growth", weight: 0.25 },
@@ -120,6 +132,8 @@ SCORING METHOD (Round 4 only): Score using LTV(30%)/Growth(25%)/Breakeven(25%)/S
     name: "Jake Miller",
     subtitle: "Power User",
     colorKey: "customer",
+    emoji: "🎯",
+    vibe: "Authentic · Grounded · Would-I-switch?",
     scoringWeights: [
       { label: "Pain", weight: 0.4 },
       { label: "BeatComps", weight: 0.3 },
@@ -139,6 +153,8 @@ SCORING METHOD (Round 4 only): Score using Pain(40%)/BeatComps(30%)/Retention(20
     name: "Victor Volkov",
     subtitle: "Skeptical Founder",
     colorKey: "skeptic",
+    emoji: "🔥",
+    vibe: "Contrarian · Cynical · Kill-the-idea",
     scoringWeights: [
       { label: "Competition", weight: 0.4 },
       { label: "Regs", weight: 0.3 },
@@ -161,6 +177,8 @@ SCORING METHOD (Round 4 only): Score using Competition(40%)/Regs(30%)/Timing(20%
     name: "Maya Singh",
     subtitle: "Growth Expert",
     colorKey: "growth",
+    emoji: "📈",
+    vibe: "Tactical · Funnel-obsessed · Loop builder",
     scoringWeights: [
       { label: "Acquisition", weight: 0.3 },
       { label: "GrowthLoops", weight: 0.3 },
@@ -180,6 +198,8 @@ SCORING METHOD (Round 4 only): Score using Acquisition(30%)/GrowthLoops(30%)/Vir
     name: "Rachel Green",
     subtitle: "Venture Scout",
     colorKey: "scout",
+    emoji: "🔍",
+    vibe: "Fast instincts · Deal-memo energy · Momentum-reader",
     scoringWeights: [
       { label: "FounderSignals", weight: 0.35 },
       { label: "Momentum", weight: 0.3 },
@@ -199,6 +219,8 @@ SCORING METHOD (Round 4 only): Score using FounderSignals(35%)/Momentum(30%)/Nar
     name: "Tom Gallagher",
     subtitle: "Corporate Strategist",
     colorKey: "strategist",
+    emoji: "♟️",
+    vibe: "Formal · Analytical · Build-vs-buy calculus",
     scoringWeights: [
       { label: "AcqPotential", weight: 0.35 },
       { label: "CompLandscape", weight: 0.3 },
@@ -218,6 +240,8 @@ SCORING METHOD (Round 4 only): Score using AcqPotential(35%)/CompLandscape(30%)/
     name: "Andre Baptiste",
     subtitle: "Marketplace Expert",
     colorKey: "marketplace",
+    emoji: "🏪",
+    vibe: "Battle-tested · Chicken-and-egg solver · Unit-econ hawk",
     scoringWeights: [
       { label: "Liquidity", weight: 0.35 },
       { label: "NetworkFx", weight: 0.3 },
@@ -237,6 +261,8 @@ SCORING METHOD (Round 4 only): Score using Liquidity(35%)/NetworkFx(30%)/SupplyD
     name: "Sarah Kaplan",
     subtitle: "UX & Product Design Lead",
     colorKey: "ux",
+    emoji: "🎨",
+    vibe: "User-first · Friction hunter · Delight designer",
     scoringWeights: [
       { label: "Experience", weight: 0.35 },
       { label: "Friction", weight: 0.25 },
@@ -256,6 +282,8 @@ SCORING METHOD (Round 4 only): Score using Experience(35%)/Friction(25%)/Onboard
     name: "Noah Alvarez",
     subtitle: "AI & Tech Specialist",
     colorKey: "tech",
+    emoji: "🤖",
+    vibe: "Technical · Vaporware detector · Scale architect",
     scoringWeights: [
       { label: "Feasibility", weight: 0.35 },
       { label: "Scalability", weight: 0.3 },
@@ -275,6 +303,8 @@ SCORING METHOD (Round 4 only): Score using Feasibility(35%)/Scalability(30%)/Tec
     name: "Olivia Bennett",
     subtitle: "Institutional Investor",
     colorKey: "institutional",
+    emoji: "🏛️",
+    vibe: "Gravitas · IPO-ready mindset · Long-term dominance",
     scoringWeights: [
       { label: "Sustainability", weight: 0.35 },
       { label: "MarketDom", weight: 0.3 },
@@ -294,6 +324,8 @@ SCORING METHOD (Round 4 only): Score using Sustainability(35%)/MarketDom(30%)/Pr
     name: "Daniel Kim",
     subtitle: "Industry Insider",
     colorKey: "insider",
+    emoji: "🏭",
+    vibe: "Authoritative · Regulation-aware · 20yr veteran",
     scoringWeights: [
       { label: "WorkflowFit", weight: 0.4 },
       { label: "Gatekeepers", weight: 0.3 },

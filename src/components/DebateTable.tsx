@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { Persona, Round, PersonaRating } from "@/types/debate";
 import { MessageCircle, Star, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +9,60 @@ const ROUND_THEMES: Record<number, { label: string; description: string }> = {
   2: { label: "Risks & Critiques", description: "Digging into challenges and red flags" },
   3: { label: "Founder Defense", description: "Responding to critiques and pivoting" },
   4: { label: "Final Evaluations", description: "Closing arguments before scoring" },
+};
+
+/** Typewriter text component — reveals text character by character */
+function TypewriterText({ text, speed = 12, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+  const indexRef = useRef(0);
+
+  useEffect(() => {
+    indexRef.current = 0;
+    setDisplayed("");
+    setDone(false);
+
+    const interval = setInterval(() => {
+      indexRef.current += 1;
+      if (indexRef.current >= text.length) {
+        setDisplayed(text);
+        setDone(true);
+        clearInterval(interval);
+        onComplete?.();
+      } else {
+        setDisplayed(text.slice(0, indexRef.current));
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed]);
+
+  return (
+    <span>
+      {displayed}
+      {!done && <span className="inline-block w-0.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />}
+    </span>
+  );
+}
+
+// Thinking phrases that rotate for personality
+const THINKING_PHRASES: Record<string, string> = {
+  accelerator: "evaluating batch potential…",
+  angel: "considering founder grit…",
+  vc: "sizing the TAM…",
+  customer: "checking if I'd switch…",
+  operator: "mapping the ops plan…",
+  skeptic: "finding the kill shot…",
+  quant: "running the numbers…",
+  visionary: "envisioning the platform…",
+  growth: "modeling the funnel…",
+  scout: "writing the deal memo…",
+  strategist: "analyzing competitive moat…",
+  marketplace: "solving chicken-and-egg…",
+  ux: "mapping the user flow…",
+  tech: "stress-testing architecture…",
+  institutional: "checking S-1 readiness…",
+  insider: "consulting industry playbook…",
 };
 
 interface DebateTableProps {
@@ -42,6 +97,31 @@ export default function DebateTable({
     messagesInOrder.some((m) => m.personaId === p.id)
   );
 
+  // Track which messages have already been "typed" so we don't re-animate on re-render
+  const seenMessagesRef = useRef<Set<string>>(new Set());
+  const [newMessageKeys, setNewMessageKeys] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const currentKeys = messagesInOrder.map((m) => `${roundNumber}-${m.personaId}`);
+    const fresh = currentKeys.filter((k) => !seenMessagesRef.current.has(k));
+    if (fresh.length > 0) {
+      setNewMessageKeys((prev) => {
+        const next = new Set(prev);
+        fresh.forEach((k) => next.add(k));
+        return next;
+      });
+    }
+  }, [messagesInOrder, roundNumber]);
+
+  const markTyped = (key: string) => {
+    seenMessagesRef.current.add(key);
+    setNewMessageKeys((prev) => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  };
+
   return (
     <div className="space-y-4">
       {/* Round header */}
@@ -75,22 +155,24 @@ export default function DebateTable({
             const colors = getPersonaColors(persona.colorKey);
             const rating = ratings.find((r) => r.personaId === persona.id);
             const isExpanded = expandedPersonaId === persona.id;
+            const msgKey = `${roundNumber}-${message.personaId}`;
+            const isNew = newMessageKeys.has(msgKey);
 
             return (
               <motion.div
-                key={`${roundNumber}-${message.personaId}`}
+                key={msgKey}
                 initial={{ opacity: 0, x: -20, y: 10 }}
                 animate={{ opacity: 1, x: 0, y: 0 }}
                 transition={{ delay: i * 0.12, duration: 0.4, ease: "easeOut" }}
                 layout
                 className="flex gap-3 items-start"
               >
-                {/* Avatar */}
+                {/* Avatar with emoji */}
                 <div
                   className={`w-10 h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 ${colors.glow}`}
                 >
-                  <span className={`text-xs font-bold ${colors.text}`}>
-                    {persona.name.split(" ").map((n) => n[0]).join("")}
+                  <span className="text-base leading-none" role="img" aria-label={persona.subtitle}>
+                    {persona.emoji}
                   </span>
                 </div>
 
@@ -104,7 +186,7 @@ export default function DebateTable({
                   onClick={() => onExpandPersona(isExpanded ? null : persona.id)}
                 >
                   {/* Bubble header */}
-                  <div className="px-4 py-2.5 flex items-center gap-2">
+                  <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap">
                     <span className={`text-sm font-semibold ${colors.text}`}>{persona.name}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">
                       {persona.subtitle}
@@ -117,14 +199,27 @@ export default function DebateTable({
                     )}
                   </div>
 
-                  {/* Message preview or full text */}
+                  {/* Vibe tagline */}
+                  <div className="px-4 -mt-1 mb-1">
+                    <span className="text-[10px] italic text-muted-foreground/60">{persona.vibe}</span>
+                  </div>
+
+                  {/* Message with typewriter for new messages */}
                   <div className="px-4 pb-3">
                     <p className={`text-sm text-foreground/85 leading-relaxed ${
                       !isExpanded ? "line-clamp-3" : ""
                     }`}>
-                      {message.text}
+                      {isNew ? (
+                        <TypewriterText
+                          text={message.text}
+                          speed={8}
+                          onComplete={() => markTyped(msgKey)}
+                        />
+                      ) : (
+                        message.text
+                      )}
                     </p>
-                    {!isExpanded && message.text.length > 200 && (
+                    {!isExpanded && !isNew && message.text.length > 200 && (
                       <button className="text-xs text-primary mt-1 hover:underline font-medium">
                         Read full response →
                       </button>
@@ -168,10 +263,11 @@ export default function DebateTable({
           })}
         </AnimatePresence>
 
-        {/* Thinking indicators */}
+        {/* Thinking indicators with personality */}
         <AnimatePresence>
           {thinkingPersonas.map((persona, i) => {
             const colors = getPersonaColors(persona.colorKey);
+            const thinkingPhrase = THINKING_PHRASES[persona.id] || "thinking…";
             return (
               <motion.div
                 key={`thinking-${persona.id}`}
@@ -186,22 +282,20 @@ export default function DebateTable({
                   transition={{ duration: 1.5, repeat: Infinity }}
                   className={`w-10 h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 opacity-70`}
                 >
-                  <span className={`text-xs font-bold ${colors.text}`}>
-                    {persona.name.split(" ").map((n) => n[0]).join("")}
-                  </span>
+                  <span className="text-base leading-none">{persona.emoji}</span>
                 </motion.div>
                 <div className="flex-1 rounded-lg border border-border bg-card px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-medium ${colors.text}`}>{persona.name.split(" ")[0]}</span>
                     <div className="flex items-center gap-1.5 text-muted-foreground">
                       <Loader2 className="w-3 h-3 animate-spin" />
-                      <span className="text-[11px] font-mono italic">thinking…</span>
+                      <span className="text-[11px] font-mono italic">{thinkingPhrase}</span>
                     </div>
                   </div>
                   <div className="mt-2 space-y-1.5">
                     <div className="h-2.5 bg-muted rounded w-full animate-pulse" />
-                    <div className="h-2.5 bg-muted rounded w-4/5 animate-pulse" />
-                    <div className="h-2.5 bg-muted rounded w-2/3 animate-pulse" />
+                    <div className="h-2.5 bg-muted rounded w-4/5 animate-pulse" style={{ animationDelay: "150ms" }} />
+                    <div className="h-2.5 bg-muted rounded w-2/3 animate-pulse" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </motion.div>
