@@ -69,6 +69,8 @@ SCORING METHOD (Round 4 only): Score using TAM(35%)/Moat(30%)/Team(20%)/Exit(15%
     name: "Sophia Chen",
     subtitle: "Product Visionary",
     colorKey: "visionary",
+    emoji: "🔮",
+    vibe: "Strategic · Imaginative · Platform thinker",
     scoringWeights: [
       { label: "Roadmap", weight: 0.35 },
       { label: "Narrative", weight: 0.3 },
