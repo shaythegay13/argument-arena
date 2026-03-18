@@ -182,6 +182,7 @@ export default function JudgeVerdictCard({
   const [shared, setShared] = useState(false);
   const [downloadingImage, setDownloadingImage] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
+  const hasAutoShownShare = useRef(false);
   const { toast } = useToast();
   const cardRef = useRef<HTMLDivElement>(null);
 
