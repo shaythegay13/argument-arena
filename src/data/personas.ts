@@ -280,6 +280,8 @@ SCORING METHOD (Round 4 only): Score using Experience(35%)/Friction(25%)/Onboard
     name: "Noah Alvarez",
     subtitle: "AI & Tech Specialist",
     colorKey: "tech",
+    emoji: "🤖",
+    vibe: "Technical · Vaporware detector · Scale architect",
     scoringWeights: [
       { label: "Feasibility", weight: 0.35 },
       { label: "Scalability", weight: 0.3 },
