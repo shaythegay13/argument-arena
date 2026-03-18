@@ -111,6 +111,8 @@ SCORING METHOD (Round 4 only): Score using MVPSpec(35%)/Resourcing(25%)/GTM(25%)
     name: "Priya Shah",
     subtitle: "Financial Analyst",
     colorKey: "quant",
+    emoji: "📊",
+    vibe: "Metric-driven · Precise · Show-me-the-numbers",
     scoringWeights: [
       { label: "LTV", weight: 0.3 },
       { label: "Growth", weight: 0.25 },
