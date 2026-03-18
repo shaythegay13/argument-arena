@@ -7,6 +7,8 @@ export const PERSONAS: Persona[] = [
     name: "David Park",
     subtitle: "Accelerator Partner",
     colorKey: "accelerator",
+    emoji: "🚀",
+    vibe: "Pattern-matcher · Blunt · Speed-obsessed",
     scoringWeights: [
       { label: "FounderQuality", weight: 0.3 },
       { label: "Execution", weight: 0.25 },
