@@ -471,11 +471,11 @@ export default function JudgeVerdictCard({
                   <Button
                     variant="default"
                     size="sm"
-                    onClick={() => setShowShareCard(true)}
-                    className="gap-2 rounded-[10px]"
+                    onClick={() => setShowShareCard((v) => !v)}
+                    className="gap-2 rounded-[10px] bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     <Share2 className="w-3.5 h-3.5" />
-                    Share Verdict Card
+                    {showShareCard ? "Hide Verdict Card" : "🔥 Share My Score"}
                   </Button>
                 </div>
 
