@@ -132,6 +132,8 @@ SCORING METHOD (Round 4 only): Score using LTV(30%)/Growth(25%)/Breakeven(25%)/S
     name: "Jake Miller",
     subtitle: "Power User",
     colorKey: "customer",
+    emoji: "🎯",
+    vibe: "Authentic · Grounded · Would-I-switch?",
     scoringWeights: [
       { label: "Pain", weight: 0.4 },
       { label: "BeatComps", weight: 0.3 },
