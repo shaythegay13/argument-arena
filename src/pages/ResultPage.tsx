@@ -176,7 +176,7 @@ export default function ResultPage() {
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12" />
+          <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12 w-auto" width={307} height={305} decoding="async" />
           <h1 className="sr-only">Startup Jury Verdict</h1>
           <span className="text-xs font-mono text-muted-foreground">/ result</span>
 
