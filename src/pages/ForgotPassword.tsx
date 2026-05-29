@@ -33,9 +33,9 @@ const ForgotPassword = () => {
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30" />
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
+            <span className="text-xl font-semibold text-foreground tracking-tight">Startup Jury AI</span>
           </div>
-          <p className="text-sm text-muted-foreground">Reset your password</p>
+          <h1 className="text-sm text-muted-foreground">Reset your Password</h1>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6 space-y-4">
