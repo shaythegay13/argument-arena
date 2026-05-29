@@ -67,8 +67,9 @@ const ResetPassword = () => {
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary shadow-md shadow-primary/30" />
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Startup Jury AI</h1>
+            <span className="text-xl font-semibold text-foreground tracking-tight">Startup Jury AI</span>
           </div>
+          <h1 className="text-base font-semibold text-foreground">Reset Your Password</h1>
           <p className="text-sm text-muted-foreground">Set your new password</p>
         </div>
 

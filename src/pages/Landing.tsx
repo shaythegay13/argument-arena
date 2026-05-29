@@ -142,7 +142,7 @@ const Landing = () => {
             onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
             className="font-medium text-sm sm:text-base px-8 w-full sm:w-auto h-12 rounded-[10px] border-accent text-accent hover:bg-accent/10"
           >
-            Learn More
+            How It Works
           </Button>
           {DEMO_RESULT_URL && (
             <Button
