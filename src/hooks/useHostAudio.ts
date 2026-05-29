@@ -111,7 +111,11 @@ export function useHostAudio() {
       try {
         // Get the user's session token for authenticated requests
         const { data: { session } } = await supabase.auth.getSession();
-        const accessToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        if (!session?.access_token) {
+          // Skip TTS when unauthenticated to prevent abuse of paid endpoint
+          throw new Error("Authentication required for host audio");
+        }
+        const accessToken = session.access_token;
 
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,

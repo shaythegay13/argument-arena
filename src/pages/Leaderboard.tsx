@@ -125,11 +125,9 @@ export default function Leaderboard() {
 
   // Increment view count when clicking an entry
   const handleEntryClick = async (entry: LeaderboardEntry) => {
-    // Fire and forget view count increment
+    // Fire and forget view count increment via secure RPC
     (supabase as any)
-      .from("debate_sessions")
-      .update({ view_count: (entry.view_count || 0) + 1 })
-      .eq("id", entry.id)
+      .rpc("increment_view_count", { p_id: entry.id })
       .then(() => {});
     navigate(`/result/${entry.id}`);
   };
