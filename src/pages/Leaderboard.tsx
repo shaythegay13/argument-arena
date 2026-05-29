@@ -149,7 +149,10 @@ export default function Leaderboard() {
             <img
               src={logo}
               alt="Startup Jury AI"
-              className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 cursor-pointer"
+              className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 cursor-pointer w-auto"
+              width={307}
+              height={305}
+              decoding="async"
               onClick={() => navigate("/")}
             />
             <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ leaderboard</span>
