@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, Coins, Crown, Sparkles, Target, MessageSquareWarning, Award, Quote } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -114,6 +115,14 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Pricing — Startup Jury AI | Free, Credits & Unlimited Plans</title>
+        <meta name="description" content="Compare Startup Jury AI plans: 2 free evaluations, pay-as-you-go credit packs, or unlimited monthly access for $8.99." />
+        <link rel="canonical" href="https://www.startupjuryai.com/pricing" />
+        <meta property="og:title" content="Pricing — Startup Jury AI" />
+        <meta property="og:description" content="Free trial, credit packs, and unlimited plans for AI startup validation." />
+        <meta property="og:url" content="https://www.startupjuryai.com/pricing" />
+      </Helmet>
       <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <a href="/"><img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" width={193} height={192} loading="lazy" /></a>

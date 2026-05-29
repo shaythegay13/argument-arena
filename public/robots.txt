@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://startupjuryai.com/sitemap.xml
+Sitemap: https://www.startupjuryai.com/sitemap.xml

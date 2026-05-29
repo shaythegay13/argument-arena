@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,15 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Your Dashboard — Startup Jury AI</title>
+        <meta name="description" content="View your past startup evaluations, verdicts, and credit balance on your Startup Jury AI dashboard." />
+        <link rel="canonical" href="https://www.startupjuryai.com/dashboard" />
+        <meta property="og:title" content="Your Dashboard — Startup Jury AI" />
+        <meta property="og:description" content="Past verdicts, sessions, and credits in one place." />
+        <meta property="og:url" content="https://www.startupjuryai.com/dashboard" />
+      </Helmet>
+      <h1 className="sr-only">Startup Jury Dashboard</h1>
       <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
