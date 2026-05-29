@@ -149,7 +149,7 @@ const Dashboard = () => {
       <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" />
+            <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 w-auto" width={307} height={305} decoding="async" />
             <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ dashboard</span>
           </div>
           <MobileNav currentPage="dashboard" isPro={isPro} onUpgradeClick={() => setShowUpgrade(true)} onNewDebate={handleNewDebate} />
