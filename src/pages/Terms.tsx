@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 
 const Terms = () => {
@@ -7,6 +8,14 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Terms & Conditions — Startup Jury AI</title>
+        <meta name="description" content="Read the Startup Jury AI Terms & Conditions covering account use, AI-generated evaluations, and your rights as a user of the platform." />
+        <link rel="canonical" href="https://www.startupjuryai.com/terms" />
+        <meta property="og:title" content="Terms & Conditions — Startup Jury AI" />
+        <meta property="og:description" content="The rules and responsibilities for using Startup Jury AI's evaluation platform." />
+        <meta property="og:url" content="https://www.startupjuryai.com/terms" />
+      </Helmet>
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,14 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <Helmet>
+        <title>{isSignUp ? "Sign Up" : "Sign In"} — Startup Jury AI</title>
+        <meta name="description" content={isSignUp ? "Create your free Startup Jury AI account to validate startup ideas with 8 AI expert judges in under 5 minutes." : "Sign in to Startup Jury AI to access your past evaluations, judges, and verdicts."} />
+        <link rel="canonical" href="https://www.startupjuryai.com/auth" />
+        <meta property="og:title" content={isSignUp ? "Sign Up — Startup Jury AI" : "Sign In — Startup Jury AI"} />
+        <meta property="og:description" content={isSignUp ? "Create a free account and start validating startup ideas." : "Sign in to access your AI jury verdicts."} />
+        <meta property="og:url" content="https://www.startupjuryai.com/auth" />
+      </Helmet>
       <div className="w-full max-w-sm space-y-8">
         <div className="flex justify-start">
           <Button variant="ghost" size="sm" onClick={() => navigate("/")}>

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 
 const PrivacyPolicy = () => {
@@ -7,6 +8,14 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Privacy Policy — Startup Jury AI</title>
+        <meta name="description" content="How Startup Jury AI collects, uses, stores, and protects your data — including submitted ideas, account info, and session history." />
+        <link rel="canonical" href="https://www.startupjuryai.com/privacy" />
+        <meta property="og:title" content="Privacy Policy — Startup Jury AI" />
+        <meta property="og:description" content="How we handle your data, ideas, and account information on Startup Jury AI." />
+        <meta property="og:url" content="https://www.startupjuryai.com/privacy" />
+      </Helmet>
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>

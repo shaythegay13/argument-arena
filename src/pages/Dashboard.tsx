@@ -339,6 +339,7 @@ const Dashboard = () => {
                           }}
                           className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-primary hover:text-primary hover:bg-primary/10 transition-opacity h-8 w-8 p-0"
                           title="Re-evaluate with improvements"
+                          aria-label="Re-evaluate session"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
                         </Button>
@@ -351,6 +352,7 @@ const Dashboard = () => {
                           setDeleteTarget(session.id);
                         }}
                         className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity h-8 w-8 p-0"
+                        aria-label="Delete session"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
