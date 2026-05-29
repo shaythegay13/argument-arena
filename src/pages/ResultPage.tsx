@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { PERSONAS } from "@/data/personas";
@@ -169,11 +170,16 @@ export default function ResultPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <link rel="canonical" href={`https://www.startupjuryai.com/result/${id}`} />
+      </Helmet>
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
           <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12" />
+          <h1 className="sr-only">Startup Jury Verdict</h1>
           <span className="text-xs font-mono text-muted-foreground">/ result</span>
+
           <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleCopyLink} className="gap-1.5 text-muted-foreground">
               <Share2 className="w-3.5 h-3.5" />
