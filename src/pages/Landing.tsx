@@ -83,7 +83,7 @@ const Landing = () => {
       {/* Nav */}
       <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-          <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" width={193} height={192} fetchPriority="high" decoding="async" />
+          <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" width={307} height={305} fetchPriority="high" decoding="async" />
           <div className="flex items-center gap-2 sm:gap-3">
             <a href="/about" className="hidden sm:block text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5">About</a>
             <a href="/pricing" className="hidden sm:block text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5">Pricing</a>
@@ -437,7 +437,7 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-border px-6 py-10">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
-          <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-32 -my-8 sm:-my-10" width={129} height={128} loading="lazy" decoding="async" />
+          <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-32 -my-8 sm:-my-10" width={307} height={305} loading="lazy" decoding="async" />
           <span className="font-light">Validate your idea before you build.</span>
           <div className="flex items-center gap-3">
             <a
