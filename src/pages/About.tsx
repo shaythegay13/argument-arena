@@ -190,6 +190,14 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>About Startup Jury AI — How AI Judges Validate Your Idea</title>
+        <meta name="description" content="Learn how Startup Jury AI uses 8 expert AI personas to debate, score, and deliver verdicts on startup ideas in minutes." />
+        <link rel="canonical" href="https://www.startupjuryai.com/about" />
+        <meta property="og:title" content="About Startup Jury AI" />
+        <meta property="og:description" content="How 8 AI judges debate and score your startup idea." />
+        <meta property="og:url" content="https://www.startupjuryai.com/about" />
+      </Helmet>
       {/* Nav */}
       <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">

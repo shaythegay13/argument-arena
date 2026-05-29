@@ -135,6 +135,14 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Leaderboard — Top Community-Voted Startup Ideas | Startup Jury AI</title>
+        <meta name="description" content="See which startup ideas the community ranks highest. Browse top-voted verdicts from the Startup Jury AI leaderboard." />
+        <link rel="canonical" href="https://www.startupjuryai.com/leaderboard" />
+        <meta property="og:title" content="Leaderboard — Startup Jury AI" />
+        <meta property="og:description" content="Top community-voted startup verdicts and pitches." />
+        <meta property="og:url" content="https://www.startupjuryai.com/leaderboard" />
+      </Helmet>
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
