@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, Coins, Crown, Sparkles, Target, MessageSquareWarning, Award, Quote } from "lucide-react";
 import logo from "@/assets/logo.png";
