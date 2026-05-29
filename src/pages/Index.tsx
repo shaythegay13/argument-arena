@@ -550,7 +550,7 @@ const Index = () => {
       <h1 className="sr-only">Startup Jury Debate Stage</h1>
       <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center gap-2 sm:gap-3 flex-wrap">
-          <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" />
+          <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 w-auto" width={307} height={305} decoding="async" />
           <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ debate stage</span>
 
 
