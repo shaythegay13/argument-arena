@@ -81,30 +81,7 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
-      <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-          <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" width={307} height={305} fetchPriority="high" decoding="async" />
-          <div className="flex items-center gap-2 sm:gap-3">
-            <a href="/about" className="hidden sm:block text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5">About</a>
-            <a href="/pricing" className="hidden sm:block text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5">Pricing</a>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/auth")}
-              className="text-muted-foreground hover:text-foreground text-xs sm:text-sm"
-            >
-              Sign In
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => navigate("/auth")}
-              className="font-semibold text-xs sm:text-sm rounded-[10px]"
-            >
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero */}
       <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-32 text-center space-y-10">
@@ -435,27 +412,7 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border px-4 sm:px-6 py-10">
-        <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
-          <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-32 -my-8 sm:-my-10" width={307} height={305} loading="lazy" decoding="async" />
-          <span className="font-light">Validate your idea before you build.</span>
-          <div className="flex items-center gap-3">
-            <a
-              href="/terms"
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
-            >
-              Terms & Conditions
-            </a>
-            <span>·</span>
-            <a
-              href="/privacy"
-              className="underline underline-offset-2 hover:text-foreground transition-colors"
-            >
-              Privacy Policy
-            </a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 };
