@@ -171,6 +171,8 @@ const Index = () => {
   const iterateParamRef = useRef(searchParams.get("iterate"));
   const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current || !!iterateParamRef.current);
   const { saveSession, loadSession, resetSessionId, setIteration, ensureSession, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
+  // Session-ready gate: rounds may not start until a session row exists.
+  const [sessionPrep, setSessionPrep] = useState<"idle" | "creating" | "ready" | "error">("idle");
 
   const { toast } = useToast();
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
@@ -355,6 +357,28 @@ const Index = () => {
     }
     if (!personas.length) return;
 
+    // SESSION-READY GATE: create the session row before anything else so every
+    // round request carries a session id and billing stays idempotent.
+    setSessionPrep("creating");
+    let newSessionId: string | null = null;
+    try {
+      newSessionId = await ensureSession({ ...state, selectedPersonas: personas, phase: "debating" } as typeof state);
+    } catch (e) {
+      console.error("[Index] ensureSession failed:", e);
+    }
+    if (!newSessionId) {
+      setSessionPrep("error");
+      setCurrentSessionId(undefined);
+      toast({
+        title: "Couldn't start the jury",
+        description: MISSING_SESSION_MESSAGE,
+        variant: "destructive",
+      });
+      return;
+    }
+    setCurrentSessionId(newSessionId);
+    setSessionPrep("ready");
+
     setState((prev) => ({
       ...prev,
       selectedPersonas: personas,
@@ -381,12 +405,6 @@ const Index = () => {
     ]);
 
     try {
-    // Create the session row first so credit charging is idempotent per session.
-    const newSessionId = await ensureSession({ ...state, selectedPersonas: personas, phase: "debating" } as typeof state);
-    setCurrentSessionId(newSessionId ?? undefined);
-    if (!newSessionId) throw new Error(MISSING_SESSION);
-
-
     const messages = await generateRound1(
       state.topic,
       personas,
@@ -1030,7 +1048,10 @@ const Index = () => {
   }, [resetSessionId, navigate]);
 
   const isSetup = state.phase === "setup";
-  const canStart = state.topic.trim().length > 0 && (panelMode !== "custom" || state.selectedPersonas.length >= 2);
+  const canStart =
+    sessionPrep !== "creating" &&
+    state.topic.trim().length > 0 &&
+    (panelMode !== "custom" || state.selectedPersonas.length >= 2);
   const isLiveDebating = state.phase === "debating" && state.isGenerating;
 
   // Show loading indicator while loading session
