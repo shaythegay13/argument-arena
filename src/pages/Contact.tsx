@@ -91,7 +91,7 @@ const Contact = () => {
               className="bg-muted/50 border-border"
               maxLength={100}
             />
-            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+            {errors["name"] && <p className="text-xs text-destructive">{errors["name"]}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -104,7 +104,7 @@ const Contact = () => {
               className="bg-muted/50 border-border"
               maxLength={255}
             />
-            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+            {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -116,7 +116,7 @@ const Contact = () => {
               className="bg-muted/50 border-border min-h-[120px] resize-none"
               maxLength={2000}
             />
-            {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
+            {errors["message"] && <p className="text-xs text-destructive">{errors["message"]}</p>}
           </div>
 
           <Button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">

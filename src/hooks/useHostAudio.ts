@@ -103,10 +103,19 @@ export function useHostAudio() {
       const script = await buildRoundScript(roundNumber, personas, round, userResponse);
 
       // Update script text now that we have it
-      setClips((prev) => ({
-        ...prev,
-        [roundNumber]: { ...prev[roundNumber], script },
-      }));
+      setClips((prev) => {
+        const existing = prev[roundNumber];
+        return {
+          ...prev,
+          [roundNumber]: {
+            roundNumber,
+            audioUrl: existing?.audioUrl ?? "",
+            isLoading: existing?.isLoading ?? true,
+            ...(existing ?? {}),
+            script,
+          },
+        };
+      });
 
       try {
         // Get the user's session token for authenticated requests
@@ -118,12 +127,12 @@ export function useHostAudio() {
         const accessToken = session.access_token;
 
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+          `${import.meta.env['VITE_SUPABASE_URL']}/functions/v1/elevenlabs-tts`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              apikey: import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'],
               Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({ text: script }),

@@ -82,7 +82,7 @@ async function selectPanelForIdea(topic: string): Promise<Panel> {
 
   // Keyword fallback
   const lower = topic.toLowerCase();
-  let bestPanel = PANELS[0]; // default: investor panel
+  let bestPanel = PANELS[0]!; // default: investor panel
   let bestScore = 0;
   for (const panel of PANELS) {
     const hints = PANEL_SELECTION_HINTS[panel.id] ?? [];
@@ -292,7 +292,7 @@ const Index = () => {
     if (panelMode === "panel" && selectedPanelId) {
       const panel = PANELS.find((p) => p.id === selectedPanelId);
       if (panel) {
-        const panelPersonas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
+        const panelPersonas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter((p): p is Persona => Boolean(p));
         setState((prev) => ({ ...prev, selectedPersonas: panelPersonas }));
       }
     }
@@ -341,7 +341,7 @@ const Index = () => {
     let personas: Persona[];
     if (panelMode === "auto") {
       const panel = await selectPanelForIdea(state.topic);
-      personas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean);
+      personas = panel.personaIds.map((id) => PERSONA_MAP[id]).filter((p): p is Persona => Boolean(p));
       setSelectedPanelId(panel.id);
       toast({
         title: `🎯 Panel Selected: ${panel.name}`,
@@ -349,7 +349,7 @@ const Index = () => {
       });
     } else if (panelMode === "panel" && selectedPanelId) {
       const panel = PANELS.find((p) => p.id === selectedPanelId);
-      personas = panel ? panel.personaIds.map((id) => PERSONA_MAP[id]).filter(Boolean) : state.selectedPersonas;
+      personas = panel ? panel.personaIds.map((id) => PERSONA_MAP[id]).filter((p): p is Persona => Boolean(p)) : state.selectedPersonas;
     } else {
       personas = state.selectedPersonas;
     }
@@ -508,6 +508,7 @@ const Index = () => {
     async (overrideResponse?: string) => {
       const nextRoundNum = state.rounds.length + 1;
       const previousRound = state.rounds[state.rounds.length - 1];
+      if (!previousRound) return;
       const userResponse = overrideResponse ?? state.userResponse;
       roundResponsesRef.current[nextRoundNum] = userResponse;
 
@@ -1375,9 +1376,9 @@ const Index = () => {
 
                 {clips[state.currentRoundNumber] && (
                   <HostVideoPlayer
-                    clipUrl={clips[state.currentRoundNumber].audioUrl}
-                    script={clips[state.currentRoundNumber].script}
-                    isLoading={clips[state.currentRoundNumber].isLoading}
+                    clipUrl={clips[state.currentRoundNumber]!.audioUrl}
+                    script={clips[state.currentRoundNumber]!.script}
+                    isLoading={clips[state.currentRoundNumber]!.isLoading}
                     roundNumber={state.currentRoundNumber}
                   />
                 )}
@@ -1465,9 +1466,9 @@ const Index = () => {
                 />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer
-                    clipUrl={clips[MAX_ROUNDS + 1].audioUrl}
-                    script={clips[MAX_ROUNDS + 1].script}
-                    isLoading={clips[MAX_ROUNDS + 1].isLoading}
+                    clipUrl={clips[MAX_ROUNDS + 1]!.audioUrl}
+                    script={clips[MAX_ROUNDS + 1]!.script}
+                    isLoading={clips[MAX_ROUNDS + 1]!.isLoading}
                     roundNumber={MAX_ROUNDS + 1}
                   />
                 )}

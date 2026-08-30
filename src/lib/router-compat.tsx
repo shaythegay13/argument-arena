@@ -7,18 +7,24 @@ import {
   useNavigate as tsNavigate,
   useLocation as tsLocation,
   useParams as tsParams,
-  useSearch as tsSearch,
   useRouter,
   Link as TSLink,
   Navigate as TSNavigate,
   Outlet as TSOutlet,
 } from "@tanstack/react-router";
-import { useMemo, useCallback, forwardRef, type ComponentProps, type ReactNode } from "react";
+import {
+  useMemo,
+  useCallback,
+  forwardRef,
+  type ComponentProps,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 
 // ---------- shared URL parsing ----------
 
-function parseTo(to: string): { pathname: string; search?: Record<string, string>; hash?: string } {
-  const [beforeHash, hashStr] = (to ?? "").split("#");
+function parseTo(to: string): { pathname: string; search: Record<string, string> | undefined; hash: string | undefined } {
+  const [beforeHash = "", hashStr] = (to ?? "").split("#");
   const [pathname, searchStr] = beforeHash.split("?");
   return {
     // react-router keeps the current path for search-only ("?a=1") and
@@ -47,13 +53,14 @@ export function useNavigate(): NavigateFn {
       return;
     }
     const { pathname, search, hash } = parseTo(to);
-    tsNav({
+    const navOptions: Record<string, unknown> = {
       to: pathname,
       search: search as never,
-      hash,
       state: options?.state as never,
-      replace: options?.replace,
-    });
+    };
+    if (hash !== undefined) navOptions["hash"] = hash;
+    if (options?.replace !== undefined) navOptions["replace"] = options.replace;
+    tsNav(navOptions as never);
   }, [tsNav, router]) as NavigateFn;
 }
 
@@ -105,7 +112,7 @@ export function useSearchParams(): [URLSearchParams, (init: URLSearchParams | Re
             : new URLSearchParams(init);
       const searchObj: Record<string, string> = {};
       next.forEach((v, k) => { searchObj[k] = v; });
-      nav({ to: live.pathname, search: searchObj as never, replace: opts?.replace });
+      nav({ to: live.pathname, search: searchObj as never, replace: opts?.replace ?? false });
     },
     [nav, router],
   );
@@ -131,8 +138,8 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
       ref={ref as never}
       to={pathname as never}
       search={search as never}
-      hash={hash}
-      replace={replace}
+      {...(hash !== undefined ? { hash } : {})}
+      {...(replace !== undefined ? { replace } : {})}
       state={state as never}
       {...((rest ?? {}) as Record<string, unknown>)}
     >
@@ -146,13 +153,52 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 
 export function Navigate({ to, replace, state }: { to: string; replace?: boolean; state?: unknown }) {
   const { pathname, search, hash } = parseTo(to);
-  return <TSNavigate to={pathname as never} search={search as never} hash={hash} state={state as never} replace={replace} />;
+  return (
+    <TSNavigate
+      to={pathname as never}
+      search={search as never}
+      {...(hash !== undefined ? { hash } : {})}
+      {...(replace !== undefined ? { replace } : {})}
+      state={state as never}
+    />
+  );
 }
 
 // ---------- Outlet ----------
 
 export const Outlet = TSOutlet;
 
-// ---------- NavLink (minimal) ----------
+// ---------- NavLink ----------
 
-export const NavLink = Link;
+export type NavLinkRenderState = { isActive: boolean; isPending: boolean };
+
+export type NavLinkProps = Omit<LinkProps, "className" | "style"> & {
+  className?: string | ((state: NavLinkRenderState) => string);
+  style?: CSSProperties | ((state: NavLinkRenderState) => CSSProperties);
+  end?: boolean;
+};
+
+export const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(function NavLink(
+  { to, className, style, end, ...rest },
+  ref,
+) {
+  const loc = tsLocation();
+  const { pathname } = parseTo(to);
+  const target = pathname === "." ? loc.pathname : pathname;
+  const normalized = target !== "/" && target.endsWith("/") ? target.slice(0, -1) : target;
+  const isActive = end
+    ? loc.pathname === normalized
+    : loc.pathname === normalized || loc.pathname.startsWith(normalized === "/" ? "/" : `${normalized}/`);
+  const state: NavLinkRenderState = { isActive, isPending: false };
+  const resolvedClassName = typeof className === "function" ? className(state) : className;
+  const resolvedStyle = typeof style === "function" ? style(state) : style;
+  return (
+    <Link
+      ref={ref}
+      to={to}
+      {...(resolvedClassName !== undefined ? { className: resolvedClassName } : {})}
+      {...(resolvedStyle !== undefined ? { style: resolvedStyle } : {})}
+      {...rest}
+    />
+  );
+});

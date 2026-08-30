@@ -45,7 +45,7 @@ export const OG_IMAGE_URL = `${PUBLIC_SITE_URL}/og-verdict.png`;
  */
 export function crawlerShareLinkFor(sessionId?: string | null): string {
   if (!sessionId) return permalinkFor(sessionId);
-  const base = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const base = import.meta.env['VITE_SUPABASE_URL'] as string | undefined;
   if (!base) return permalinkFor(sessionId);
   return `${base.replace(/\/$/, "")}/functions/v1/og-result/${sessionId}`;
 }

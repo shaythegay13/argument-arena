@@ -6,7 +6,7 @@ export interface DebateExportInput {
   rounds: Round[];
   ratings: PersonaRating[];
   judgeVerdict: JudgeVerdict | null;
-  sessionId?: string;
+  sessionId?: string | undefined;
 }
 
 const ROUND_TITLES: Record<number, string> = {
