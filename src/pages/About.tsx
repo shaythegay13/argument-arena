@@ -199,7 +199,7 @@ const About = () => {
         <meta property="og:url" content="https://www.startupjuryai.com/about" />
       </Helmet>
       {/* Nav */}
-      <header className="border-b border-border px-4 sm:px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
+      <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <a href="/">
             <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" width={307} height={305} loading="lazy" decoding="async" />

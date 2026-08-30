@@ -146,7 +146,7 @@ const Dashboard = () => {
         <meta property="og:url" content="https://www.startupjuryai.com/dashboard" />
       </Helmet>
       <h1 className="sr-only">Startup Jury Dashboard</h1>
-      <header className="border-b border-border px-4 sm:px-4 sm:px-6 py-4 relative">
+      <header className="border-b border-border px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
             <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 w-auto" width={307} height={305} decoding="async" />
