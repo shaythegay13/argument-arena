@@ -80,6 +80,27 @@ serve(async (req) => {
 
     const { systemPrompt, userPrompt, model, sessionId } = await req.json();
 
+    // Structured validation: sessionId is required for idempotent billing.
+    if (typeof sessionId !== "string" || sessionId.trim().length === 0) {
+      console.error("[debate-ai] missing sessionId", { userId: user.id, received: typeof sessionId });
+      return new Response(
+        JSON.stringify({
+          error: "MISSING_SESSION",
+          code: "MISSING_SESSION",
+          message:
+            "A session id is required before the jury can run. No credit was charged.",
+          details: {
+            field: "sessionId",
+            expected: "non-empty session id string",
+            received: sessionId === undefined ? "undefined" : typeof sessionId,
+            hint: "Create the debate session row first, then attach its id to every round request.",
+          },
+        }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+
     // Use service role to check credits
     const serviceClient = createClient(
       supabaseUrl,
