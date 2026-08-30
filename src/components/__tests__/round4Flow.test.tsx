@@ -70,7 +70,7 @@ describe("Review Final Statements gate", () => {
     );
 
     for (const p of personas) {
-      expect(screen.getByText(new RegExp(p.name))).toBeTruthy();
+      expect(screen.getByText(new RegExp(`^${p.name}`))).toBeTruthy();
     }
 
     await userEvent.click(screen.getByRole("button", { name: /reviewed the final statements/i }));
