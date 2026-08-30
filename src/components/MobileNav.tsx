@@ -31,9 +31,7 @@ export default function MobileNav({ currentPage, isPro, onUpgradeClick, onNewDeb
     ...(currentPage !== "debate"
       ? [{ label: "New Debate", icon: Zap, path: "/debate", onClick: () => (onNewDebate ? onNewDebate() : navigate("/debate")) }]
       : []),
-    ...(user
-      ? [{ label: "Panelists", icon: Users, path: "/panelists", onClick: () => navigate("/panelists") }]
-      : []),
+    { label: "Panelists", icon: Users, path: "/panelists", onClick: () => navigate("/panelists") },
     { label: "Leaderboard", icon: Trophy, path: "/leaderboard", onClick: () => navigate("/leaderboard") },
     { label: "Sign Out", icon: LogOut, path: undefined, onClick: handleSignOut },
   ];
