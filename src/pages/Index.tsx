@@ -448,12 +448,81 @@ const Index = () => {
         generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
       } catch (err) {
         console.error(`[Round ${nextRoundNum}] Generation failed:`, err);
+        if (isOutOfCreditsError(err)) {
+          // Roll back to the previous round so the user can resume after buying credits
+          setState((prev) => ({
+            ...prev,
+            isGenerating: false,
+            generatingPersonaIds: [],
+            currentRoundNumber: nextRoundNum - 1,
+            rounds: prev.rounds.filter((r) => r.roundNumber !== nextRoundNum),
+            userResponse,
+          }));
+          subscription.checkSubscription();
+          pendingCreditActionRef.current = { kind: "submit", response: userResponse };
+          setUpgradeReason("out_of_credits");
+          setShowUpgrade(true);
+          return;
+        }
         setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
         toast({ title: "Generation failed", description: "The panel couldn't respond. Please try submitting again.", variant: "destructive" });
       }
     },
-    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, toast]
+    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, toast, subscription]
   );
+
+  // Keep latest handlers reachable from the credit-resume effect
+  handlersRef.current.start = handleStartDebate;
+  handlersRef.current.submit = handleUserSubmit;
+
+  // After the buy-credits flow (opened in a new tab), re-check the balance on focus
+  // and while polling, then auto-resume the pending round instead of a manual refresh.
+  useEffect(() => {
+    if (!awaitingCredits) return;
+    let cancelled = false;
+
+    const resume = () => {
+      const pending = pendingCreditActionRef.current;
+      pendingCreditActionRef.current = null;
+      setAwaitingCredits(false);
+      setShowUpgrade(false);
+      setUpgradeReason("default");
+      toast({ title: "Credits added", description: "Resuming your jury round now." });
+      if (pending?.kind === "submit") handlersRef.current.submit?.(pending.response);
+      else handlersRef.current.start?.();
+    };
+
+    const check = async () => {
+      if (cancelled) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const { data: creditRow } = await supabase
+          .from("user_credits")
+          .select("credits")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        await subscription.checkSubscription().catch(() => {});
+        if (!cancelled && ((creditRow?.credits ?? 0) > 0 || subscription.isPro)) resume();
+      } catch { /* keep polling */ }
+    };
+
+    const onFocus = () => { void check(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const interval = setInterval(check, 5000);
+    const timeout = setTimeout(() => { cancelled = true; setAwaitingCredits(false); }, 10 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [awaitingCredits]);
+
 
   const handleGenerateRatings = useCallback(async () => {
     setState((prev) => ({ ...prev, phase: "final-ratings", isGeneratingRatings: true, ratings: [] }));
