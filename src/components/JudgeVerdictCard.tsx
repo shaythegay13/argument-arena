@@ -14,6 +14,8 @@ import html2canvas from "html2canvas";
 interface JudgeVerdictCardProps {
   verdict: JudgeVerdict | null;
   isGenerating: boolean;
+  /** Partial judge summary streaming in while the verdict is still being written. */
+  streamingText?: string;
   onReset: () => void;
   onRefine: () => void;
   sessionId?: string;
@@ -57,6 +59,26 @@ const verdictConfig: Record<
     gradientTo: "to-verdict-nogo/5",
   },
 };
+
+function StreamingSummary({ text }: { text: string }) {
+  return (
+    <div className="rounded-lg border border-secondary/30 bg-secondary/5 p-4 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-secondary/40 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wide text-secondary">
+          <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+          Generating
+        </span>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          Judge's summary
+        </span>
+      </div>
+      <p className="text-sm text-foreground/85 leading-relaxed whitespace-pre-line">
+        {text}
+        <span className="inline-block w-0.5 h-4 bg-secondary/70 animate-pulse ml-0.5 align-text-bottom" />
+      </p>
+    </div>
+  );
+}
 
 function DeliberatingAnimation() {
   const [step, setStep] = useState(0);
@@ -170,6 +192,7 @@ function PercentileBadge({ percentile }: { percentile: number }) {
 export default function JudgeVerdictCard({
   verdict,
   isGenerating,
+  streamingText = "",
   onReset,
   onRefine,
   sessionId,
@@ -250,7 +273,11 @@ export default function JudgeVerdictCard({
       </div>
 
       {isGenerating ? (
-        <DeliberatingAnimation />
+        streamingText ? (
+          <StreamingSummary text={streamingText} />
+        ) : (
+          <DeliberatingAnimation />
+        )
       ) : verdict ? (
         <div className="space-y-0" ref={cardRef}>
           {/* Verdict hero */}

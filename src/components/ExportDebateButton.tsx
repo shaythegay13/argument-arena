@@ -1,11 +1,6 @@
+import { useState } from "react";
 import { Download, FileJson, FileText, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import {
   buildDebateJSON,
@@ -22,6 +17,7 @@ interface ExportDebateButtonProps extends DebateExportInput {
 
 const ExportDebateButton = ({ isPro, onUpgrade, ...data }: ExportDebateButtonProps) => {
   const { toast } = useToast();
+  const [format, setFormat] = useState<"md" | "json">("md");
   const hasContent = data.rounds.length > 0;
 
   const doExport = (format: "json" | "md") => {
@@ -52,29 +48,38 @@ const ExportDebateButton = ({ isPro, onUpgrade, ...data }: ExportDebateButtonPro
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!hasContent}
-          className="border-primary/40 text-primary hover:bg-primary/10 font-mono text-xs uppercase tracking-wide"
-        >
-          <Download className="w-3.5 h-3.5 mr-2" />
-          Export
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-card border-border">
-        <DropdownMenuItem onClick={() => doExport("md")} className="cursor-pointer">
-          <FileText className="w-4 h-4 mr-2" />
-          Markdown (.md)
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => doExport("json")} className="cursor-pointer">
-          <FileJson className="w-4 h-4 mr-2" />
-          JSON (.json)
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="inline-flex items-center gap-2">
+      {/* Format toggle — the same Export button honours whichever format is active. */}
+      <div className="inline-flex rounded-md border border-border overflow-hidden">
+        {(["md", "json"] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => setFormat(f)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wide transition-colors ${
+              format === f
+                ? "bg-primary/15 text-primary"
+                : "bg-transparent text-muted-foreground hover:text-foreground"
+            }`}
+            aria-pressed={format === f}
+          >
+            {f === "md" ? <FileText className="w-3 h-3" /> : <FileJson className="w-3 h-3" />}
+            {f === "md" ? "Markdown" : "JSON"}
+          </button>
+        ))}
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!hasContent}
+        onClick={() => doExport(format)}
+        className="border-primary/40 text-primary hover:bg-primary/10 font-mono text-xs uppercase tracking-wide"
+      >
+        <Download className="w-3.5 h-3.5 mr-2" />
+        Export {format === "md" ? ".md" : ".json"}
+      </Button>
+    </div>
   );
 };
 
