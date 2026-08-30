@@ -445,6 +445,11 @@ const Index = () => {
       const previousRound = state.rounds[state.rounds.length - 1];
       const userResponse = overrideResponse ?? state.userResponse;
 
+      // Make sure the billing/session id is attached for follow-up rounds too.
+      const sid = sessionIdRef.current ?? (await ensureSession(state));
+      setCurrentSessionId(sid ?? undefined);
+
+
       emitAgUIEvent({ type: "user_response", content: userResponse, round: state.currentRoundNumber });
 
       setState((prev) => ({
