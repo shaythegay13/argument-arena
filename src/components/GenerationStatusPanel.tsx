@@ -1,4 +1,5 @@
 import { CheckCircle2, Clock, Loader2, RotateCcw, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Persona } from "@/types/debate";
 
 export type GenStatus = "queued" | "generating" | "succeeded" | "refunded" | "failed";
@@ -35,9 +36,20 @@ interface GenerationStatusPanelProps {
   rounds: RoundGenStatus[];
   maxRounds: number;
   isPro?: boolean;
+  failedCount?: number;
+  isRetrying?: boolean;
+  onRetryFailed?: () => void;
 }
 
-const GenerationStatusPanel = ({ personas, rounds, maxRounds, isPro }: GenerationStatusPanelProps) => {
+const GenerationStatusPanel = ({
+  personas,
+  rounds,
+  maxRounds,
+  isPro,
+  failedCount = 0,
+  isRetrying = false,
+  onRetryFailed,
+}: GenerationStatusPanelProps) => {
   if (!personas.length) return null;
 
   const allRounds: RoundGenStatus[] = Array.from({ length: maxRounds }, (_, i) => {
@@ -58,9 +70,27 @@ const GenerationStatusPanel = ({ personas, rounds, maxRounds, isPro }: Generatio
         <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
           Generation status
         </h2>
-        <p className="text-[10px] font-mono text-muted-foreground">
-          {isPro ? "Pro — 0 credits charged" : "1 credit charged once, on round 1"}
-        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-[10px] font-mono text-muted-foreground">
+            {isPro ? "Pro — 0 credits charged" : "1 credit charged once, on round 1"}
+          </p>
+          {failedCount > 0 && onRetryFailed && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 text-[10px] font-mono uppercase tracking-wide"
+              onClick={onRetryFailed}
+              disabled={isRetrying}
+            >
+              {isRetrying ? (
+                <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+              ) : (
+                <RotateCcw className="w-3 h-3 mr-1.5" />
+              )}
+              {isRetrying ? "Retrying…" : `Retry ${failedCount} failed`}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -95,7 +125,8 @@ const GenerationStatusPanel = ({ personas, rounds, maxRounds, isPro }: Generatio
 
       <p className="text-[10px] font-sans text-muted-foreground leading-relaxed">
         A generation counts as successful once a juror returns their response. Failed or refunded generations are
-        never charged, and a started session always finishes all {maxRounds} rounds.
+        never charged, and a started session always finishes all {maxRounds} rounds. Retrying only re-runs the
+        jurors marked failed — already-succeeded responses are kept as-is.
       </p>
     </div>
   );
