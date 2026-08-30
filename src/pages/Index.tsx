@@ -1047,7 +1047,19 @@ const Index = () => {
           </button>
         </div>
       </footer>
-      <UpgradeModal open={showUpgrade} onClose={() => { setShowUpgrade(false); setUpgradeReason("default"); }} isPro={subscription.isPro} isStudio={subscription.isStudio} tier={subscription.tier} credits={subscription.credits} subscriptionEnd={subscription.subscriptionEnd} reason={upgradeReason} onCheckout={subscription.startCheckout} onPurchaseCredits={subscription.purchaseCredits} onManage={subscription.manageSubscription} />
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => { setShowUpgrade(false); setUpgradeReason("default"); }}
+        isPro={subscription.isPro}
+        isStudio={subscription.isStudio}
+        tier={subscription.tier}
+        credits={subscription.credits}
+        subscriptionEnd={subscription.subscriptionEnd}
+        reason={upgradeReason}
+        onCheckout={async (plan?: string) => { await subscription.startCheckout(plan); setAwaitingCredits(true); }}
+        onPurchaseCredits={async (pack: string) => { await subscription.purchaseCredits(pack); setAwaitingCredits(true); }}
+        onManage={subscription.manageSubscription}
+      />
     </div>
   );
 };
