@@ -441,9 +441,22 @@ const Index = () => {
         setShowUpgrade(true);
         return;
       }
+      if (isMissingSessionError(err)) {
+        setState((prev) => ({
+          ...prev,
+          phase: "setup",
+          isGenerating: false,
+          generatingPersonaIds: [],
+          rounds: [],
+          currentRoundNumber: 1,
+        }));
+        toast({ title: "Couldn't start the jury", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+        return;
+      }
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again. No credit was charged.", variant: "destructive" });
     }
+
   }, [state, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription, setRoundGen, ensureSession]);
 
 
