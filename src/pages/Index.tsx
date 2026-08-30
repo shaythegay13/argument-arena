@@ -870,7 +870,12 @@ const Index = () => {
               </span>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button type="button" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="How credits work">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreditsHelp(true)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="How credits work"
+                  >
                     <HelpCircle className="w-3.5 h-3.5" />
                   </button>
                 </TooltipTrigger>
@@ -880,10 +885,11 @@ const Index = () => {
                     <p>One credit = one full 4-round jury evaluation. All four rounds — opening statements, your defense, and the final verdict — count as a single evaluation.</p>
                     <p>A credit is deducted only when a new jury session starts and the panel successfully responds. If generation fails (an error, AI outage, or empty response), the credit is not charged and your balance stays the same.</p>
                     <p>In-progress sessions never cut off mid-round — once a jury starts, all four rounds run regardless of your balance.</p>
-                    <p className="text-muted-foreground">Pro subscribers get unlimited credits and pay 0 per evaluation.</p>
+                    <p className="text-muted-foreground">Click for full examples.</p>
                   </div>
                 </TooltipContent>
               </Tooltip>
+
               {!isPro && subscription.credits <= 0 && (
                 <button
                   type="button"
