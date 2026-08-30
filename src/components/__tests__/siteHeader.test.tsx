@@ -61,6 +61,7 @@ describe("SiteHeader session-aware menus", () => {
 
     expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Pricing" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Dashboard/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /New Debate/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Leaderboard/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Sign Out/ })).toBeInTheDocument();
