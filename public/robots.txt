@@ -14,3 +14,8 @@ User-agent: *
 Allow: /
 
 Sitemap: https://www.startupjuryai.com/sitemap.xml
+
+# AI assistant discovery documents
+# https://www.startupjuryai.com/llms.txt
+# https://www.startupjuryai.com/llms-full.txt
+# https://www.startupjuryai.com/ai.txt
