@@ -382,7 +382,8 @@ export async function generateRound1(
   topic: string,
   personas: Persona[],
   onPersonaComplete: (personaId: string, text: string) => void,
-  onPersonaFailed?: (personaId: string, err: unknown) => void
+  onPersonaFailed?: (personaId: string, err: unknown) => void,
+  onPersonaDelta?: (personaId: string, partial: string) => void
 ): Promise<RoundMessage[]> {
   const userPrompt = buildRound1Prompt(topic);
   const messages: RoundMessage[] = [];
@@ -391,7 +392,11 @@ export async function generateRound1(
   await runStaggered(shuffled, async (persona) => {
     const system = enrichSystemPrompt(persona, topic);
     try {
-      const text = await callCompletion(system, userPrompt);
+      const text = onPersonaDelta
+        ? await callCompletionStreaming(system, userPrompt, (_chunk, full) =>
+            onPersonaDelta(persona.id, full)
+          )
+        : await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
       onPersonaComplete(persona.id, text);
@@ -416,7 +421,8 @@ export async function generateNextRound(
   onPersonaComplete: (personaId: string, text: string) => void,
   getMemory?: (personaId: string) => string,
   onPersonaFailed?: (personaId: string, err: unknown) => void,
-  contextPersonas?: Persona[]
+  contextPersonas?: Persona[],
+  onPersonaDelta?: (personaId: string, partial: string) => void
 ): Promise<RoundMessage[]> {
   const messages: RoundMessage[] = [];
   const shuffled = shuffleArray(personas);
@@ -427,7 +433,11 @@ export async function generateNextRound(
     const { systemContext, userPrompt } = buildRoundNPrompt(topic, roundNumber, previousRound, panel, userResponse, memory);
     const system = enrichSystemPrompt(persona, topic) + "\n\n" + systemContext;
     try {
-      const text = await callCompletion(system, userPrompt);
+      const text = onPersonaDelta
+        ? await callCompletionStreaming(system, userPrompt, (_chunk, full) =>
+            onPersonaDelta(persona.id, full)
+          )
+        : await callCompletion(system, userPrompt);
       const msg: RoundMessage = { personaId: persona.id, text };
       messages.push(msg);
       onPersonaComplete(persona.id, text);
