@@ -14,10 +14,12 @@ interface UpgradeModalProps {
   tier?: string | null;
   credits?: number;
   subscriptionEnd?: string | null;
+  reason?: "default" | "out_of_credits";
   onCheckout: (plan?: string) => Promise<void>;
   onPurchaseCredits: (pack: string) => Promise<void>;
   onManage?: () => Promise<void>;
 }
+
 
 const PRO_FEATURES = [
   "15 evaluations / month",
