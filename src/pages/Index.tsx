@@ -12,6 +12,11 @@ import {
   generateAutoResponse,
   setCurrentSessionId,
   isOutOfCreditsError,
+  isMissingSessionError,
+  MISSING_SESSION,
+  MISSING_SESSION_MESSAGE,
+
+
 
 } from "@/lib/ai";
 import { trackEvent } from "@/lib/analytics";
