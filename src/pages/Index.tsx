@@ -151,7 +151,7 @@ const Index = () => {
   const sessionParamRef = useRef(searchParams.get("session"));
   const iterateParamRef = useRef(searchParams.get("iterate"));
   const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current || !!iterateParamRef.current);
-  const { saveSession, loadSession, resetSessionId, setIteration, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
+  const { saveSession, loadSession, resetSessionId, setIteration, ensureSession, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
 
   const { toast } = useToast();
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
