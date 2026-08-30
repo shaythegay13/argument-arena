@@ -102,6 +102,8 @@ const Index = () => {
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"default" | "out_of_credits">("default");
+
   const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("private");
   const [finishedCount, setFinishedCount] = useState(0);
   const subscription = useSubscription();
