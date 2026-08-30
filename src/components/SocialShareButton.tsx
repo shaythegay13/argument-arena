@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Check,
   Copy,
+  Download,
   Facebook,
+  Image as ImageIcon,
   Instagram,
+  Link2,
   Linkedin,
+  Loader2,
   Share2,
   Twitter,
 } from "lucide-react";
+import html2canvas from "html2canvas";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +23,9 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { ensurePermalink, permalinkFor } from "@/lib/shareLink";
+import { trackEvent } from "@/lib/analytics";
+import VerdictImageCard from "@/components/VerdictImageCard";
 import type { JudgeVerdict, Persona, PersonaRating } from "@/types/debate";
 
 export type SocialPlatform =
@@ -199,10 +207,100 @@ const SocialShareButton = ({
   const [platform, setPlatform] = useState<SocialPlatform>("x");
   const [draft, setDraft] = useState("");
   const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState<"text" | "image">("text");
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [linkBusy, setLinkBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState<null | "download" | "share">(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const shareUrl = sessionId
-    ? `${window.location.origin}/result/${sessionId}`
-    : window.location.origin;
+  // One canonical transcript URL, identical on every platform.
+  const shareUrl = permalinkFor(sessionId);
+  // Square reads better on Instagram/Facebook; wide is the link-preview ratio elsewhere.
+  const cardShape: "square" | "wide" =
+    platform === "instagram" || platform === "facebook" ? "square" : "wide";
+
+  /** Makes the transcript publicly viewable, then puts the permalink on the clipboard. */
+  const copyPermalink = async () => {
+    setLinkBusy(true);
+    try {
+      const url = await ensurePermalink(sessionId);
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2500);
+      trackEvent("verdict_card_shared", { sessionId, method: "permalink" });
+      toast({
+        title: "Permalink copied",
+        description: "Anyone with this link can read the full transcript.",
+      });
+    } catch {
+      toast({ title: "Couldn't copy the link", variant: "destructive" });
+    }
+    setLinkBusy(false);
+  };
+
+  /** Rasterizes the off-screen card at fixed pixel size. */
+  const renderCard = async (): Promise<Blob | null> => {
+    if (!cardRef.current) return null;
+    const canvas = await html2canvas(cardRef.current, {
+      backgroundColor: "#0f172a",
+      scale: 1,
+      useCORS: true,
+      logging: false,
+      windowWidth: cardShape === "wide" ? 1200 : 1080,
+    });
+    return await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+  };
+
+  const downloadImage = async () => {
+    setImageBusy("download");
+    try {
+      const blob = await renderCard();
+      if (!blob) throw new Error("render failed");
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = `startup-jury-${verdict?.verdict.toLowerCase() ?? "verdict"}-${cardShape}.png`;
+      a.click();
+      URL.revokeObjectURL(href);
+      trackEvent("verdict_card_downloaded", { sessionId, method: "social_card" });
+      toast({ title: "Image card saved", description: "Attach it to your post." });
+    } catch {
+      toast({ title: "Couldn't generate the image", variant: "destructive" });
+    }
+    setImageBusy(null);
+  };
+
+  /** Native share sheet with the file when available; otherwise save + open composer. */
+  const shareImage = async () => {
+    setImageBusy("share");
+    try {
+      const blob = await renderCard();
+      if (!blob) throw new Error("render failed");
+      const url = await ensurePermalink(sessionId);
+      const file = new File([blob], "startup-jury-verdict.png", { type: "image/png" });
+      const nav = navigator as Navigator & {
+        canShare?: (data: ShareData & { files?: File[] }) => boolean;
+      };
+      if (nav.canShare?.({ files: [file] })) {
+        await nav.share({ files: [file], text: draft, url });
+        trackEvent("verdict_card_shared", { sessionId, method: "native_image" });
+      } else {
+        await downloadImage();
+        await navigator.clipboard.writeText(draft).catch(() => {});
+        const target = intentUrl(platform, draft, url);
+        if (target) window.open(target, "_blank", "noopener,noreferrer");
+        toast({
+          title: "Image saved, caption copied",
+          description: "Attach the downloaded card in the composer.",
+        });
+      }
+    } catch (err) {
+      if ((err as DOMException)?.name !== "AbortError") {
+        toast({ title: "Couldn't share the image", variant: "destructive" });
+      }
+    }
+    setImageBusy(null);
+  };
 
   const openWith = (next: SocialPlatform) => {
     if (!verdict) return;
