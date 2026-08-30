@@ -481,6 +481,12 @@ const Index = () => {
       // Make sure the billing/session id is attached for follow-up rounds too.
       const sid = sessionIdRef.current ?? (await ensureSession(state));
       setCurrentSessionId(sid ?? undefined);
+      if (!sid) {
+        setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+        toast({ title: "Couldn't reach the jury", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+        return;
+      }
+
 
 
       emitAgUIEvent({ type: "user_response", content: userResponse, round: state.currentRoundNumber });
