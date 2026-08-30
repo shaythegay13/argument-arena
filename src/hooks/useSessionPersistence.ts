@@ -3,10 +3,34 @@ import { supabase } from "@/integrations/supabase/client";
 import type { DebateState } from "@/types/debate";
 import { PERSONAS } from "@/data/personas";
 
+/** Key holding the id of the debate currently in progress, so a refresh resumes it. */
+const ACTIVE_SESSION_KEY = "sj:active-session";
+
+/** Reads the in-progress session id (client only; safe to call during effects). */
+export function getStoredSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(ACTIVE_SESSION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function storeSessionId(id: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (id) window.localStorage.setItem(ACTIVE_SESSION_KEY, id);
+    else window.localStorage.removeItem(ACTIVE_SESSION_KEY);
+  } catch {
+    /* storage unavailable — resume simply falls back to the URL param */
+  }
+}
+
 export function useSessionPersistence(userId: string | undefined) {
   const sessionIdRef = useRef<string | null>(null);
   const savingRef = useRef(false);
   const iterationRef = useRef<{ parentSessionId: string; version: number } | null>(null);
+
 
   const saveSession = useCallback(
     async (state: DebateState, options?: { visibility?: string }) => {
