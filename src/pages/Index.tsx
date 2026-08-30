@@ -39,6 +39,7 @@ import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
 import UpgradeModal from "@/components/UpgradeModal";
 import CreditsHelpModal from "@/components/CreditsHelpModal";
+import GenerationStatusPanel, { type GenStatus, type RoundGenStatus } from "@/components/GenerationStatusPanel";
 import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
