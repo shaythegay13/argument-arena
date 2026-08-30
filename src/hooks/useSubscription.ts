@@ -59,6 +59,58 @@ export function useSubscription() {
     return () => subscription.unsubscribe();
   }, [checkSubscription]);
 
+  // Never show a stale balance: refresh whenever the tab regains focus/visibility.
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "hidden") return;
+      checkSubscription();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [checkSubscription]);
+
+  // Realtime balance updates — reflects purchases and deductions instantly.
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || cancelled) return;
+
+      channel = supabase
+        .channel(`user-credits-${session.user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "user_credits",
+            filter: `user_id=eq.${session.user.id}`,
+          },
+          (payload) => {
+            const next = (payload.new as { credits?: number } | null)?.credits;
+            if (typeof next === "number") {
+              setState((prev) => ({ ...prev, credits: next, loading: false }));
+            } else {
+              checkSubscription();
+            }
+          }
+        )
+        .subscribe();
+    })();
+
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [checkSubscription]);
+
+
   const startCheckout = async (plan: string = "pro") => {
     const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: { plan },
