@@ -1,4 +1,7 @@
 import { useNavigate } from "@/lib/router-compat";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
+
 import { Button } from "@/components/ui/button";
 import { Zap, Users, Star, ArrowRight, Shield, Brain, MessageSquare, BarChart3, Share2, CheckCircle2, ExternalLink } from "lucide-react";
 import logo from "@/assets/logo.png";

@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import { useNavigate } from "@/lib/router-compat";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
+
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Users, Brain, BarChart3, Shield, MessageSquare, Share2 } from "lucide-react";
