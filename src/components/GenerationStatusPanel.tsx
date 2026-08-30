@@ -1,5 +1,5 @@
 import { CheckCircle2, Clock, Loader2, RotateCcw, XCircle } from "lucide-react";
-import type { Persona } from "@/data/personas";
+import type { Persona } from "@/types/debate";
 
 export type GenStatus = "queued" | "generating" | "succeeded" | "refunded" | "failed";
 
