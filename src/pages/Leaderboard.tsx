@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, ChevronDown } from "lucide-react";
+import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, ChevronDown, User } from "lucide-react";
 import { motion } from "framer-motion";
 import CommunityVote from "@/components/CommunityVote";
 import { useAuth } from "@/hooks/useAuth";
