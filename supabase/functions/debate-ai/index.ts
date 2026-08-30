@@ -133,11 +133,8 @@ serve(async (req) => {
     // Idempotent billing: exactly one charge per session id, enforced in the DB.
     let chargedNow = false;
     if (!isPro && !sessionAlreadyStarted) {
-      if (!sessionId) {
-        return new Response(JSON.stringify({ error: "Missing sessionId" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+
+
 
       const { data: chargeResult, error: chargeError } = await serviceClient.rpc(
         "consume_evaluation_credit",
