@@ -4,7 +4,7 @@ import { PERSONAS } from "@/data/personas";
 import { getPersonaColors } from "@/data/personaColors";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Play, SkipForward, Scale } from "lucide-react";
+import { Play, SkipForward, Scale, Star } from "lucide-react";
 
 interface ControlPanelProps {
   topic: string;
