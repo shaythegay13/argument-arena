@@ -53,6 +53,7 @@ import CreditsHelpModal from "@/components/CreditsHelpModal";
 import GenerationStatusPanel, { type GenStatus, type RoundGenStatus } from "@/components/GenerationStatusPanel";
 import ExportDebateButton from "@/components/ExportDebateButton";
 import SocialShareButton from "@/components/SocialShareButton";
+import ReadOnlyLinkButton from "@/components/ReadOnlyLinkButton";
 import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
