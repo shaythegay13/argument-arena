@@ -78,7 +78,8 @@ serve(async (req) => {
       });
     }
 
-    const { systemPrompt, userPrompt, model, sessionId } = await req.json();
+    const { systemPrompt, userPrompt, model, sessionId, stream } = await req.json();
+    const wantStream = stream === true;
 
     // Structured validation: sessionId is required for idempotent billing.
     if (typeof sessionId !== "string" || sessionId.trim().length === 0) {
@@ -212,6 +213,7 @@ serve(async (req) => {
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },
             ],
+            ...(wantStream ? { stream: true } : {}),
           }),
         }
       );
@@ -245,6 +247,36 @@ serve(async (req) => {
         JSON.stringify({ error: "Service temporarily unavailable" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Streaming path: relay the gateway SSE stream straight to the client and
+    // refund the credit if the stream produced no content at all.
+    if (wantStream && response.body) {
+      let sawContent = false;
+      const relay = new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          if (!sawContent) {
+            const text = new TextDecoder().decode(chunk);
+            if (/"(content|text)"\s*:\s*"[^"]/.test(text)) sawContent = true;
+          }
+          controller.enqueue(chunk);
+        },
+        async flush() {
+          if (!sawContent) {
+            console.error("[debate-ai] stream produced no content — refunding");
+            await refundIfCharged();
+          }
+        },
+      });
+
+      return new Response(response.body.pipeThrough(relay), {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
     }
 
     let content = "";
