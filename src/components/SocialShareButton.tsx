@@ -49,7 +49,7 @@ interface SocialShareButtonProps {
   verdict: JudgeVerdict | null;
   ratings: PersonaRating[];
   personas: Persona[];
-  sessionId?: string;
+  sessionId?: string | undefined;
   className?: string;
 }
 
@@ -237,7 +237,7 @@ function intentUrl(platform: SocialPlatform, text: string, url: string): string 
       return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
     case "reddit":
       return `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(
-        text.split("\n")[0]
+        text.split("\n")[0] ?? text
       )}&text=${encodeURIComponent(text)}`;
     default:
       // Instagram has no web composer, and "copy" is intentionally clipboard-only.

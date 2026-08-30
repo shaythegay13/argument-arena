@@ -33,5 +33,5 @@ export const personaColors: Record<string, PersonaColorSet> = {
 
 /** Safe lookup — returns a neutral default if colorKey is unknown */
 export function getPersonaColors(colorKey: string): PersonaColorSet {
-  return personaColors[colorKey] ?? personaColors.quant;
+  return personaColors[colorKey] ?? personaColors["quant"]!;
 }

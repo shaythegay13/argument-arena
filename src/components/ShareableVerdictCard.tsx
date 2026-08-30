@@ -15,7 +15,7 @@ interface ShareableVerdictCardProps {
   ratings: PersonaRating[];
   personas: Persona[];
   topic: string;
-  sessionId?: string;
+  sessionId?: string | undefined;
   onClose?: () => void;
 }
 
@@ -48,7 +48,7 @@ export default function ShareableVerdictCard({
   const [shareLoading, setShareLoading] = useState(false);
   const { toast } = useToast();
 
-  const vStyle = verdictStyles[verdict.verdict];
+  const vStyle = verdictStyles[verdict.verdict] ?? verdictStyles["MAYBE"]!;
   const sortedRatings = [...ratings].sort((a, b) => b.score - a.score);
   const shareUrl = sessionId ? `${window.location.origin}/result/${sessionId}` : window.location.href;
   const shareText = `My startup idea just got a ${verdict.verdict} verdict (${verdict.overallScore * 10}/100) from Startup Jury AI! 🎯 Top ${verdict.percentile}th percentile.`;

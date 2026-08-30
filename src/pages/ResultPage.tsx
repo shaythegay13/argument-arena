@@ -328,7 +328,7 @@ export default function ResultPage() {
               {sortedRatings.map((rating, i) => {
                 const persona = personas.find((p) => p.id === rating.personaId);
                 if (!persona) return null;
-                const colors = personaColors[persona.colorKey];
+                const colors = personaColors[persona.colorKey] ?? { text: "text-foreground", bg: "bg-muted", border: "border-border" };
 
                 return (
                   <motion.div
@@ -366,7 +366,7 @@ export default function ResultPage() {
         )}
 
         {/* Top Judge Comments */}
-        {topComments.length > 0 && topComments[0].persona && (
+        {topComments.length > 0 && topComments[0]?.persona && (
           <motion.section
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -379,7 +379,7 @@ export default function ResultPage() {
             <div className="space-y-3">
               {topComments.map(({ persona, rating }) => {
                 if (!persona) return null;
-                const colors = personaColors[persona.colorKey];
+                const colors = personaColors[persona.colorKey] ?? { text: "text-foreground", bg: "bg-muted", border: "border-border" };
                 return (
                   <div key={rating.personaId} className="flex gap-3 items-start">
                     <div className={`w-7 h-7 rounded-full border ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 mt-0.5`}>

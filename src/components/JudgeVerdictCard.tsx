@@ -18,7 +18,7 @@ interface JudgeVerdictCardProps {
   streamingText?: string;
   onReset: () => void;
   onRefine: () => void;
-  sessionId?: string;
+  sessionId?: string | undefined;
   ratings?: PersonaRating[];
   personas?: Persona[];
   topic?: string;
@@ -222,6 +222,7 @@ export default function JudgeVerdictCard({
       return () => { clearTimeout(timer); clearTimeout(shareTimer); };
     }
     setRevealed(false);
+    return undefined;
   }, [verdict, isGenerating]);
 
   const shareUrl = sessionId ? `${window.location.origin}/result/${sessionId}` : window.location.href;

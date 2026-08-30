@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { Persona, Round } from "@/types/debate";
 
 const MOCK_CONVERSATION_URL = "";
-const TAVUS_EDGE_FN_URL = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/tavus-clip`;
+const TAVUS_EDGE_FN_URL = `https://${import.meta.env['VITE_SUPABASE_PROJECT_ID']}.supabase.co/functions/v1/tavus-clip`;
 
 interface TavusClip {
   roundNumber: number;
@@ -75,7 +75,7 @@ export function useTavusClips() {
       };
 
       try {
-        const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const apikey = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
 
         // Create conversation directly
         const res = await fetch(TAVUS_EDGE_FN_URL, {

@@ -27,20 +27,20 @@ export function useSessionPersistence(userId: string | undefined) {
         };
 
         if (options?.visibility) {
-          payload.visibility = options.visibility;
-          payload.is_public = options.visibility !== "private";
+          payload["visibility"] = options.visibility;
+          payload["is_public"] = options.visibility !== "private";
         }
 
         // Attach iteration info on first insert
         if (!sessionIdRef.current && iterationRef.current) {
-          payload.parent_session_id = iterationRef.current.parentSessionId;
-          payload.version = iterationRef.current.version;
+          payload["parent_session_id"] = iterationRef.current.parentSessionId;
+          payload["version"] = iterationRef.current.version;
         }
 
         if (sessionIdRef.current) {
           await (supabase
             .from("debate_sessions")
-            .update(payload) as any)
+            .update(payload as any) as any)
             .eq("id", sessionIdRef.current);
         } else {
           const { data } = await (supabase
@@ -128,8 +128,8 @@ export function useSessionPersistence(userId: string | undefined) {
       };
 
       if (iterationRef.current) {
-        payload.parent_session_id = iterationRef.current.parentSessionId;
-        payload.version = iterationRef.current.version;
+        payload["parent_session_id"] = iterationRef.current.parentSessionId;
+        payload["version"] = iterationRef.current.version;
       }
 
       const { data } = await (supabase

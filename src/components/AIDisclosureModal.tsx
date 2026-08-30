@@ -17,9 +17,28 @@ const AIDisclosureModal = () => {
 
   useEffect(() => {
     const acknowledged = localStorage.getItem(STORAGE_KEY);
-    if (!acknowledged) {
-      setOpen(true);
+    if (acknowledged) return undefined;
+    // Defer opening until the page has fully loaded and the browser is idle:
+    // Radix marks sibling content aria-hidden when the dialog opens, and doing
+    // that while lazy route content is still hydrating triggers a
+    // hydration-mismatch warning.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+    const openWhenIdle = () => {
+      timer = setTimeout(() => {
+        if (!cancelled) setOpen(true);
+      }, 1000);
+    };
+    if (document.readyState === "complete") {
+      openWhenIdle();
+    } else {
+      window.addEventListener("load", openWhenIdle, { once: true });
     }
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("load", openWhenIdle);
+    };
   }, []);
 
   const handleAcknowledge = () => {

@@ -155,7 +155,7 @@ async function callCompletionStreaming(
     throw new Error(MISSING_SESSION);
   }
 
-  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/debate-ai`;
+  const url = `${import.meta.env['VITE_SUPABASE_URL']}/functions/v1/debate-ai`;
   const { data: { session } } = await supabase.auth.getSession();
   const accessToken = session?.access_token;
   if (!accessToken) return callCompletion(systemPrompt, userPrompt, model);
@@ -175,7 +175,7 @@ async function callCompletionStreaming(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        apikey: import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'],
       },
       body: JSON.stringify({
         systemPrompt,
@@ -282,7 +282,9 @@ function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    const tmp = a[i]!;
+    a[i] = a[j]!;
+    a[j] = tmp;
   }
   return a;
 }
@@ -600,10 +602,10 @@ function parseRatingFromText(text: string, persona: Persona): PersonaRating {
   for (const pattern of patterns) {
     const match = text.match(pattern);
     if (match) {
-      let rawScore = Math.min(10, Math.max(0, parseInt(match[1])));
+      let rawScore = Math.min(10, Math.max(0, parseInt(match[1] ?? "")));
       if (persona.inverseScore) rawScore = 10 - rawScore;
 
-      const verdictText = match[2].trim().replace(/\.\s*$/, "");
+      const verdictText = (match[2] ?? "").trim().replace(/\.\s*$/, "");
       const metrics: Record<string, number> = {};
       const metricsStr = match[3];
       if (metricsStr) {
@@ -619,7 +621,7 @@ function parseRatingFromText(text: string, persona: Persona): PersonaRating {
 
   // Fallback: try to find any X/10 pattern
   const anyScoreMatch = text.match(/(\d+)\s*\/\s*10/);
-  let fallbackScore = anyScoreMatch ? Math.min(10, Math.max(0, parseInt(anyScoreMatch[1]))) : 5;
+  let fallbackScore = anyScoreMatch ? Math.min(10, Math.max(0, parseInt(anyScoreMatch[1] ?? ""))) : 5;
   if (persona.inverseScore) fallbackScore = 10 - fallbackScore;
 
   console.warn("[parseRating] Could not parse structured score from:", text.slice(-200));
@@ -811,12 +813,12 @@ Summarize the key points and questions from this round in 2-3 short paragraphs. 
  * the summary forming instead of raw braces.
  */
 export function extractPartialJudge(partial: string): {
-  verdict?: string;
-  overallScore?: string;
-  why?: string;
+  verdict?: string | undefined;
+  overallScore?: string | undefined;
+  why?: string | undefined;
   strengths: string[];
   risks: string[];
-  nextStep?: string;
+  nextStep?: string | undefined;
 } {
   const str = (key: string) => {
     const m = partial.match(new RegExp(`"${key}"\\s*:\\s*"([^"]*)`));
@@ -829,7 +831,7 @@ export function extractPartialJudge(partial: string): {
   const arr = (key: string) => {
     const m = partial.match(new RegExp(`"${key}"\\s*:\\s*\\[([^\\]]*)`));
     if (!m) return [];
-    return (m[1].match(/"([^"]*)"/g) ?? [])
+    return ((m[1] ?? "").match(/"([^"]*)"/g) ?? [])
       .map((s) => s.replace(/"/g, "").trim())
       .filter(Boolean);
   };

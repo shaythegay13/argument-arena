@@ -30,7 +30,7 @@ function clamp(text: string, max: number) {
  */
 const VerdictImageCard = forwardRef<HTMLDivElement, VerdictImageCardProps>(
   ({ topic, verdict, ratings, personas, url, shape }, ref) => {
-    const s = STYLES[verdict.verdict] ?? STYLES.MAYBE;
+    const s = STYLES[verdict.verdict] ?? STYLES["MAYBE"]!;
     const wide = shape === "wide";
     const width = wide ? 1200 : 1080;
     const height = wide ? 675 : 1080;
