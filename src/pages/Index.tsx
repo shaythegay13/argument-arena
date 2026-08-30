@@ -453,6 +453,15 @@ const Index = () => {
         userResponse: "",
       }));
 
+      setRoundGen(nextRoundNum, (r) => ({
+        ...r,
+        charged: false,
+        overall: "generating",
+        personas: Object.fromEntries(
+          state.selectedPersonas.map((p) => [p.id, "generating" as GenStatus])
+        ),
+      }));
+
       try {
         const messages = await generateNextRound(
           state.topic,
@@ -461,6 +470,10 @@ const Index = () => {
           previousRound,
           userResponse,
           (personaId, text) => {
+            setRoundGen(nextRoundNum, (r) => ({
+              ...r,
+              personas: { ...r.personas, [personaId]: "succeeded" },
+            }));
             setState((prev) => {
               const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
               const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
@@ -489,6 +502,14 @@ const Index = () => {
           responseMap
         );
 
+        setRoundGen(nextRoundNum, (r) => ({
+          ...r,
+          overall: "succeeded",
+          personas: Object.fromEntries(
+            state.selectedPersonas.map((p) => [p.id, "succeeded" as GenStatus])
+          ),
+        }));
+
         setState((prev) => {
           const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
             ? prev.rounds.map((r) => (r.roundNumber === nextRoundNum ? { ...r, messages } : r))
@@ -499,6 +520,17 @@ const Index = () => {
         generateClip(nextRoundNum, state.selectedPersonas, { roundNumber: nextRoundNum, messages }, userResponse);
       } catch (err) {
         console.error(`[Round ${nextRoundNum}] Generation failed:`, err);
+        // Follow-up rounds are already covered by the session's single credit — never charged.
+        setRoundGen(nextRoundNum, (r) => ({
+          ...r,
+          overall: "failed",
+          personas: Object.fromEntries(
+            state.selectedPersonas.map((p) => [
+              p.id,
+              r.personas[p.id] === "succeeded" ? "succeeded" : ("failed" as GenStatus),
+            ])
+          ),
+        }));
         if (isOutOfCreditsError(err)) {
           // Roll back to the previous round so the user can resume after buying credits
           setState((prev) => ({
@@ -516,8 +548,9 @@ const Index = () => {
           return;
         }
         setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
-        toast({ title: "Generation failed", description: "The panel couldn't respond. Please try submitting again.", variant: "destructive" });
+        toast({ title: "Generation failed", description: "The panel couldn't respond. Please try submitting again — no credit was charged.", variant: "destructive" });
       }
+
     },
     [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, toast, subscription]
   );
