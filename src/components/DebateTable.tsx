@@ -255,7 +255,7 @@ export default function DebateTable({
                               {Object.entries(rating.metrics).map(([label, val]) => (
                                 <span
                                   key={label}
-                                  className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+                                  className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground"
                                 >
                                   {label}: {val}
                                 </span>
@@ -342,9 +342,9 @@ export default function DebateTable({
                     </div>
                   </div>
                   <div className="mt-2 space-y-1.5">
-                    <div className="h-2.5 bg-muted rounded w-full animate-pulse" />
-                    <div className="h-2.5 bg-muted rounded w-4/5 animate-pulse" style={{ animationDelay: "150ms" }} />
-                    <div className="h-2.5 bg-muted rounded w-2/3 animate-pulse" style={{ animationDelay: "300ms" }} />
+                    <div className="h-2.5 bg-muted rounded-sm w-full animate-pulse" />
+                    <div className="h-2.5 bg-muted rounded-sm w-4/5 animate-pulse" style={{ animationDelay: "150ms" }} />
+                    <div className="h-2.5 bg-muted rounded-sm w-2/3 animate-pulse" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </motion.div>

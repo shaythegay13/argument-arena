@@ -1,0 +1,13 @@
+{"functions": [
+  {"name": "add-credits", "classification": "unknown", "signal": "zero internal call sites, no signature signal — URL load-bearing until proven otherwise", "outcome": "left"},
+  {"name": "check-subscription", "classification": "internal-only", "signal": "called from src/hooks/useSubscription.ts; Stripe secret — deferred, turn budget prioritized on build gates", "outcome": "left"},
+  {"name": "create-checkout", "classification": "internal-only", "signal": "called from src/hooks/useSubscription.ts; Stripe secret — deferred, turn budget prioritized on build gates", "outcome": "left"},
+  {"name": "customer-portal", "classification": "internal-only", "signal": "called from src/hooks/useSubscription.ts; Stripe secret — deferred, turn budget prioritized on build gates", "outcome": "left"},
+  {"name": "debate-ai", "classification": "internal-only (custom response: SSE stream)", "signal": "called from 4 src/ files; text/event-stream relay + idempotent credit billing — server-route candidate, deferred", "outcome": "left"},
+  {"name": "elevenlabs-scribe-token", "classification": "internal-only", "signal": "called from src/components/VoiceInputButton.tsx — deferred, turn budget prioritized on build gates", "outcome": "left"},
+  {"name": "elevenlabs-tts", "classification": "internal-only", "signal": "called from src/hooks/useHostAudio.ts — deferred, turn budget prioritized on build gates", "outcome": "left"},
+  {"name": "og-result", "classification": "external callers", "signal": "fixed URL embedded in already-shared social permalinks; serves crawler HTML + 302 redirects — URL load-bearing", "outcome": "left"},
+  {"name": "purchase-credits", "classification": "internal-only", "signal": "called from src/hooks/useSubscription.ts; Stripe secret — deferred, turn budget prioritized on build gates", "outcome": "left"},
+  {"name": "send-contact-email", "classification": "internal-only", "signal": "called from src/pages/Contact.tsx; nodemailer via npm: — deferred, turn budget prioritized on build gates", "outcome": "left"},
+  {"name": "tavus-clip", "classification": "internal-only", "signal": "called from src/hooks/useTavusClips.ts — deferred, turn budget prioritized on build gates", "outcome": "left"}
+]}

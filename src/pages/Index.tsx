@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -1071,7 +1071,7 @@ const Index = () => {
 
           {/* Auto-debate badge */}
           {autoDebate && !isSetup && (
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/30 hidden sm:inline">
+            <span className="text-xs font-mono px-2 py-0.5 rounded-sm bg-primary/20 text-primary border border-primary/30 hidden sm:inline">
               Auto-Debate
             </span>
           )}
@@ -1182,7 +1182,7 @@ const Index = () => {
                       if (!persona) return null;
                       const colors = getPersonaColors(persona.colorKey);
                       return (
-                        <span key={pid} className={`px-2 py-1 rounded text-xs font-medium ${colors.text} bg-muted/30`}>
+                        <span key={pid} className={`px-2 py-1 rounded-sm text-xs font-medium ${colors.text} bg-muted/30`}>
                           {persona.name.split(" ")[0]}
                         </span>
                       );

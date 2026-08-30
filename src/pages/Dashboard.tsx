@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -205,7 +205,7 @@ const Dashboard = () => {
                       onClick={() => setFilter(opt)}
                       className={`px-3 py-1 rounded-[10px] text-xs font-medium transition-all ${
                         filter === opt
-                          ? "bg-background text-foreground shadow-sm border border-border"
+                          ? "bg-background text-foreground shadow-xs border border-border"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -292,7 +292,7 @@ const Dashboard = () => {
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-medium text-foreground truncate">{session.topic}</p>
                         {(hasVersions || sessionVersion > 1) && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary border border-primary/20 shrink-0">
                             v{sessionVersion}
                           </span>
                         )}

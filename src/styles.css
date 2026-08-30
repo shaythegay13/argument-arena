@@ -1,96 +1,148 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@custom-variant dark (&:is(.dark *));
 
-@layer base {
-  :root {
-    /* Deep Navy – authority, credibility */
-    --background: 222 47% 11%;
-    --foreground: 0 0% 100%;
+/*
+ * Design system definition — Startup Jury AI "VC Boardroom" theme.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * Semantic tokens keep their original HSL values from the Classic theme.
+ * Persona / verdict / stage tokens stay as raw HSL triplets because the
+ * custom utilities below consume them via hsl(var(--x) / alpha).
+ */
 
-    /* Dark Slate – cards, panels */
-    --card: 217 33% 17%;
-    --card-foreground: 0 0% 100%;
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
 
-    --popover: 217 33% 17%;
-    --popover-foreground: 0 0% 100%;
+:root {
+  --radius: 0.875rem;
 
-    /* Jury Orange – energy, momentum */
-    --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 100%;
+  /* Deep Navy – authority, credibility */
+  --background: hsl(222 47% 11%);
+  --foreground: hsl(0 0% 100%);
 
-    /* Dark Slate secondary */
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 214 32% 91%;
+  /* Dark Slate – cards, panels */
+  --card: hsl(217 33% 17%);
+  --card-foreground: hsl(0 0% 100%);
 
-    /* Muted tones */
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 16% 65%;
+  --popover: hsl(217 33% 17%);
+  --popover-foreground: hsl(0 0% 100%);
 
-    /* Tech Blue – intelligence, innovation */
-    --accent: 199 89% 60%;
-    --accent-foreground: 222 47% 11%;
+  /* Jury Orange – energy, momentum */
+  --primary: hsl(25 95% 53%);
+  --primary-foreground: hsl(0 0% 100%);
 
-    /* Verdict Red */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+  /* Dark Slate secondary */
+  --secondary: hsl(217 33% 17%);
+  --secondary-foreground: hsl(214 32% 91%);
 
-    /* Borders & Input – subtle slate */
-    --border: 217 24% 22%;
-    --input: 217 24% 22%;
-    --ring: 25 95% 53%;
+  /* Muted tones */
+  --muted: hsl(217 33% 17%);
+  --muted-foreground: hsl(215 16% 65%);
 
-    --radius: 0.875rem;
+  /* Tech Blue – intelligence, innovation */
+  --accent: hsl(199 89% 60%);
+  --accent-foreground: hsl(222 47% 11%);
 
-    /* Verdict colors */
-    --verdict-go: 142 71% 45%;
-    --verdict-maybe: 38 92% 50%;
-    --verdict-nogo: 0 84% 60%;
+  /* Verdict Red */
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
 
-    /* Persona accent colors — original 8 */
-    --persona-angel: 25 95% 53%;
-    --persona-vc: 199 89% 60%;
-    --persona-customer: 142 71% 45%;
-    --persona-operator: 142 60% 50%;
-    --persona-skeptic: 0 84% 60%;
-    --persona-quant: 215 16% 65%;
-    --persona-insider: 25 75% 50%;
-    --persona-visionary: 280 55% 55%;
+  /* Borders & Input – subtle slate */
+  --border: hsl(217 24% 22%);
+  --input: hsl(217 24% 22%);
+  --ring: hsl(25 95% 53%);
 
-    /* Persona accent colors — new 8 */
-    --persona-accelerator: 45 90% 50%;
-    --persona-growth: 330 70% 55%;
-    --persona-scout: 170 60% 45%;
-    --persona-strategist: 220 50% 55%;
-    --persona-marketplace: 15 80% 55%;
-    --persona-ux: 300 50% 60%;
-    --persona-tech: 190 70% 50%;
-    --persona-institutional: 250 45% 55%;
+  /* Sidebar */
+  --sidebar: hsl(222 47% 9%);
+  --sidebar-foreground: hsl(0 0% 100%);
+  --sidebar-primary: hsl(25 95% 53%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(217 33% 17%);
+  --sidebar-accent-foreground: hsl(214 32% 91%);
+  --sidebar-border: hsl(217 24% 22%);
+  --sidebar-ring: hsl(25 95% 53%);
 
-    /* Stage glow */
-    --stage-glow: 25 95% 53%;
-    --stage-spotlight: 0 0% 100%;
+  /* Verdict colors (raw HSL triplets, consumed via hsl(var(--x))) */
+  --verdict-go: 142 71% 45%;
+  --verdict-maybe: 38 92% 50%;
+  --verdict-nogo: 0 84% 60%;
 
-    --sidebar-background: 222 47% 9%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 25 95% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 214 32% 91%;
-    --sidebar-border: 217 24% 22%;
-    --sidebar-ring: 25 95% 53%;
-  }
+  /* Persona accent colors — original 8 */
+  --persona-angel: 25 95% 53%;
+  --persona-vc: 199 89% 60%;
+  --persona-customer: 142 71% 45%;
+  --persona-operator: 142 60% 50%;
+  --persona-skeptic: 0 84% 60%;
+  --persona-quant: 215 16% 65%;
+  --persona-insider: 25 75% 50%;
+  --persona-visionary: 280 55% 55%;
+
+  /* Persona accent colors — new 8 */
+  --persona-accelerator: 45 90% 50%;
+  --persona-growth: 330 70% 55%;
+  --persona-scout: 170 60% 45%;
+  --persona-strategist: 220 50% 55%;
+  --persona-marketplace: 15 80% 55%;
+  --persona-ux: 300 50% 60%;
+  --persona-tech: 190 70% 50%;
+  --persona-institutional: 250 45% 55%;
+
+  /* Stage glow */
+  --stage-glow: 25 95% 53%;
+  --stage-spotlight: 0 0% 100%;
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--color-border);
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-family: 'Inter', system-ui, sans-serif;
     font-weight: 400;
   }
