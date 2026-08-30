@@ -132,14 +132,22 @@ export function useSessionPersistence(userId: string | undefined) {
         payload["version"] = iterationRef.current.version;
       }
 
-      const { data } = await (supabase
-        .from("debate_sessions")
-        .insert(payload as any) as any)
-        .select("id")
-        .single();
+      // One retry: a transient insert failure shouldn't block the whole run.
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const { data, error } = await (supabase
+          .from("debate_sessions")
+          .insert(payload as any) as any)
+          .select("id")
+          .single();
 
-      if (data) sessionIdRef.current = (data as any).id;
-      return sessionIdRef.current;
+        const newId = (data as { id?: string } | null)?.id;
+        if (newId) {
+          sessionIdRef.current = newId;
+          return newId;
+        }
+        console.error(`[ensureSession] insert failed (attempt ${attempt + 1}):`, error);
+      }
+      return null;
     },
     [userId]
   );
