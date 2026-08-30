@@ -184,26 +184,8 @@ export default function ResultPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>{metaTitle}</title>
-        <meta
-          name="description"
-          content={metaDescription}
-        />
-        <link rel="canonical" href={permalink} />
-        <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="Startup Jury AI" />
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:url" content={permalink} />
-        <meta property="og:image" content="https://www.startupjuryai.com/og-verdict.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={metaTitle} />
-        <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content="https://www.startupjuryai.com/og-verdict.png" />
-      </Helmet>
+      {/* Head tags for this page are server-rendered by the route's head() so
+          link-preview crawlers see them without executing JS. */}
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
