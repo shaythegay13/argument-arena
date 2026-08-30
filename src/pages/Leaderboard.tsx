@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, Zap, ArrowLeft } from "lucide-react";
+import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import CommunityVote from "@/components/CommunityVote";
-import logo from "@/assets/logo.png";
+import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
 type Tab = "week" | "month" | "all" | "controversial" | "viewed";
