@@ -57,7 +57,7 @@ ${panelResponses}${userPart}`;
 
   try {
     const { data, error } = await supabase.functions.invoke("debate-ai", {
-      body: { systemPrompt, userPrompt },
+      body: { systemPrompt, userPrompt, mode: "utility" },
     });
     if (error || data?.error) throw new Error(error?.message || data?.error);
     return data?.content ?? fallbackScript(roundNumber, personas, round, userResponse);
