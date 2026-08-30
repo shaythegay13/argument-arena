@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { postDebateRequest } from "@/lib/debateEndpoint";
 import { Persona, Round, RoundMessage, PersonaRating } from "@/types/debate";
 
 const MAX_RETRIES = 2;
@@ -77,20 +78,28 @@ async function callCompletion(
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const { data, error } = await supabase.functions.invoke("debate-ai", {
-        body: { systemPrompt, userPrompt, ...(model && { model }), sessionId: _currentSessionId },
+      const res = await postDebateRequest({
+        systemPrompt,
+        userPrompt,
+        ...(model && { model }),
+        sessionId: _currentSessionId,
       });
+      let data: { content?: string; error?: string } = {};
+      let bodyTextRaw = "";
+      try {
+        bodyTextRaw = await res.text();
+        data = bodyTextRaw ? JSON.parse(bodyTextRaw) : {};
+      } catch {
+        data = { error: "Unexpected server response" };
+      }
+      const error = res.ok ? null : { message: data.error || `AI call failed (${res.status})` };
 
 
       if (error) {
         const msg = error.message || "AI call failed";
 
-        // Read the response body to detect a hard "out of credits" refusal
-        let bodyText = "";
-        try {
-          const res = (error as any).context;
-          if (res && typeof res.clone === "function") bodyText = await res.clone().text();
-        } catch { /* ignore */ }
+        // The response body tells us about hard refusals (credits, session).
+        const bodyText = bodyTextRaw;
 
         if (/MISSING_SESSION/.test(bodyText) || /MISSING_SESSION/.test(msg)) {
           console.error("[callCompletion] Server rejected request: missing sessionId", bodyText);
@@ -155,10 +164,6 @@ async function callCompletionStreaming(
     throw new Error(MISSING_SESSION);
   }
 
-  const url = `${import.meta.env['VITE_SUPABASE_URL']}/functions/v1/debate-ai`;
-  const { data: { session } } = await supabase.auth.getSession();
-  const accessToken = session?.access_token;
-  if (!accessToken) return callCompletion(systemPrompt, userPrompt, model);
 
   const controller = new AbortController();
   _activeControllers.add(controller);
@@ -169,22 +174,16 @@ async function callCompletionStreaming(
 
   let res: Response;
   try {
-    res = await fetch(url, {
-      signal: controller.signal,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-        apikey: import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'],
-      },
-      body: JSON.stringify({
+    res = await postDebateRequest(
+      {
         systemPrompt,
         userPrompt,
         ...(model && { model }),
         sessionId: _currentSessionId,
         stream: true,
-      }),
-    });
+      },
+      { signal: controller.signal },
+    );
   } catch (networkErr) {
     _activeControllers.delete(controller);
     if (isCancelledError(networkErr) || _cancelRequested) throw new Error(CANCELLED);
