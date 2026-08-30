@@ -924,16 +924,50 @@ const Index = () => {
     handleGenerateRatings();
   }, [autoDebate, state.phase, state.currentRoundNumber, state.isGenerating, allResponsesReady, state.ratings.length, handleGenerateRatings]);
 
+  /** Stops streaming for the given round; jurors who already answered are kept. */
+  const handleCancelRound = useCallback((roundNumber: number) => {
+    cancelActiveGenerations();
+    setStreamingTexts({});
+    setRoundGen(roundNumber, (r) => ({
+      ...r,
+      overall: "cancelled",
+      personas: Object.fromEntries(
+        Object.entries(r.personas).map(([id, st]) => [
+          id,
+          (st === "succeeded" ? "succeeded" : "cancelled") as GenStatus,
+        ])
+      ),
+    }));
+    setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+    toast({
+      title: `Round ${roundNumber} stopped`,
+      description: "Responses that already came in are kept. Retry the stopped jurors any time — no extra charge.",
+    });
+  }, [setRoundGen, toast]);
+
   const handleJudge = useCallback(async () => {
     setState((prev) => ({ ...prev, phase: "judge", isGeneratingJudge: true }));
+    resetCancellation();
+    setJudgeStream("");
 
     try {
       const { judgeVerdict, script } = await generateJudgeVerdict(
         state.topic,
         state.rounds,
         state.selectedPersonas,
-        state.ratings
+        state.ratings,
+        (partial) => {
+          const p = extractPartialJudge(partial);
+          const lines: string[] = [];
+          if (p.verdict) lines.push(`Verdict forming: ${p.verdict}${p.overallScore ? ` · ${p.overallScore}/10` : ""}`);
+          if (p.why) lines.push(p.why);
+          p.strengths.forEach((x) => lines.push(`Strength: ${x}`));
+          p.risks.forEach((x) => lines.push(`Risk: ${x}`));
+          if (p.nextStep) lines.push(`Next step: ${p.nextStep}`);
+          setJudgeStream(lines.join("\n"));
+        }
       );
+      setJudgeStream("");
       setState((prev) => ({ ...prev, judgeVerdict, isGeneratingJudge: false }));
       trackEvent("debate_completed", { verdict: judgeVerdict.verdict, score: judgeVerdict.overallScore });
 
@@ -943,6 +977,7 @@ const Index = () => {
       });
     } catch (err) {
       console.error("[Judge] Error:", err);
+      setJudgeStream("");
       setState((prev) => ({
         ...prev,
         isGeneratingJudge: false,
@@ -1332,6 +1367,7 @@ const Index = () => {
                   failedCount={failedCount}
                   isRetrying={isRetryingFailed}
                   onRetryFailed={handleRetryFailed}
+                  onCancelRound={handleCancelRound}
                 />
 
 
@@ -1397,7 +1433,14 @@ const Index = () => {
 
             {state.phase === "judge" && (
               <>
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2 flex-wrap">
+                  <SocialShareButton
+                    topic={state.topic}
+                    verdict={state.judgeVerdict}
+                    ratings={state.ratings}
+                    personas={state.selectedPersonas}
+                    sessionId={sessionIdRef.current ?? undefined}
+                  />
                   <ExportDebateButton
                     isPro={isPro}
                     onUpgrade={() => { setUpgradeReason("default"); setShowUpgrade(true); }}
@@ -1412,6 +1455,7 @@ const Index = () => {
                 <JudgeVerdictCard
                   verdict={state.judgeVerdict}
                   isGenerating={state.isGeneratingJudge}
+                  streamingText={judgeStream}
                   onReset={handleReset}
                   onRefine={handleRefine}
                   sessionId={sessionIdRef.current ?? undefined}
