@@ -47,33 +47,35 @@ export default function ContactPage() {
       return;
     }
 
-    if (!user) {
-      window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
-        `Startup Jury AI — message from ${result.data.name}`
-      )}&body=${encodeURIComponent(result.data.message)}`;
-      return;
-    }
-
     setSending(true);
-    const { error } = await supabase.from("contact_messages").insert({
-      user_id: user.id,
-      name: result.data.name,
-      email: result.data.email,
-      message: result.data.message,
-    });
 
-    if (error) {
-      toast({ title: "Error sending message", description: error.message, variant: "destructive" });
+    try {
+      await submitContactMessage({
+        data: {
+          name: result.data.name,
+          email: result.data.email,
+          message: result.data.message,
+          userId: user?.id ?? null,
+        },
+      });
+    } catch (err) {
+      toast({
+        title: "Error sending message",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
       setSending(false);
       return;
     }
 
-    try {
-      await supabase.functions.invoke("send-contact-email", {
-        body: { name: result.data.name, email: result.data.email, message: result.data.message },
-      });
-    } catch (emailErr) {
-      console.error("Email notification failed:", emailErr);
+    if (user) {
+      try {
+        await supabase.functions.invoke("send-contact-email", {
+          body: { name: result.data.name, email: result.data.email, message: result.data.message },
+        });
+      } catch (emailErr) {
+        console.error("Email notification failed:", emailErr);
+      }
     }
 
     toast({ title: "Message sent", description: "We'll get back to you soon." });
@@ -81,6 +83,7 @@ export default function ContactPage() {
     setMessage("");
     setSending(false);
   };
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
