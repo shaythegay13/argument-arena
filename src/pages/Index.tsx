@@ -25,7 +25,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail } from "lucide-react";
+import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import IdeaSubmissionForm from "@/components/IdeaSubmissionForm";
 import VisibilitySelector from "@/components/VisibilitySelector";
 import MobileNav from "@/components/MobileNav";
@@ -867,6 +868,22 @@ const Index = () => {
               <span className="text-muted-foreground">
                 Cost: <span className="font-semibold text-foreground">{isPro ? "0" : "1"} credit</span> for the full 4-round jury (0 per round)
               </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="How credits work">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[300px] font-sans text-xs leading-relaxed">
+                  <div className="space-y-1.5">
+                    <p className="font-semibold text-foreground">How credits work</p>
+                    <p>One credit = one full 4-round jury evaluation. All four rounds — opening statements, your defense, and the final verdict — count as a single evaluation.</p>
+                    <p>A credit is deducted only when a new jury session starts and the panel successfully responds. If generation fails (an error, AI outage, or empty response), the credit is not charged and your balance stays the same.</p>
+                    <p>In-progress sessions never cut off mid-round — once a jury starts, all four rounds run regardless of your balance.</p>
+                    <p className="text-muted-foreground">Pro subscribers get unlimited credits and pay 0 per evaluation.</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
               {!isPro && subscription.credits <= 0 && (
                 <button
                   type="button"
