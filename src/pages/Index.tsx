@@ -183,28 +183,28 @@ const Index = () => {
     panelistProfilesRef.current = panelistProfiles;
   }, [panelistProfiles]);
   const customBioCount = Object.values(panelistProfiles).filter((p) => isProfileFilled(p)).length;
-
-  // Load the founder's saved panelist bios once their session resolves.
-  useEffect(() => {
-    if (!userIdForBios) {
-      setPanelistProfiles({});
-      return;
-    }
-    let cancelled = false;
-    void (async () => {
-      const profiles = await fetchPanelistProfiles(userIdForBios);
-      if (!cancelled) setPanelistProfiles(profiles);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [userIdForBios]);
   const FREE_LIMIT = 2;
   const PRO_LIMIT = 100;
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+
+  // Load the founder's saved panelist bios once their session resolves.
+  useEffect(() => {
+    if (!user?.id) {
+      setPanelistProfiles({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const profiles = await fetchPanelistProfiles(user?.id);
+      if (!cancelled) setPanelistProfiles(profiles);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   // Capture the session and iterate params once at mount
   const sessionParamRef = useRef(searchParams.get("session"));
