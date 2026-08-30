@@ -182,6 +182,7 @@ const Index = () => {
   useEffect(() => {
     panelistProfilesRef.current = panelistProfiles;
   }, [panelistProfiles]);
+  const customBioCount = Object.values(panelistProfiles).filter((p) => isProfileFilled(p)).length;
   const FREE_LIMIT = 2;
   const PRO_LIMIT = 100;
 
