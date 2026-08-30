@@ -260,7 +260,8 @@ async function runStaggered<T>(
 export async function generateRound1(
   topic: string,
   personas: Persona[],
-  onPersonaComplete: (personaId: string, text: string) => void
+  onPersonaComplete: (personaId: string, text: string) => void,
+  onPersonaFailed?: (personaId: string, err: unknown) => void
 ): Promise<RoundMessage[]> {
   const userPrompt = buildRound1Prompt(topic);
   const messages: RoundMessage[] = [];
@@ -278,6 +279,7 @@ export async function generateRound1(
       const fallback = "I wasn't able to weigh in this round — please continue.";
       messages.push({ personaId: persona.id, text: fallback });
       onPersonaComplete(persona.id, fallback);
+      onPersonaFailed?.(persona.id, err);
     }
   });
 
@@ -291,14 +293,17 @@ export async function generateNextRound(
   previousRound: Round,
   userResponse: string,
   onPersonaComplete: (personaId: string, text: string) => void,
-  getMemory?: (personaId: string) => string
+  getMemory?: (personaId: string) => string,
+  onPersonaFailed?: (personaId: string, err: unknown) => void,
+  contextPersonas?: Persona[]
 ): Promise<RoundMessage[]> {
   const messages: RoundMessage[] = [];
   const shuffled = shuffleArray(personas);
+  const panel = contextPersonas ?? personas;
 
   await runStaggered(shuffled, async (persona) => {
     const memory = getMemory?.(persona.id);
-    const { systemContext, userPrompt } = buildRoundNPrompt(topic, roundNumber, previousRound, personas, userResponse, memory);
+    const { systemContext, userPrompt } = buildRoundNPrompt(topic, roundNumber, previousRound, panel, userResponse, memory);
     const system = enrichSystemPrompt(persona, topic) + "\n\n" + systemContext;
     try {
       const text = await callCompletion(system, userPrompt);
@@ -310,11 +315,13 @@ export async function generateNextRound(
       const fallback = "I wasn't able to weigh in this round — please continue.";
       messages.push({ personaId: persona.id, text: fallback });
       onPersonaComplete(persona.id, fallback);
+      onPersonaFailed?.(persona.id, err);
     }
   });
 
   return messages;
 }
+
 
 export async function generateFinalRatings(
   topic: string,
