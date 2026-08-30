@@ -178,6 +178,10 @@ const Index = () => {
   const isStudio = subscription.isStudio;
   const [showBios, setShowBios] = useState(false);
   const [panelistProfiles, setPanelistProfiles] = useState<PanelistProfileMap>({});
+  const panelistProfilesRef = useRef<PanelistProfileMap>({});
+  useEffect(() => {
+    panelistProfilesRef.current = panelistProfiles;
+  }, [panelistProfiles]);
   const FREE_LIMIT = 2;
   const PRO_LIMIT = 100;
 
@@ -398,6 +402,10 @@ const Index = () => {
       personas = state.selectedPersonas;
     }
     if (!personas.length) return;
+
+    // Fold the founder's own panelist bios into each judge so their debate and
+    // closing statement come from a real background, not a generic template.
+    personas = applyPanelistProfiles(personas, panelistProfilesRef.current);
 
     // SESSION-READY GATE: create the session row before anything else so every
     // round request carries a session id and billing stays idempotent.
@@ -1204,9 +1212,24 @@ const Index = () => {
 
             {/* Panel selection */}
             <div>
-              <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                Jury Panel
-              </label>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                  Jury Panel
+                </label>
+                {user && (
+                  <button
+                    type="button"
+                    onClick={() => setShowBios(true)}
+                    className="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:underline"
+                  >
+                    <UserPen className="w-3.5 h-3.5" />
+                    Panelist bios
+                    {customBioCount > 0 && (
+                      <span className="font-mono text-[10px] text-muted-foreground">({customBioCount} custom)</span>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="flex flex-wrap gap-2 mb-3">
                 <button
                   onClick={() => { setPanelMode("auto"); setSelectedPanelId(null); }}
