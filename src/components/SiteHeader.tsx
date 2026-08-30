@@ -58,12 +58,12 @@ export default function SiteHeader() {
         </Button>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Dropdown menu */}
       {open && (
         <nav
           id="site-header-mobile-menu"
-          aria-label="Mobile"
-          className="absolute top-full left-0 right-0 z-50 border-b border-border bg-card sm:hidden"
+          aria-label="Site menu"
+          className="absolute top-full right-2 sm:right-4 z-50 w-64 rounded-xl border border-border bg-card shadow-xl shadow-black/20"
         >
           <div className="px-4 py-2 space-y-1">
             {publicLinks.map((l) => (
