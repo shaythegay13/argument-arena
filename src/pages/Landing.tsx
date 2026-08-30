@@ -81,7 +81,7 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
-      <header className="border-b border-border px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
+      <header className="border-b border-border px-4 sm:px-4 sm:px-6 py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-md">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12" width={307} height={305} fetchPriority="high" decoding="async" />
           <div className="flex items-center gap-2 sm:gap-3">
@@ -107,12 +107,12 @@ const Landing = () => {
       </header>
 
       {/* Hero */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-32 text-center space-y-10">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-32 text-center space-y-10">
         <div className="space-y-6">
           <span className="inline-block text-xs font-mono uppercase tracking-[0.2em] text-primary px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10">
             AI-Powered Startup Validation
           </span>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.08] tracking-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.08] tracking-tight">
             Pitch Your Startup
             <br />
             <span className="text-primary">to the AI Jury</span>
@@ -149,7 +149,7 @@ const Landing = () => {
               variant="ghost"
               size="lg"
               onClick={() => window.open(DEMO_RESULT_URL, "_blank")}
-              className="font-medium text-sm sm:text-base px-6 w-full sm:w-auto h-12 rounded-[10px] text-muted-foreground hover:text-foreground gap-1.5"
+              className="font-medium text-sm sm:text-base px-4 sm:px-6 w-full sm:w-auto h-12 rounded-[10px] text-muted-foreground hover:text-foreground gap-1.5"
             >
               <ExternalLink className="w-4 h-4" />
               See Live Example
@@ -241,7 +241,7 @@ const Landing = () => {
 
       {/* How It Works */}
       <section id="how-it-works" className="bg-card/60 border-y border-border">
-        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -280,7 +280,7 @@ const Landing = () => {
       </section>
 
       {/* Features */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -313,7 +313,7 @@ const Landing = () => {
 
       {/* Verdict Demo */}
       <section className="bg-card/60 border-y border-border">
-        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -355,7 +355,7 @@ const Landing = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -390,7 +390,7 @@ const Landing = () => {
 
       {/* Pricing */}
       <section className="bg-card/60 border-y border-border">
-        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -435,7 +435,7 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border px-6 py-10">
+      <footer className="border-t border-border px-4 sm:px-6 py-10">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
           <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-32 -my-8 sm:-my-10" width={307} height={305} loading="lazy" decoding="async" />
           <span className="font-light">Validate your idea before you build.</span>

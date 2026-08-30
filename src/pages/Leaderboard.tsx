@@ -143,7 +143,7 @@ export default function Leaderboard() {
         <meta property="og:description" content="Top community-voted startup verdicts and pitches." />
         <meta property="og:url" content="https://www.startupjuryai.com/leaderboard" />
       </Helmet>
-      <header className="border-b border-border px-4 sm:px-6 py-4">
+      <header className="border-b border-border px-4 sm:px-4 sm:px-6 py-4">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img
@@ -170,7 +170,7 @@ export default function Leaderboard() {
         </div>
       </header>
 
-      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Title */}
         <div className="text-center space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center justify-center gap-3">
@@ -285,7 +285,7 @@ export default function Leaderboard() {
         )}
       </main>
 
-      <footer className="border-t border-border px-6 py-6 mt-auto">
+      <footer className="border-t border-border px-4 sm:px-6 py-6 mt-auto">
         <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <span>Powered by</span>
           <button onClick={() => navigate("/")} className="text-primary hover:underline font-semibold">

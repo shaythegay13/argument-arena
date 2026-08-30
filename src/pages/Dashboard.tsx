@@ -146,7 +146,7 @@ const Dashboard = () => {
         <meta property="og:url" content="https://www.startupjuryai.com/dashboard" />
       </Helmet>
       <h1 className="sr-only">Startup Jury Dashboard</h1>
-      <header className="border-b border-border px-4 sm:px-6 py-4 relative">
+      <header className="border-b border-border px-4 sm:px-4 sm:px-6 py-4 relative">
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
             <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 w-auto" width={307} height={305} decoding="async" />
@@ -156,7 +156,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="max-w-[1200px] mx-auto px-6 py-6 sm:py-8 space-y-5">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
         {/* Pro manage button */}
         {!loading && (
           <div className="flex flex-wrap gap-3">
@@ -387,7 +387,7 @@ const Dashboard = () => {
         )}
       </main>
 
-      <footer className="border-t border-border px-6 py-6 mt-auto">
+      <footer className="border-t border-border px-4 sm:px-6 py-6 mt-auto">
         <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <button onClick={() => navigate("/app/terms")} className="hover:text-foreground underline underline-offset-2 transition-colors">
             Terms & Conditions
