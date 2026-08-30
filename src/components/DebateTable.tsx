@@ -155,8 +155,13 @@ export default function DebateTable({
         </span>
       </motion.div>
 
-      {/* Conversation stream */}
-      <div className="space-y-3">
+      {/* Conversation stream — announced as jurors stream in */}
+      <div
+        className="space-y-3"
+        aria-live="polite"
+        aria-busy={isGenerating}
+        aria-label={`Round ${roundNumber} juror statements`}
+      >
         <AnimatePresence mode="popLayout">
           {messagesInOrder.map((message, i) => {
             const persona = personas.find((p) => p.id === message.personaId);
@@ -187,12 +192,22 @@ export default function DebateTable({
 
                 {/* Message bubble */}
                 <div
-                  className={`flex-1 min-w-0 rounded-lg border transition-all cursor-pointer ${
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-label={`${isExpanded ? "Collapse" : "Expand"} ${persona.name}'s statement for round ${roundNumber}`}
+                  className={`flex-1 min-w-0 rounded-lg border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     isExpanded
                       ? `${colors.border} ${colors.glow} bg-card`
                       : "border-border bg-card hover:border-muted-foreground/30"
                   }`}
                   onClick={() => onExpandPersona(isExpanded ? null : persona.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onExpandPersona(isExpanded ? null : persona.id);
+                    }
+                  }}
                 >
                   {/* Bubble header */}
                   <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap">
@@ -229,9 +244,9 @@ export default function DebateTable({
                       )}
                     </p>
                     {!isExpanded && !isNew && message.text.length > 200 && (
-                      <button className="text-xs text-primary mt-1 hover:underline font-medium">
+                      <span aria-hidden="true" className="text-xs text-primary mt-1 font-medium block">
                         Read full response →
-                      </button>
+                      </span>
                     )}
                   </div>
 

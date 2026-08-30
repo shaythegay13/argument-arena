@@ -32,7 +32,7 @@ import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState"
 import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useHostAudio } from "@/hooks/useHostAudio";
 import { useAuth } from "@/hooks/useAuth";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import { useSessionPersistence, getStoredSessionId } from "@/hooks/useSessionPersistence";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle } from "lucide-react";
@@ -176,6 +176,7 @@ const Index = () => {
   // Capture the session and iterate params once at mount
   const sessionParamRef = useRef(searchParams.get("session"));
   const iterateParamRef = useRef(searchParams.get("iterate"));
+  const resumeAttemptedRef = useRef(false);
   const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current || !!iterateParamRef.current);
   const { saveSession, loadSession, resetSessionId, setIteration, ensureSession, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
   // Session-ready gate: rounds may not start until a session row exists.
@@ -204,13 +205,19 @@ const Index = () => {
       });
   }, [user?.id]);
 
-  // Load session from URL parameter — wait for auth to resolve first so userId is available
+  // Load session from URL parameter — or resume the in-progress debate after a refresh.
+  // Waits for auth to resolve first so userId is available.
   useEffect(() => {
-    const sessionId = sessionParamRef.current;
+    if (resumeAttemptedRef.current) return;
     const iterateId = iterateParamRef.current;
-    
+    // A stored id lets a plain page refresh pick the same debate back up.
+    const storedId = iterateId ? null : getStoredSessionId();
+    const sessionId = sessionParamRef.current ?? storedId;
+    const isRefreshResume = !sessionParamRef.current && !!storedId;
+
     if (!sessionId && !iterateId) return;
     if (authLoading) return;
+    resumeAttemptedRef.current = true;
     if (!user?.id) {
       setIsLoadingSession(false);
       setSearchParams({});
@@ -218,6 +225,8 @@ const Index = () => {
       iterateParamRef.current = null;
       return;
     }
+    if (isRefreshResume) setIsLoadingSession(true);
+
 
     // Handle iterate: load the parent session topic but start fresh
     if (iterateId) {
@@ -257,22 +266,36 @@ const Index = () => {
         if (loadedState) {
           setState(loadedState);
           setPanelMode("custom");
+          if (loadedState.rounds.length >= MAX_ROUNDS || loadedState.ratings.length > 0) {
+            setFinalReviewAck(true);
+          }
           for (const round of loadedState.rounds) {
             if (round.messages.length === loadedState.selectedPersonas.length) {
               generateClip(round.roundNumber, loadedState.selectedPersonas, round);
             }
           }
+          if (isRefreshResume) {
+            toast({
+              title: "Debate resumed",
+              description: `Picked up where you left off — Round ${Math.max(loadedState.rounds.length, 1)} of ${MAX_ROUNDS}.`,
+            });
+          }
+        } else if (isRefreshResume) {
+          // The stored id no longer resolves (deleted or different account) — forget it.
+          resetSessionId();
         }
         setSearchParams({});
       })
       .catch((err) => {
         console.error("Failed to load session:", err);
+        if (isRefreshResume) resetSessionId();
         setSearchParams({});
       })
       .finally(() => {
         setIsLoadingSession(false);
       });
-  }, [authLoading, user?.id, loadSession, setSearchParams, generateClip, setIteration, toast]);
+  }, [authLoading, user?.id, loadSession, setSearchParams, generateClip, setIteration, toast, resetSessionId]);
+
 
   const currentRound = state.rounds.find((r) => r.roundNumber === state.currentRoundNumber);
 
