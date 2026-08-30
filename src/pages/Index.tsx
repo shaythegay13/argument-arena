@@ -35,7 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSessionPersistence, getStoredSessionId } from "@/hooks/useSessionPersistence";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle } from "lucide-react";
+import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle, Lock } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import IdeaSubmissionForm from "@/components/IdeaSubmissionForm";
 import VisibilitySelector from "@/components/VisibilitySelector";
