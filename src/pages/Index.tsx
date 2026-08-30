@@ -636,6 +636,12 @@ const Index = () => {
 
     const sid = sessionIdRef.current ?? (await ensureSession(state));
     setCurrentSessionId(sid ?? undefined);
+    if (!sid) {
+      setIsRetryingFailed(false);
+      toast({ title: "Couldn't retry", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+      return;
+    }
+
 
     let recovered = 0;
     try {
