@@ -45,6 +45,7 @@ import VoiceInputButton from "@/components/VoiceInputButton";
 import UpgradeModal from "@/components/UpgradeModal";
 import CreditsHelpModal from "@/components/CreditsHelpModal";
 import GenerationStatusPanel, { type GenStatus, type RoundGenStatus } from "@/components/GenerationStatusPanel";
+import ExportDebateButton from "@/components/ExportDebateButton";
 import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
@@ -120,6 +121,8 @@ const Index = () => {
   const handlersRef = useRef<{ start?: () => void; submit?: (r?: string) => void }>({});
   const [awaitingCredits, setAwaitingCredits] = useState(false);
   const [genRounds, setGenRounds] = useState<RoundGenStatus[]>([]);
+  // Live partial text per juror while their response streams in
+  const [streamingTexts, setStreamingTexts] = useState<Record<string, string>>({});
   const [isRetryingFailed, setIsRetryingFailed] = useState(false);
   // Remembers the pitch response that drove each round, so failed jurors can be retried in context
   const roundResponsesRef = useRef<Record<number, string>>({});
@@ -359,6 +362,7 @@ const Index = () => {
 
     trackEvent("debate_started", { personaCount: personas.length });
 
+    setStreamingTexts({});
     setGenRounds([
       {
         roundNumber: 1,
@@ -380,6 +384,11 @@ const Index = () => {
       personas,
       (personaId, text) => {
         setRoundGen(1, (r) => ({ ...r, personas: { ...r.personas, [personaId]: "succeeded" } }));
+        setStreamingTexts((prev) => {
+          const next = { ...prev };
+          delete next[personaId];
+          return next;
+        });
         setState((prev) => ({
           ...prev,
           generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
@@ -388,6 +397,9 @@ const Index = () => {
       },
       (personaId) => {
         setRoundGen(1, (r) => ({ ...r, personas: { ...r.personas, [personaId]: "failed" } }));
+      },
+      (personaId, partial) => {
+        setStreamingTexts((prev) => ({ ...prev, [personaId]: partial }));
       }
     );
 
@@ -501,6 +513,7 @@ const Index = () => {
         userResponse: "",
       }));
 
+      setStreamingTexts({});
       setRoundGen(nextRoundNum, (r) => ({
         ...r,
         charged: false,
@@ -522,6 +535,11 @@ const Index = () => {
               ...r,
               personas: { ...r.personas, [personaId]: "succeeded" },
             }));
+            setStreamingTexts((prev) => {
+              const next = { ...prev };
+              delete next[personaId];
+              return next;
+            });
             setState((prev) => {
               const existingRound = prev.rounds.find((r) => r.roundNumber === nextRoundNum);
               const updatedMessages = [...(existingRound?.messages ?? []), { personaId, text }];
@@ -543,6 +561,10 @@ const Index = () => {
               ...r,
               personas: { ...r.personas, [personaId]: "failed" },
             }));
+          },
+          undefined,
+          (personaId, partial) => {
+            setStreamingTexts((prev) => ({ ...prev, [personaId]: partial }));
           }
         );
 
@@ -1263,6 +1285,7 @@ const Index = () => {
                   isGenerating={state.isGenerating}
                   ratings={state.ratings}
                   phase={state.phase}
+                  streamingTexts={streamingTexts}
                 />
 
                 <GenerationStatusPanel
@@ -1338,6 +1361,18 @@ const Index = () => {
 
             {state.phase === "judge" && (
               <>
+                <div className="flex justify-end">
+                  <ExportDebateButton
+                    isPro={isPro}
+                    onUpgrade={() => { setUpgradeReason("default"); setShowUpgrade(true); }}
+                    topic={state.topic}
+                    personas={state.selectedPersonas}
+                    rounds={state.rounds}
+                    ratings={state.ratings}
+                    judgeVerdict={state.judgeVerdict}
+                    sessionId={sessionIdRef.current ?? undefined}
+                  />
+                </div>
                 <JudgeVerdictCard
                   verdict={state.judgeVerdict}
                   isGenerating={state.isGeneratingJudge}
