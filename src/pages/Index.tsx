@@ -151,7 +151,7 @@ const Index = () => {
   const sessionParamRef = useRef(searchParams.get("session"));
   const iterateParamRef = useRef(searchParams.get("iterate"));
   const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current || !!iterateParamRef.current);
-  const { saveSession, loadSession, resetSessionId, setIteration, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
+  const { saveSession, loadSession, resetSessionId, setIteration, ensureSession, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
 
   const { toast } = useToast();
   const { isLoadingMemories, storeRoundMemories, getRecentMemories, usingMock, sessionId } =
@@ -360,6 +360,10 @@ const Index = () => {
     ]);
 
     try {
+    // Create the session row first so credit charging is idempotent per session.
+    const newSessionId = await ensureSession({ ...state, selectedPersonas: personas, phase: "debating" } as typeof state);
+    setCurrentSessionId(newSessionId ?? undefined);
+
     const messages = await generateRound1(
       state.topic,
       personas,
@@ -422,7 +426,7 @@ const Index = () => {
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again. No credit was charged.", variant: "destructive" });
     }
-  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription, setRoundGen]);
+  }, [state, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription, setRoundGen, ensureSession]);
 
 
 
@@ -440,6 +444,11 @@ const Index = () => {
       const nextRoundNum = state.rounds.length + 1;
       const previousRound = state.rounds[state.rounds.length - 1];
       const userResponse = overrideResponse ?? state.userResponse;
+
+      // Make sure the billing/session id is attached for follow-up rounds too.
+      const sid = sessionIdRef.current ?? (await ensureSession(state));
+      setCurrentSessionId(sid ?? undefined);
+
 
       emitAgUIEvent({ type: "user_response", content: userResponse, round: state.currentRoundNumber });
 
@@ -552,7 +561,7 @@ const Index = () => {
       }
 
     },
-    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, toast, subscription, setRoundGen]
+    [state, getRecentMemories, storeRoundMemories, generateClip, toast, subscription, setRoundGen, ensureSession, sessionIdRef]
   );
 
   // Keep latest handlers reachable from the credit-resume effect

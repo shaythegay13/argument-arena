@@ -111,6 +111,40 @@ export function useSessionPersistence(userId: string | undefined) {
     [userId]
   );
 
+  // Ensure a session row exists BEFORE any AI generation, so billing has a stable session id.
+  const ensureSession = useCallback(
+    async (state: DebateState): Promise<string | null> => {
+      if (!userId) return null;
+      if (sessionIdRef.current) return sessionIdRef.current;
+
+      const payload: Record<string, any> = {
+        user_id: userId,
+        topic: state.topic,
+        selected_persona_ids: state.selectedPersonas.map((p) => p.id),
+        rounds: [] as any,
+        user_responses: [] as any,
+        ratings: [] as any,
+        phase: "debating",
+      };
+
+      if (iterationRef.current) {
+        payload.parent_session_id = iterationRef.current.parentSessionId;
+        payload.version = iterationRef.current.version;
+      }
+
+      const { data } = await (supabase
+        .from("debate_sessions")
+        .insert(payload as any) as any)
+        .select("id")
+        .single();
+
+      if (data) sessionIdRef.current = (data as any).id;
+      return sessionIdRef.current;
+    },
+    [userId]
+  );
+
+
   const resetSessionId = useCallback(() => {
     sessionIdRef.current = null;
     iterationRef.current = null;
@@ -120,5 +154,5 @@ export function useSessionPersistence(userId: string | undefined) {
     iterationRef.current = { parentSessionId, version };
   }, []);
 
-  return { saveSession, loadSession, resetSessionId, setIteration, sessionId: sessionIdRef };
+  return { saveSession, loadSession, resetSessionId, setIteration, ensureSession, sessionId: sessionIdRef };
 }
