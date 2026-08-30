@@ -12,6 +12,10 @@ import {
   generateAutoResponse,
   setCurrentSessionId,
   isOutOfCreditsError,
+  cancelActiveGenerations,
+  resetCancellation,
+  isCancelledError,
+  extractPartialJudge,
   isMissingSessionError,
   MISSING_SESSION,
   MISSING_SESSION_MESSAGE,
@@ -46,6 +50,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import CreditsHelpModal from "@/components/CreditsHelpModal";
 import GenerationStatusPanel, { type GenStatus, type RoundGenStatus } from "@/components/GenerationStatusPanel";
 import ExportDebateButton from "@/components/ExportDebateButton";
+import SocialShareButton from "@/components/SocialShareButton";
 import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
@@ -123,6 +128,8 @@ const Index = () => {
   const [genRounds, setGenRounds] = useState<RoundGenStatus[]>([]);
   // Live partial text per juror while their response streams in
   const [streamingTexts, setStreamingTexts] = useState<Record<string, string>>({});
+  // Partial judge summary while the Consensus Judge streams its verdict
+  const [judgeStream, setJudgeStream] = useState("");
   const [isRetryingFailed, setIsRetryingFailed] = useState(false);
   // Remembers the pitch response that drove each round, so failed jurors can be retried in context
   const roundResponsesRef = useRef<Record<number, string>>({});
@@ -362,6 +369,7 @@ const Index = () => {
 
     trackEvent("debate_started", { personaCount: personas.length });
 
+    resetCancellation();
     setStreamingTexts({});
     setGenRounds([
       {
@@ -395,8 +403,14 @@ const Index = () => {
           rounds: [{ roundNumber: 1, messages: [...(prev.rounds[0]?.messages ?? []), { personaId, text }] }],
         }));
       },
-      (personaId) => {
-        setRoundGen(1, (r) => ({ ...r, personas: { ...r.personas, [personaId]: "failed" } }));
+      (personaId, err) => {
+        const status: GenStatus = isCancelledError(err) ? "cancelled" : "failed";
+        setRoundGen(1, (r) => ({ ...r, personas: { ...r.personas, [personaId]: status } }));
+        setStreamingTexts((prev) => {
+          const next = { ...prev };
+          delete next[personaId];
+          return next;
+        });
       },
       (personaId, partial) => {
         setStreamingTexts((prev) => ({ ...prev, [personaId]: partial }));
@@ -410,10 +424,18 @@ const Index = () => {
 
     setRoundGen(1, (r) => {
       const personaStatuses = Object.fromEntries(
-        personas.map((p) => [p.id, (r.personas[p.id] === "failed" ? "failed" : "succeeded") as GenStatus])
+        personas.map((p) => {
+          const prev = r.personas[p.id];
+          return [p.id, (prev === "failed" || prev === "cancelled" ? prev : "succeeded") as GenStatus];
+        })
       );
       const anyFailed = Object.values(personaStatuses).some((s) => s === "failed");
-      return { ...r, overall: anyFailed ? "failed" : "succeeded", personas: personaStatuses };
+      const anyCancelled = Object.values(personaStatuses).some((s) => s === "cancelled");
+      return {
+        ...r,
+        overall: anyFailed ? "failed" : anyCancelled ? "cancelled" : "succeeded",
+        personas: personaStatuses,
+      };
     });
 
 
@@ -513,6 +535,7 @@ const Index = () => {
         userResponse: "",
       }));
 
+      resetCancellation();
       setStreamingTexts({});
       setRoundGen(nextRoundNum, (r) => ({
         ...r,
@@ -556,11 +579,17 @@ const Index = () => {
             });
           },
           getRecentMemories,
-          (personaId) => {
+          (personaId, err) => {
+            const status: GenStatus = isCancelledError(err) ? "cancelled" : "failed";
             setRoundGen(nextRoundNum, (r) => ({
               ...r,
-              personas: { ...r.personas, [personaId]: "failed" },
+              personas: { ...r.personas, [personaId]: status },
             }));
+            setStreamingTexts((prev) => {
+              const next = { ...prev };
+              delete next[personaId];
+              return next;
+            });
           },
           undefined,
           (personaId, partial) => {
@@ -582,11 +611,18 @@ const Index = () => {
           const personaStatuses = Object.fromEntries(
             state.selectedPersonas.map((p) => [
               p.id,
-              (r.personas[p.id] === "failed" ? "failed" : "succeeded") as GenStatus,
+              (r.personas[p.id] === "failed" || r.personas[p.id] === "cancelled"
+                ? r.personas[p.id]
+                : "succeeded") as GenStatus,
             ])
           );
           const anyFailed = Object.values(personaStatuses).some((s) => s === "failed");
-          return { ...r, overall: anyFailed ? "failed" : "succeeded", personas: personaStatuses };
+          const anyCancelled = Object.values(personaStatuses).some((s) => s === "cancelled");
+          return {
+            ...r,
+            overall: anyFailed ? "failed" : anyCancelled ? "cancelled" : "succeeded",
+            personas: personaStatuses,
+          };
         });
 
 
@@ -646,7 +682,7 @@ const Index = () => {
     .map((r) => ({
       roundNumber: r.roundNumber,
       personaIds: Object.entries(r.personas)
-        .filter(([, s]) => s === "failed")
+        .filter(([, s]) => s === "failed" || s === "cancelled")
         .map(([id]) => id),
     }))
     .filter((r) => r.personaIds.length > 0);
