@@ -250,9 +250,32 @@ const Index = () => {
 
   const handleStartDebate = useCallback(async () => {
     if (finishedCount >= FREE_LIMIT && !isPro) {
+      setUpgradeReason("out_of_credits");
       setShowUpgrade(true);
       return;
     }
+    // Hard credit gate — a full jury run costs 1 credit, never start a partial run
+    if (!isPro) {
+      let credits = subscription.credits;
+      try {
+        await subscription.checkSubscription();
+      } catch { /* fall back to cached balance */ }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: creditRow } = await supabase
+          .from("user_credits")
+          .select("credits")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (creditRow) credits = creditRow.credits;
+      }
+      if (credits <= 0) {
+        setUpgradeReason("out_of_credits");
+        setShowUpgrade(true);
+        return;
+      }
+    }
+
     if (isPro && finishedCount >= PRO_LIMIT) {
       toast({
         title: "Monthly limit reached",
