@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, Zap, ArrowLeft } from "lucide-react";
+import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import CommunityVote from "@/components/CommunityVote";
-import logo from "@/assets/logo.png";
+import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
 type Tab = "week" | "month" | "all" | "controversial" | "viewed";
@@ -144,32 +143,7 @@ export default function Leaderboard() {
         <meta property="og:description" content="Top community-voted startup verdicts and pitches." />
         <meta property="og:url" content="https://www.startupjuryai.com/leaderboard" />
       </Helmet>
-      <header className="border-b border-border px-4 sm:px-6 py-4">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img
-              src={logo}
-              alt="Startup Jury AI"
-              className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 cursor-pointer w-auto"
-              width={307}
-              height={305}
-              decoding="async"
-              onClick={() => navigate("/")}
-            />
-            <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">/ leaderboard</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1.5 text-muted-foreground">
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back
-            </Button>
-            <Button size="sm" onClick={() => navigate("/auth")} className="rounded-[10px]">
-              <Zap className="w-3.5 h-3.5 mr-1.5" />
-              Try It Free
-            </Button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Title */}

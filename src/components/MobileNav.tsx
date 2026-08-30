@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { useRouterState } from "@tanstack/react-router";
-import { Menu, X, Zap, LayoutDashboard, LogOut, Crown, Trophy } from "lucide-react";
+import { Menu, X, Zap, LayoutDashboard, LogOut, Crown, Trophy, Info, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,6 +23,8 @@ export default function MobileNav({ currentPage, isPro, onUpgradeClick, onNewDeb
   };
 
   const navItems = [
+    { label: "About", icon: Info, path: "/about", onClick: () => navigate("/about") },
+    { label: "Pricing", icon: CreditCard, path: "/pricing", onClick: () => navigate("/pricing") },
     ...(currentPage !== "dashboard"
       ? [{ label: "Dashboard", icon: LayoutDashboard, path: "/dashboard", onClick: () => navigate("/dashboard") }]
       : []),
