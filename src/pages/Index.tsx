@@ -1029,6 +1029,7 @@ const Index = () => {
 
   const handleReset = useCallback(() => {
     resetSessionId();
+    setSessionPrep("idle");
     setState(initialState);
     setAutoDebate(false);
     setIsAutoResponding(false);
@@ -1037,6 +1038,7 @@ const Index = () => {
   const handleRefine = useCallback(() => {
     const currentId = sessionIdRef.current;
     resetSessionId();
+    setSessionPrep("idle");
     if (currentId) {
       // Navigate to iterate mode which loads the topic and sets up version tracking
       navigate(`/debate?iterate=${currentId}`);
@@ -1312,7 +1314,12 @@ const Index = () => {
               disabled={!canStart || state.isGenerating}
               className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
             >
-              {state.isGenerating ? (
+              {sessionPrep === "creating" ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Preparing session…
+                </>
+              ) : state.isGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Starting…
