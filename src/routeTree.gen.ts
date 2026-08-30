@@ -21,6 +21,8 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ApiDebateAiRouteImport } from './routes/api/debate-ai'
+import { Route as ApiElevenlabsTtsRouteImport } from './routes/api/elevenlabs-tts'
 import { Route as AppContactRouteImport } from './routes/app/contact'
 import { Route as AppPrivacyRouteImport } from './routes/app/privacy'
 import { Route as AppTermsRouteImport } from './routes/app/terms'
@@ -86,6 +88,16 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDebateAiRoute = ApiDebateAiRouteImport.update({
+  id: '/api/debate-ai',
+  path: '/api/debate-ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiElevenlabsTtsRoute = ApiElevenlabsTtsRouteImport.update({
+  id: '/api/elevenlabs-tts',
+  path: '/api/elevenlabs-tts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppContactRoute = AppContactRouteImport.update({
   id: '/app/contact',
   path: '/app/contact',
@@ -120,6 +132,8 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/api/debate-ai': typeof ApiDebateAiRoute
+  '/api/elevenlabs-tts': typeof ApiElevenlabsTtsRoute
   '/app/contact': typeof AppContactRoute
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
@@ -138,6 +152,8 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/api/debate-ai': typeof ApiDebateAiRoute
+  '/api/elevenlabs-tts': typeof ApiElevenlabsTtsRoute
   '/app/contact': typeof AppContactRoute
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
@@ -157,6 +173,8 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/api/debate-ai': typeof ApiDebateAiRoute
+  '/api/elevenlabs-tts': typeof ApiElevenlabsTtsRoute
   '/app/contact': typeof AppContactRoute
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
@@ -177,6 +195,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/api/debate-ai'
+    | '/api/elevenlabs-tts'
     | '/app/contact'
     | '/app/privacy'
     | '/app/terms'
@@ -195,6 +215,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/api/debate-ai'
+    | '/api/elevenlabs-tts'
     | '/app/contact'
     | '/app/privacy'
     | '/app/terms'
@@ -213,6 +235,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/api/debate-ai'
+    | '/api/elevenlabs-tts'
     | '/app/contact'
     | '/app/privacy'
     | '/app/terms'
@@ -232,6 +256,8 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
+  ApiDebateAiRoute: typeof ApiDebateAiRoute
+  ApiElevenlabsTtsRoute: typeof ApiElevenlabsTtsRoute
   AppContactRoute: typeof AppContactRoute
   AppPrivacyRoute: typeof AppPrivacyRoute
   AppTermsRoute: typeof AppTermsRoute
@@ -324,6 +350,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/debate-ai': {
+      id: '/api/debate-ai'
+      path: '/api/debate-ai'
+      fullPath: '/api/debate-ai'
+      preLoaderRoute: typeof ApiDebateAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/elevenlabs-tts': {
+      id: '/api/elevenlabs-tts'
+      path: '/api/elevenlabs-tts'
+      fullPath: '/api/elevenlabs-tts'
+      preLoaderRoute: typeof ApiElevenlabsTtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/contact': {
       id: '/app/contact'
       path: '/app/contact'
@@ -368,6 +408,8 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
+  ApiDebateAiRoute: ApiDebateAiRoute,
+  ApiElevenlabsTtsRoute: ApiElevenlabsTtsRoute,
   AppContactRoute: AppContactRoute,
   AppPrivacyRoute: AppPrivacyRoute,
   AppTermsRoute: AppTermsRoute,
