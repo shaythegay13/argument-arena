@@ -27,6 +27,7 @@ import { Route as AppContactRouteImport } from './routes/app/contact'
 import { Route as AppPrivacyRouteImport } from './routes/app/privacy'
 import { Route as AppTermsRouteImport } from './routes/app/terms'
 import { Route as ResultIdRouteImport } from './routes/result/$id'
+import { Route as ApiHealthMetadataRouteImport } from './routes/api/health/metadata'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -118,6 +119,11 @@ const ResultIdRoute = ResultIdRouteImport.update({
   path: '/result/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthMetadataRoute = ApiHealthMetadataRouteImport.update({
+  id: '/api/health/metadata',
+  path: '/api/health/metadata',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/api/health/metadata'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/api/health/metadata'
   id:
     | '__root__'
     | '/'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/api/health/metadata'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -262,6 +274,7 @@ export interface RootRouteChildren {
   AppPrivacyRoute: typeof AppPrivacyRoute
   AppTermsRoute: typeof AppTermsRoute
   ResultIdRoute: typeof ResultIdRoute
+  ApiHealthMetadataRoute: typeof ApiHealthMetadataRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -392,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResultIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health/metadata': {
+      id: '/api/health/metadata'
+      path: '/api/health/metadata'
+      fullPath: '/api/health/metadata'
+      preLoaderRoute: typeof ApiHealthMetadataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -414,6 +434,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppPrivacyRoute: AppPrivacyRoute,
   AppTermsRoute: AppTermsRoute,
   ResultIdRoute: ResultIdRoute,
+  ApiHealthMetadataRoute: ApiHealthMetadataRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
