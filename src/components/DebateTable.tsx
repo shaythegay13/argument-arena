@@ -76,6 +76,8 @@ interface DebateTableProps {
   isGenerating: boolean;
   ratings: PersonaRating[];
   phase: string;
+  /** personaId -> partial text streaming in right now */
+  streamingTexts?: Record<string, string>;
 }
 
 export default function DebateTable({
@@ -89,6 +91,7 @@ export default function DebateTable({
   isGenerating,
   ratings,
   phase,
+  streamingTexts = {},
 }: DebateTableProps) {
   const theme = ROUND_THEMES[roundNumber] || { label: `Round ${roundNumber}`, description: "" };
   const messagesInOrder = currentRound?.messages ?? [];
@@ -112,6 +115,12 @@ export default function DebateTable({
       });
     }
   }, [messagesInOrder, roundNumber]);
+
+  // A juror whose text streamed in live should not be re-animated by the typewriter.
+  const streamedRef = useRef<Set<string>>(new Set());
+  Object.entries(streamingTexts).forEach(([id, text]) => {
+    if (text) streamedRef.current.add(`${roundNumber}-${id}`);
+  });
 
   const markTyped = (key: string) => {
     seenMessagesRef.current.add(key);
@@ -156,7 +165,7 @@ export default function DebateTable({
             const rating = ratings.find((r) => r.personaId === persona.id);
             const isExpanded = expandedPersonaId === persona.id;
             const msgKey = `${roundNumber}-${message.personaId}`;
-            const isNew = newMessageKeys.has(msgKey);
+            const isNew = newMessageKeys.has(msgKey) && !streamedRef.current.has(msgKey);
 
             return (
               <motion.div
@@ -263,9 +272,49 @@ export default function DebateTable({
           })}
         </AnimatePresence>
 
+        {/* Live streaming responses */}
+        <AnimatePresence>
+          {thinkingPersonas
+            .filter((p) => (streamingTexts[p.id] ?? "").length > 0)
+            .map((persona) => {
+              const colors = getPersonaColors(persona.colorKey);
+              return (
+                <motion.div
+                  key={`streaming-${persona.id}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex gap-3 items-start"
+                >
+                  <div
+                    className={`w-10 h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0`}
+                  >
+                    <span className="text-base leading-none">{persona.emoji}</span>
+                  </div>
+                  <div className="flex-1 min-w-0 rounded-lg border border-border bg-card">
+                    <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap">
+                      <span className={`text-sm font-semibold ${colors.text}`}>{persona.name}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">{persona.subtitle}</span>
+                      <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wide text-secondary">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Generating
+                      </span>
+                    </div>
+                    <div className="px-4 pb-3">
+                      <p className="text-sm text-foreground/85 leading-relaxed">
+                        {streamingTexts[persona.id]}
+                        <span className="inline-block w-0.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+        </AnimatePresence>
+
         {/* Thinking indicators with personality */}
         <AnimatePresence>
-          {thinkingPersonas.map((persona, i) => {
+          {thinkingPersonas.filter((p) => !(streamingTexts[p.id] ?? "").length).map((persona, i) => {
             const colors = getPersonaColors(persona.colorKey);
             const thinkingPhrase = THINKING_PHRASES[persona.id] || "thinking…";
             return (
