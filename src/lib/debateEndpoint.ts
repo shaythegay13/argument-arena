@@ -28,7 +28,7 @@ export async function postDebateRequest(
 
   return fetch(DEBATE_ENDPOINT, {
     method: "POST",
-    signal: init?.signal,
+    signal: init?.signal ?? null,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
