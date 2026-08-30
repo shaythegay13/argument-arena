@@ -372,6 +372,8 @@ const Index = () => {
     // Create the session row first so credit charging is idempotent per session.
     const newSessionId = await ensureSession({ ...state, selectedPersonas: personas, phase: "debating" } as typeof state);
     setCurrentSessionId(newSessionId ?? undefined);
+    if (!newSessionId) throw new Error(MISSING_SESSION);
+
 
     const messages = await generateRound1(
       state.topic,
