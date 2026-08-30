@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { useRouterState } from "@tanstack/react-router";
-import { Menu, X, Zap, LayoutDashboard, LogOut, Crown, Trophy, Info, CreditCard } from "lucide-react";
+import { Menu, X, Zap, LayoutDashboard, LogOut, Crown, Trophy, Info, CreditCard, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,6 +30,9 @@ export default function MobileNav({ currentPage, isPro, onUpgradeClick, onNewDeb
       : []),
     ...(currentPage !== "debate"
       ? [{ label: "New Debate", icon: Zap, path: "/debate", onClick: () => (onNewDebate ? onNewDebate() : navigate("/debate")) }]
+      : []),
+    ...(user
+      ? [{ label: "Panelists", icon: Users, path: "/panelists", onClick: () => navigate("/panelists") }]
       : []),
     { label: "Leaderboard", icon: Trophy, path: "/leaderboard", onClick: () => navigate("/leaderboard") },
     { label: "Sign Out", icon: LogOut, path: undefined, onClick: handleSignOut },
