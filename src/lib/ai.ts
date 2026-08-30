@@ -97,7 +97,7 @@ async function callCompletion(
 
       return data?.content ?? "No response generated.";
     } catch (err) {
-      if (isOutOfCreditsError(err)) throw err;
+      if (isOutOfCreditsError(err) || isMissingSessionError(err)) throw err;
       if (attempt >= MAX_RETRIES) throw err;
       console.warn(`[callCompletion] Attempt ${attempt + 1} failed, retrying...`, err);
       await delay(RETRY_BASE_MS * (attempt + 1));
