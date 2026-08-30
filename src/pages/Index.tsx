@@ -364,6 +364,7 @@ const Index = () => {
           judgeVerdict: null,
         }));
         subscription.checkSubscription();
+        pendingCreditActionRef.current = { kind: "start" };
         setUpgradeReason("out_of_credits");
         setShowUpgrade(true);
         return;
