@@ -193,7 +193,21 @@ const Pricing = () => {
             Identify risks, uncover blind spots, and see if your idea actually holds up.
           </p>
         </motion.div>
+
+        {user && !authLoading && (
+          <div className="max-w-md mx-auto rounded-[14px] border border-border bg-card px-5 py-4 text-sm flex flex-col sm:flex-row items-center justify-center gap-2">
+            <span className="text-muted-foreground">Your plan:</span>
+            <span className="font-semibold text-foreground">
+              {isStudio ? "Studio — unlimited" : isPro ? "Pro" : "Free"}
+            </span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">
+              Credits: <span className="font-semibold text-foreground">{isPro ? "Unlimited" : credits}</span>
+            </span>
+          </div>
+        )}
       </section>
+
 
       {/* Value Propositions */}
       <section className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-16">
