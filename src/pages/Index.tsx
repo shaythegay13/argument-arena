@@ -113,6 +113,26 @@ const Index = () => {
   const pendingCreditActionRef = useRef<{ kind: "start" } | { kind: "submit"; response: string } | null>(null);
   const handlersRef = useRef<{ start?: () => void; submit?: (r?: string) => void }>({});
   const [awaitingCredits, setAwaitingCredits] = useState(false);
+  const [genRounds, setGenRounds] = useState<RoundGenStatus[]>([]);
+
+  const setRoundGen = useCallback(
+    (roundNumber: number, updater: (round: RoundGenStatus) => RoundGenStatus) => {
+      setGenRounds((prev) => {
+        const existing = prev.find((r) => r.roundNumber === roundNumber) ?? {
+          roundNumber,
+          charged: false,
+          overall: "queued" as GenStatus,
+          personas: {},
+        };
+        const next = updater(existing);
+        return prev.some((r) => r.roundNumber === roundNumber)
+          ? prev.map((r) => (r.roundNumber === roundNumber ? next : r))
+          : [...prev, next];
+      });
+    },
+    []
+  );
+
 
 
   const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("private");
