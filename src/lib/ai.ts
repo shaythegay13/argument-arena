@@ -61,6 +61,11 @@ async function callCompletion(
           if (res && typeof res.clone === "function") bodyText = await res.clone().text();
         } catch { /* ignore */ }
 
+        if (/MISSING_SESSION/.test(bodyText) || /MISSING_SESSION/.test(msg)) {
+          console.error("[callCompletion] Server rejected request: missing sessionId", bodyText);
+          throw new Error(MISSING_SESSION);
+        }
+
         if (/evaluation credits/i.test(bodyText) || /evaluation credits/i.test(msg)) {
           throw new Error(OUT_OF_CREDITS);
         }
@@ -76,6 +81,9 @@ async function callCompletion(
       }
 
       if (data?.error) {
+        if (/MISSING_SESSION/.test(String(data.error))) {
+          throw new Error(MISSING_SESSION);
+        }
         if (/evaluation credits/i.test(data.error)) {
           throw new Error(OUT_OF_CREDITS);
         }
