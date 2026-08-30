@@ -38,6 +38,7 @@ import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
 import UpgradeModal from "@/components/UpgradeModal";
+import CreditsHelpModal from "@/components/CreditsHelpModal";
 import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
@@ -105,6 +106,8 @@ const Index = () => {
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showCreditsHelp, setShowCreditsHelp] = useState(false);
+
   const [upgradeReason, setUpgradeReason] = useState<"default" | "out_of_credits">("default");
   // Pending work to auto-resume once credits land after the buy-credits flow
   const pendingCreditActionRef = useRef<{ kind: "start" } | { kind: "submit"; response: string } | null>(null);
@@ -870,7 +873,12 @@ const Index = () => {
               </span>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button type="button" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="How credits work">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreditsHelp(true)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="How credits work"
+                  >
                     <HelpCircle className="w-3.5 h-3.5" />
                   </button>
                 </TooltipTrigger>
@@ -880,10 +888,11 @@ const Index = () => {
                     <p>One credit = one full 4-round jury evaluation. All four rounds — opening statements, your defense, and the final verdict — count as a single evaluation.</p>
                     <p>A credit is deducted only when a new jury session starts and the panel successfully responds. If generation fails (an error, AI outage, or empty response), the credit is not charged and your balance stays the same.</p>
                     <p>In-progress sessions never cut off mid-round — once a jury starts, all four rounds run regardless of your balance.</p>
-                    <p className="text-muted-foreground">Pro subscribers get unlimited credits and pay 0 per evaluation.</p>
+                    <p className="text-muted-foreground">Click for full examples.</p>
                   </div>
                 </TooltipContent>
               </Tooltip>
+
               {!isPro && subscription.credits <= 0 && (
                 <button
                   type="button"
@@ -1064,7 +1073,15 @@ const Index = () => {
           </button>
         </div>
       </footer>
+      <CreditsHelpModal
+        open={showCreditsHelp}
+        onOpenChange={setShowCreditsHelp}
+        isPro={subscription.isPro}
+        credits={subscription.credits}
+        onBuyCredits={() => { setUpgradeReason("out_of_credits"); setShowUpgrade(true); }}
+      />
       <UpgradeModal
+
         open={showUpgrade}
         onClose={() => { setShowUpgrade(false); setUpgradeReason("default"); }}
         isPro={subscription.isPro}

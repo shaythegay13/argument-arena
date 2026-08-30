@@ -109,31 +109,62 @@ serve(async (req) => {
     const rounds = (sessionRounds?.rounds as any[]) ?? [];
     const sessionAlreadyStarted = rounds.length > 0;
 
-    // If not pro, no credits, AND this isn't a session that already paid — block
-    if (!isPro && currentCredits <= 0 && !sessionAlreadyStarted) {
-      return new Response(
-        JSON.stringify({
-          error: "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
-        }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    // Idempotent billing: exactly one charge per session id, enforced in the DB.
+    let chargedNow = false;
+    if (!isPro && !sessionAlreadyStarted) {
+      if (!sessionId) {
+        return new Response(JSON.stringify({ error: "Missing sessionId" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: chargeResult, error: chargeError } = await serviceClient.rpc(
+        "consume_evaluation_credit",
+        { p_user_id: user.id, p_session_id: String(sessionId) }
       );
+
+      if (chargeError) {
+        console.error("credit charge failed:", chargeError.message);
+        return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const charge = (chargeResult ?? {}) as {
+        charged?: boolean; already_charged?: boolean; error?: string;
+      };
+
+      if (!charge.charged && !charge.already_charged) {
+        return new Response(
+          JSON.stringify({
+            error: "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
+          }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      chargedNow = Boolean(charge.charged);
     }
 
-    // Deduct credit only on the very first AI call of a new session
-    if (!isPro && !sessionAlreadyStarted) {
-      await serviceClient
-        .from("user_credits")
-        .update({ credits: currentCredits - 1, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id);
-    }
+    const refundIfCharged = async () => {
+      if (!chargedNow || !sessionId) return;
+      chargedNow = false;
+      const { error } = await serviceClient.rpc("refund_evaluation_credit", {
+        p_user_id: user.id, p_session_id: String(sessionId),
+      });
+      if (error) console.error("credit refund failed:", error.message);
+    };
+
 
     // Input validation
     if (typeof systemPrompt !== "string" || systemPrompt.length > MAX_PROMPT_LENGTH) {
+      await refundIfCharged();
       return new Response(JSON.stringify({ error: "Invalid or too long systemPrompt" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (typeof userPrompt !== "string" || userPrompt.length > MAX_PROMPT_LENGTH) {
+      await refundIfCharged();
       return new Response(JSON.stringify({ error: "Invalid or too long userPrompt" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -142,27 +173,42 @@ serve(async (req) => {
     const selectedModel = ALLOWED_MODELS.includes(model) ? model : "google/gemini-3-flash-preview";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("Server configuration error");
+    if (!LOVABLE_API_KEY) {
+      await refundIfCharged();
+      throw new Error("Server configuration error");
+    }
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      }
-    );
+    let response: Response;
+    try {
+      response = await fetch(
+        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+          }),
+        }
+      );
+    } catch (networkError) {
+      console.error("AI gateway network error:", networkError);
+      await refundIfCharged();
+      return new Response(
+        JSON.stringify({ error: "Service temporarily unavailable" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!response.ok) {
+      // The evaluation never produced output — never keep the credit.
+      await refundIfCharged();
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please wait a moment and try again." }),
@@ -183,12 +229,26 @@ serve(async (req) => {
       );
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content ?? "";
+    let content = "";
+    try {
+      const data = await response.json();
+      content = data.choices?.[0]?.message?.content ?? "";
+    } catch (parseError) {
+      console.error("AI gateway parse error:", parseError);
+    }
+
+    if (!content.trim()) {
+      await refundIfCharged();
+      return new Response(
+        JSON.stringify({ error: "The panel returned an empty response. Please try again — no credit was charged." }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(JSON.stringify({ content }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (e) {
     console.error("debate-ai error:", e);
     return new Response(

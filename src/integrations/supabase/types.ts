@@ -65,6 +65,33 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_charges: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          refunded_at: string | null
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          refunded_at?: string | null
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          refunded_at?: string | null
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       debate_sessions: {
         Row: {
           category: string | null
@@ -218,7 +245,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_evaluation_credit: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
       increment_view_count: { Args: { p_id: string }; Returns: undefined }
+      refund_evaluation_credit: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
