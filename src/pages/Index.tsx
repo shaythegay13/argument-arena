@@ -893,25 +893,43 @@ const Index = () => {
 
 
   const handleGenerateRatings = useCallback(async () => {
+    if (gradesInFlightRef.current) return; // guard against double-submit
+    gradesInFlightRef.current = true;
+    setGradesError(null);
     setState((prev) => ({ ...prev, phase: "final-ratings", isGeneratingRatings: true, ratings: [] }));
 
     const lastUserResponse = state.userResponse || "";
-    const ratings = await generateRatingsOnly(
-      state.topic,
-      state.selectedPersonas,
-      state.rounds,
-      lastUserResponse,
-      (_personaId, rating) => {
-        setState((prev) => ({
-          ...prev,
-          ratings: [...prev.ratings, rating],
-        }));
-      },
-      getRecentMemories
-    );
+    try {
+      const ratings = await generateRatingsOnly(
+        state.topic,
+        state.selectedPersonas,
+        state.rounds,
+        lastUserResponse,
+        (_personaId, rating) => {
+          setState((prev) => ({
+            ...prev,
+            ratings: [...prev.ratings, rating],
+          }));
+        },
+        getRecentMemories
+      );
 
-    setState((prev) => ({ ...prev, ratings, isGeneratingRatings: false }));
-  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories]);
+      if (ratings.length === 0) throw new Error("The panel returned no grades.");
+      setState((prev) => ({ ...prev, ratings, isGeneratingRatings: false }));
+    } catch (err) {
+      console.error("[Panel Grades] Error:", err);
+      setGradesError(err instanceof Error ? err.message : "Grading failed. Please try again.");
+      setState((prev) => ({ ...prev, phase: "debating", isGeneratingRatings: false, ratings: [] }));
+      toast({
+        title: "Couldn't get panel grades",
+        description: "Nothing extra was charged. Try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      gradesInFlightRef.current = false;
+    }
+  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, toast]);
+
 
   // Auto-debate: when responses are ready and it's not the last round, auto-generate and submit
   useEffect(() => {
