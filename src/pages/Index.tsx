@@ -44,6 +44,7 @@ import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
 import UserResponsePanel from "@/components/UserResponsePanel";
 import RatingsOverview from "@/components/RatingsOverview";
+import FinalStatementsReview from "@/components/FinalStatementsReview";
 import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
@@ -133,6 +134,12 @@ const Index = () => {
   const [isRetryingFailed, setIsRetryingFailed] = useState(false);
   // Remembers the pitch response that drove each round, so failed jurors can be retried in context
   const roundResponsesRef = useRef<Record<number, string>>({});
+  // Panel-grades flow: single-flight guard, error surface, and final-statements review gate
+  const gradesInFlightRef = useRef(false);
+  const [gradesError, setGradesError] = useState<string | null>(null);
+  const [finalReviewAck, setFinalReviewAck] = useState(false);
+
+
 
 
   const setRoundGen = useCallback(
@@ -893,25 +900,43 @@ const Index = () => {
 
 
   const handleGenerateRatings = useCallback(async () => {
+    if (gradesInFlightRef.current) return; // guard against double-submit
+    gradesInFlightRef.current = true;
+    setGradesError(null);
     setState((prev) => ({ ...prev, phase: "final-ratings", isGeneratingRatings: true, ratings: [] }));
 
     const lastUserResponse = state.userResponse || "";
-    const ratings = await generateRatingsOnly(
-      state.topic,
-      state.selectedPersonas,
-      state.rounds,
-      lastUserResponse,
-      (_personaId, rating) => {
-        setState((prev) => ({
-          ...prev,
-          ratings: [...prev.ratings, rating],
-        }));
-      },
-      getRecentMemories
-    );
+    try {
+      const ratings = await generateRatingsOnly(
+        state.topic,
+        state.selectedPersonas,
+        state.rounds,
+        lastUserResponse,
+        (_personaId, rating) => {
+          setState((prev) => ({
+            ...prev,
+            ratings: [...prev.ratings, rating],
+          }));
+        },
+        getRecentMemories
+      );
 
-    setState((prev) => ({ ...prev, ratings, isGeneratingRatings: false }));
-  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories]);
+      if (ratings.length === 0) throw new Error("The panel returned no grades.");
+      setState((prev) => ({ ...prev, ratings, isGeneratingRatings: false }));
+    } catch (err) {
+      console.error("[Panel Grades] Error:", err);
+      setGradesError(err instanceof Error ? err.message : "Grading failed. Please try again.");
+      setState((prev) => ({ ...prev, phase: "debating", isGeneratingRatings: false, ratings: [] }));
+      toast({
+        title: "Couldn't get panel grades",
+        description: "Nothing extra was charged. Try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      gradesInFlightRef.current = false;
+    }
+  }, [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, toast]);
+
 
   // Auto-debate: when responses are ready and it's not the last round, auto-generate and submit
   useEffect(() => {
@@ -1031,6 +1056,8 @@ const Index = () => {
     resetSessionId();
     setSessionPrep("idle");
     setState(initialState);
+    setGradesError(null);
+    setFinalReviewAck(false);
     setAutoDebate(false);
     setIsAutoResponding(false);
   }, [resetSessionId]);
@@ -1431,24 +1458,64 @@ const Index = () => {
                   </div>
                 )}
 
-                {/* Show "Get Grades" button after round 4 completes */}
+                {/* Round 4 wrap-up: review final statements, then unlock grading */}
                 {allResponsesReady && state.currentRoundNumber >= MAX_ROUNDS && state.phase === "debating" && (
-                  <div className="flex justify-center">
-                    <Button
-                      onClick={() => {
-                        if (state.ratings.length > 0) {
-                          setState((prev) => ({ ...prev, phase: "final-ratings" }));
-                        } else {
-                          handleGenerateRatings();
+                  <div className="space-y-4">
+                    {state.ratings.length === 0 && (
+                      <FinalStatementsReview
+                        personas={state.selectedPersonas}
+                        round={currentRound}
+                        acknowledged={finalReviewAck}
+                        onAcknowledge={() => setFinalReviewAck(true)}
+                      />
+                    )}
+
+                    {gradesError && (
+                      <p role="alert" className="text-sm text-destructive text-center">
+                        {gradesError}
+                      </p>
+                    )}
+
+                    <div className="flex flex-col items-center gap-2">
+                      <Button
+                        onClick={() => {
+                          if (state.ratings.length > 0) {
+                            setState((prev) => ({ ...prev, phase: "final-ratings" }));
+                          } else {
+                            handleGenerateRatings();
+                          }
+                        }}
+                        disabled={
+                          state.isGeneratingRatings ||
+                          (state.ratings.length === 0 && !finalReviewAck)
                         }
-                      }}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      {state.ratings.length > 0 ? "View Panel Grades" : "Get Panel Grades"}
-                    </Button>
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                      >
+                        {state.isGeneratingRatings ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Grading the pitch…
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-4 h-4 mr-2" />
+                            {state.ratings.length > 0
+                              ? "View Panel Grades"
+                              : gradesError
+                              ? "Retry Panel Grades"
+                              : "Get Panel Grades"}
+                          </>
+                        )}
+                      </Button>
+                      {state.ratings.length === 0 && !finalReviewAck && !state.isGeneratingRatings && (
+                        <p className="text-xs text-muted-foreground font-mono">
+                          Review the final statements above to unlock grading.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
+
               </>
             )}
 
