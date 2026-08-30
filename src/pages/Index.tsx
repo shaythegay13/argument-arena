@@ -1232,7 +1232,11 @@ const Index = () => {
                   rounds={genRounds}
                   maxRounds={MAX_ROUNDS}
                   isPro={isPro}
+                  failedCount={failedCount}
+                  isRetrying={isRetryingFailed}
+                  onRetryFailed={handleRetryFailed}
                 />
+
 
 
 
