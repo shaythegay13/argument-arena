@@ -78,11 +78,14 @@ serve(async (req) => {
       });
     }
 
-    const { systemPrompt, userPrompt, model, sessionId, stream } = await req.json();
+    const { systemPrompt, userPrompt, model, sessionId, stream, mode } = await req.json();
     const wantStream = stream === true;
+    // Utility calls (panel routing, completeness hints, host recap script) are not
+    // jury evaluations: they are never billed and need no session row.
+    const isUtility = mode === "utility";
 
     // Structured validation: sessionId is required for idempotent billing.
-    if (typeof sessionId !== "string" || sessionId.trim().length === 0) {
+    if (!isUtility && (typeof sessionId !== "string" || sessionId.trim().length === 0)) {
       console.error("[debate-ai] missing sessionId", { userId: user.id, received: typeof sessionId });
       return new Response(
         JSON.stringify({
@@ -102,6 +105,7 @@ serve(async (req) => {
     }
 
 
+
     // Use service role to check credits
     const serviceClient = createClient(
       supabaseUrl,
@@ -110,19 +114,10 @@ serve(async (req) => {
     );
 
     // Check subscription status
-    const isPro = user.email ? await isUserSubscribed(user.email) : false;
-
-    // Check credits
-    const { data: creditRow } = await serviceClient
-      .from("user_credits")
-      .select("credits")
-      .eq("user_id", user.id)
-      .single();
-
-    const currentCredits = creditRow?.credits ?? 0;
+    const isPro = isUtility ? true : (user.email ? await isUserSubscribed(user.email) : false);
 
     // Check if this session has already started (paid its credit)
-    const { data: sessionRounds } = sessionId ? await serviceClient
+    const { data: sessionRounds } = (!isUtility && sessionId) ? await serviceClient
       .from("debate_sessions")
       .select("rounds")
       .eq("id", sessionId)
@@ -133,7 +128,8 @@ serve(async (req) => {
 
     // Idempotent billing: exactly one charge per session id, enforced in the DB.
     let chargedNow = false;
-    if (!isPro && !sessionAlreadyStarted) {
+    if (!isUtility && !isPro && !sessionAlreadyStarted) {
+
 
 
 

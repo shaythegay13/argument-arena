@@ -204,6 +204,7 @@ function AICompletenessCheck({ form }: { form: IdeaFormData }) {
           systemPrompt: "You are a startup pitch coach. Evaluate the completeness of this startup idea submission. Only the Problem and Solution fields are required. Target Market and Monetization are optional bonus fields — do NOT flag them as missing or needed. If Problem and Solution are clear enough for expert debate, say 'READY' on the first line. If they need improvement, give 2-3 brief bullet points (each under 15 words) about how to improve Problem or Solution only. Be encouraging but honest. Keep total response under 80 words.",
           userPrompt: `Problem: ${form.problem || "(not provided)"}\nSolution: ${form.solution || "(not provided)"}${form.targetMarket ? `\nTarget Market (optional): ${form.targetMarket}` : ""}${form.monetization ? `\nMonetization (optional): ${form.monetization}` : ""}`,
           model: "google/gemini-2.5-flash-lite",
+          mode: "utility",
         },
       });
       if (error) throw error;

@@ -68,6 +68,7 @@ async function selectPanelForIdea(topic: string): Promise<Panel> {
         systemPrompt: `You are a panel routing assistant. Given a startup idea, pick the single best panel. Respond with ONLY the panel id (one of: ${PANELS.map((p) => p.id).join(", ")}). Nothing else.`,
         userPrompt: `Panels:\n${panelDescriptions}\n\nStartup idea: "${topic.slice(0, 500)}"\n\nWhich panel id is the best fit?`,
         model: "google/gemini-2.5-flash-lite",
+        mode: "utility",
       },
     });
 
