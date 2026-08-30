@@ -66,7 +66,9 @@ serve(async (req) => {
     ? `Score: ${score}/100. ${escapeHtml(truncatedTopic)}`
     : escapeHtml(truncatedTopic);
 
-  const siteUrl = `https://startupjury.lovable.app/result/${sessionId}`;
+  const siteUrl = `https://www.startupjuryai.com/result/${sessionId}`;
+  const imageUrl = "https://www.startupjuryai.com/og-verdict.png";
+  const ratingsCount = Array.isArray(data.ratings) ? (data.ratings as unknown[]).length : 8;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -82,10 +84,36 @@ serve(async (req) => {
   <meta property="og:url" content="${siteUrl}" />
   <meta property="og:site_name" content="Startup Jury AI" />
 
+  <meta property="og:image" content="${imageUrl}" />
+  <meta property="og:image:secure_url" content="${imageUrl}" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Startup Jury AI verdict card" />
+
   <!-- Twitter -->
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${title}" />
   <meta name="twitter:description" content="${description}" />
+  <meta name="twitter:image" content="${imageUrl}" />
+  <meta name="twitter:image:alt" content="Startup Jury AI verdict card" />
+
+  <link rel="canonical" href="${siteUrl}" />
+  <script type="application/ld+json">
+  ${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Review",
+    url: siteUrl,
+    name: `${verdictLabel} verdict for ${startupName}`,
+    reviewBody: truncatedTopic,
+    author: { "@type": "Organization", name: "Startup Jury AI" },
+    itemReviewed: { "@type": "Thing", name: startupName },
+    ...(score
+      ? { reviewRating: { "@type": "Rating", ratingValue: score, bestRating: 100, worstRating: 0 } }
+      : {}),
+    ...(ratingsCount ? { positiveNotes: `${ratingsCount} AI jurors` } : {}),
+  })}
+  </script>
 
   <!-- Redirect browsers to the real page -->
   <meta http-equiv="refresh" content="0;url=${siteUrl}" />

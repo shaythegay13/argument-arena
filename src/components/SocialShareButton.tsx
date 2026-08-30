@@ -9,10 +9,12 @@ import {
   Link2,
   Linkedin,
   Loader2,
+  QrCode,
   Share2,
   Twitter,
 } from "lucide-react";
 import html2canvas from "html2canvas";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -58,6 +60,49 @@ const PLATFORMS: {
   { id: "instagram", label: "Instagram", hint: "Caption + hashtags to paste", Icon: Instagram },
   { id: "copy", label: "Just copy", hint: "Plain text, no platform styling", Icon: Copy },
 ];
+
+/** Composer limits and hashtag conventions per network. */
+export const PLATFORM_LIMITS: Record<
+  SocialPlatform,
+  { charLimit: number | null; maxHashtags: number; suggested: string[] }
+> = {
+  x: { charLimit: 280, maxHashtags: 2, suggested: ["#buildinpublic", "#startups"] },
+  linkedin: {
+    charLimit: 3000,
+    maxHashtags: 5,
+    suggested: ["#startups", "#venturecapital", "#founders", "#productstrategy"],
+  },
+  facebook: { charLimit: 63206, maxHashtags: 3, suggested: ["#startup", "#founders"] },
+  reddit: { charLimit: 40000, maxHashtags: 0, suggested: [] },
+  instagram: {
+    charLimit: 2200,
+    maxHashtags: 30,
+    suggested: [
+      "#startup",
+      "#founder",
+      "#startupidea",
+      "#entrepreneur",
+      "#buildinpublic",
+      "#venturecapital",
+      "#startupjuryai",
+    ],
+  },
+  copy: { charLimit: null, maxHashtags: 0, suggested: [] },
+};
+
+const HASHTAG_RE = /#[\p{L}\p{N}_]+/gu;
+
+/** Splits a draft into body text and its trailing hashtags so both stay editable. */
+export function splitCaption(text: string): { body: string; hashtags: string[] } {
+  const hashtags = Array.from(text.match(HASHTAG_RE) ?? []);
+  const body = text.replace(HASHTAG_RE, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  return { body, hashtags };
+}
+
+export function joinCaption(body: string, hashtags: string[]): string {
+  const tags = hashtags.join(" ").trim();
+  return tags ? `${body.trim()}\n\n${tags}` : body.trim();
+}
 
 function shortTopic(topic: string, max = 90) {
   const clean = topic.replace(/\s+/g, " ").trim();
@@ -205,7 +250,10 @@ const SocialShareButton = ({
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<SocialPlatform>("x");
-  const [draft, setDraft] = useState("");
+  const [body, setBody] = useState("");
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [qrUrl, setQrUrl] = useState("");
+  const [qrOpen, setQrOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<"text" | "image">("text");
   const [linkCopied, setLinkCopied] = useState(false);
@@ -218,6 +266,47 @@ const SocialShareButton = ({
   // Square reads better on Instagram/Facebook; wide is the link-preview ratio elsewhere.
   const cardShape: "square" | "wide" =
     platform === "instagram" || platform === "facebook" ? "square" : "wide";
+
+  const limits = PLATFORM_LIMITS[platform];
+  const draft = joinCaption(body, hashtags);
+  const overLimit = limits.charLimit != null && draft.length > limits.charLimit;
+  const overTags = hashtags.length > limits.maxHashtags;
+
+  const setDraft = (text: string) => {
+    const parts = splitCaption(text);
+    setBody(parts.body);
+    setHashtags(parts.hashtags);
+  };
+
+  const toggleHashtag = (tag: string) => {
+    setHashtags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
+
+  /** Renders the permalink as a scannable QR so it can be shared offline. */
+  const buildQr = async () => {
+    try {
+      const url = await ensurePermalink(sessionId);
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 640,
+        margin: 2,
+        errorCorrectionLevel: "M",
+        color: { dark: "#0f172aff", light: "#ffffffff" },
+      });
+      setQrUrl(dataUrl);
+      setQrOpen(true);
+      trackEvent("verdict_card_shared", { sessionId, method: "qr" });
+    } catch {
+      toast({ title: "Couldn't generate the QR code", variant: "destructive" });
+    }
+  };
+
+  const downloadQr = () => {
+    if (!qrUrl) return;
+    const a = document.createElement("a");
+    a.href = qrUrl;
+    a.download = `startup-jury-permalink-qr.png`;
+    a.click();
+  };
 
   /** Makes the transcript publicly viewable, then puts the permalink on the clipboard. */
   const copyPermalink = async () => {
@@ -511,33 +600,115 @@ const SocialShareButton = ({
             </div>
           )}
 
-          {tab === "text" && (
-          <><Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={10}
-            className="text-xs font-sans leading-relaxed bg-muted/20"
-          />
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Caption
+            </label>
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={8}
+              className="text-xs font-sans leading-relaxed bg-muted/20"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                Hashtags
+              </label>
+              <span
+                className={`text-[10px] font-mono ${
+                  overTags ? "text-destructive" : "text-muted-foreground"
+                }`}
+              >
+                {hashtags.length}/{limits.maxHashtags} recommended for {activeMeta.label}
+              </span>
+            </div>
+            <Textarea
+              value={hashtags.join(" ")}
+              onChange={(e) =>
+                setHashtags((e.target.value.match(/#[\p{L}\p{N}_]+/gu) ?? []) as string[])
+              }
+              rows={2}
+              placeholder={limits.maxHashtags === 0 ? "This network reads better without hashtags" : "#startups #founders"}
+              className="text-xs font-mono leading-relaxed bg-muted/20"
+            />
+            {limits.suggested.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {limits.suggested.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => toggleHashtag(tag)}
+                    className={`rounded-full border px-2 py-0.5 text-[10px] font-mono transition-colors ${
+                      hashtags.includes(tag)
+                        ? "border-primary/60 bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <span className="text-[10px] font-mono text-muted-foreground">
-              {draft.length} characters
-              {platform === "x" && draft.length > 280 ? " · over X's limit" : ""}
+            <span
+              className={`text-[10px] font-mono ${
+                overLimit ? "text-destructive" : "text-muted-foreground"
+              }`}
+            >
+              {draft.length}
+              {limits.charLimit != null ? ` / ${limits.charLimit}` : ""} characters
+              {overLimit ? ` · over ${activeMeta.label}'s limit` : ""}
             </span>
             <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={buildQr} title="QR code for the permalink">
+                <QrCode className="w-3.5 h-3.5" />
+              </Button>
               <Button variant="outline" size="sm" onClick={copyDraft}>
                 {copied ? <Check className="w-3.5 h-3.5 mr-2" /> : <Copy className="w-3.5 h-3.5 mr-2" />}
                 {copied ? "Copied" : "Copy"}
               </Button>
-              {platform !== "copy" && (
+              {platform !== "copy" && tab === "text" && (
                 <Button size="sm" onClick={postNow}>
                   <activeMeta.Icon className="w-3.5 h-3.5 mr-2" />
                   {platform === "instagram" ? "Copy caption" : `Post to ${activeMeta.label}`}
                 </Button>
               )}
             </div>
-          </div></>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="max-w-xs bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-mono uppercase tracking-wide text-sm">
+              Permalink QR code
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Scan to open this transcript — works on slides, printouts, or a phone across the table.
+            </DialogDescription>
+          </DialogHeader>
+          {qrUrl && (
+            <img
+              src={qrUrl}
+              alt="QR code linking to the debate permalink"
+              width={640}
+              height={640}
+              className="w-full max-w-[240px] mx-auto rounded-lg bg-white p-2"
+            />
           )}
+          <p className="text-[10px] font-mono text-muted-foreground break-all text-center">
+            {shareUrl}
+          </p>
+          <Button size="sm" variant="outline" onClick={downloadQr}>
+            <Download className="w-3.5 h-3.5 mr-2" />
+            Download QR PNG
+          </Button>
         </DialogContent>
       </Dialog>
     </>
