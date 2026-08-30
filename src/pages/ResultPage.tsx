@@ -168,10 +168,24 @@ export default function ResultPage() {
     return { persona, rating: r };
   });
 
+  // Head metadata for link previews (Googlebot reads these; crawlers that don't
+  // run JS get the same data from the og-result edge function).
+  const permalink = `https://www.startupjuryai.com/result/${id}`;
+  const startupName = session.topic.replace(/\s+/g, " ").trim().slice(0, 60);
+  const metaTitle = `${verdict?.verdict ?? "Verdict"} — ${startupName || "Startup idea"} | Startup Jury AI`;
+  const metaDescription = (
+    verdict
+      ? `Verdict: ${verdict.verdict} · ${verdict.overallScore}/10 · ${verdict.percentile}th percentile. ${session.topic}`
+      : session.topic
+  )
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 155);
+
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>{`${verdict?.verdict ?? "Verdict"} — ${startupName || "Startup idea"} | Startup Jury AI`}</title>
+        <title>{metaTitle}</title>
         <meta
           name="description"
           content={metaDescription}
@@ -179,14 +193,14 @@ export default function ResultPage() {
         <link rel="canonical" href={permalink} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="Startup Jury AI" />
-        <meta property="og:title" content={`${verdict?.verdict ?? "Verdict"} — ${startupName || "Startup idea"} | Startup Jury AI`} />
+        <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />
         <meta property="og:url" content={permalink} />
         <meta property="og:image" content="https://www.startupjuryai.com/og-verdict.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${verdict?.verdict ?? "Verdict"} — ${startupName || "Startup idea"} | Startup Jury AI`} />
+        <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content="https://www.startupjuryai.com/og-verdict.png" />
       </Helmet>
