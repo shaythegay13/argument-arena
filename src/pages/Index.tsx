@@ -374,8 +374,12 @@ const Index = () => {
           generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
           rounds: [{ roundNumber: 1, messages: [...(prev.rounds[0]?.messages ?? []), { personaId, text }] }],
         }));
+      },
+      (personaId) => {
+        setRoundGen(1, (r) => ({ ...r, personas: { ...r.personas, [personaId]: "failed" } }));
       }
     );
+
 
     const responseMap: Record<string, string> = {};
     messages.forEach((m) => { responseMap[m.personaId] = m.text; });
