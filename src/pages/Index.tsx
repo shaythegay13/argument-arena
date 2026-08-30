@@ -779,6 +779,28 @@ const Index = () => {
               </label>
             </div>
 
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-mono">
+              <span className="text-muted-foreground">
+                Remaining credits:{" "}
+                <span className={`font-semibold ${isPro ? "text-primary" : subscription.credits > 0 ? "text-foreground" : "text-destructive"}`}>
+                  {isPro ? "Unlimited (Pro)" : subscription.credits}
+                </span>
+              </span>
+              <span className="text-muted-foreground">
+                Cost: <span className="font-semibold text-foreground">{isPro ? "0" : "1"} credit</span> for the full 4-round jury (0 per round)
+              </span>
+              {!isPro && subscription.credits <= 0 && (
+                <button
+                  type="button"
+                  onClick={() => { setUpgradeReason("out_of_credits"); setShowUpgrade(true); }}
+                  className="text-primary underline underline-offset-2"
+                >
+                  Buy credits
+                </button>
+              )}
+            </div>
+
+
             <Button
               onClick={handleStartDebate}
               disabled={!canStart || state.isGenerating}
