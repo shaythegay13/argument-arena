@@ -38,6 +38,7 @@ import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
 import UpgradeModal from "@/components/UpgradeModal";
+import CreditsHelpModal from "@/components/CreditsHelpModal";
 import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
