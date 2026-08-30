@@ -202,6 +202,8 @@ export default function JudgeVerdictCard({
   ratings = [],
   personas = [],
   topic = "",
+  isPro = false,
+  onUpgrade,
 }: JudgeVerdictCardProps) {
   const [revealed, setRevealed] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
