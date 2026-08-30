@@ -155,8 +155,13 @@ export default function DebateTable({
         </span>
       </motion.div>
 
-      {/* Conversation stream */}
-      <div className="space-y-3">
+      {/* Conversation stream — announced as jurors stream in */}
+      <div
+        className="space-y-3"
+        aria-live="polite"
+        aria-busy={isGenerating}
+        aria-label={`Round ${roundNumber} juror statements`}
+      >
         <AnimatePresence mode="popLayout">
           {messagesInOrder.map((message, i) => {
             const persona = personas.find((p) => p.id === message.personaId);
