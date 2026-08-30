@@ -1058,6 +1058,15 @@ const Index = () => {
                   phase={state.phase}
                 />
 
+                <GenerationStatusPanel
+                  personas={state.selectedPersonas}
+                  rounds={genRounds}
+                  maxRounds={MAX_ROUNDS}
+                  isPro={isPro}
+                />
+
+
+
                 {clips[state.currentRoundNumber] && (
                   <HostVideoPlayer
                     clipUrl={clips[state.currentRoundNumber].audioUrl}
