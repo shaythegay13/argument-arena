@@ -600,8 +600,7 @@ const SocialShareButton = ({
             </div>
           )}
 
-          {tab === "text" && (
-          <><div className="space-y-1.5">
+          <div className="space-y-1.5">
             <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               Caption
             </label>
@@ -666,19 +665,50 @@ const SocialShareButton = ({
               {overLimit ? ` · over ${activeMeta.label}'s limit` : ""}
             </span>
             <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={buildQr} title="QR code for the permalink">
+                <QrCode className="w-3.5 h-3.5" />
+              </Button>
               <Button variant="outline" size="sm" onClick={copyDraft}>
                 {copied ? <Check className="w-3.5 h-3.5 mr-2" /> : <Copy className="w-3.5 h-3.5 mr-2" />}
                 {copied ? "Copied" : "Copy"}
               </Button>
-              {platform !== "copy" && (
+              {platform !== "copy" && tab === "text" && (
                 <Button size="sm" onClick={postNow}>
                   <activeMeta.Icon className="w-3.5 h-3.5 mr-2" />
                   {platform === "instagram" ? "Copy caption" : `Post to ${activeMeta.label}`}
                 </Button>
               )}
             </div>
-          </div></>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="max-w-xs bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-mono uppercase tracking-wide text-sm">
+              Permalink QR code
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Scan to open this transcript — works on slides, printouts, or a phone across the table.
+            </DialogDescription>
+          </DialogHeader>
+          {qrUrl && (
+            <img
+              src={qrUrl}
+              alt="QR code linking to the debate permalink"
+              width={640}
+              height={640}
+              className="w-full max-w-[240px] mx-auto rounded-lg bg-white p-2"
+            />
           )}
+          <p className="text-[10px] font-mono text-muted-foreground break-all text-center">
+            {shareUrl}
+          </p>
+          <Button size="sm" variant="outline" onClick={downloadQr}>
+            <Download className="w-3.5 h-3.5 mr-2" />
+            Download QR PNG
+          </Button>
         </DialogContent>
       </Dialog>
     </>
