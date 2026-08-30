@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from "@/lib/router-compat";
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { PERSONAS } from "@/data/personas";
