@@ -105,6 +105,12 @@ export function useSessionPersistence(userId: string | undefined) {
 
       // Set the session ID so future saves update this session
       sessionIdRef.current = sessionId;
+
+      return state;
+    },
+    [userId]
+  );
+
   // Ensure a session row exists BEFORE any AI generation, so billing has a stable session id.
   const ensureSession = useCallback(
     async (state: DebateState): Promise<string | null> => {
@@ -138,11 +144,6 @@ export function useSessionPersistence(userId: string | undefined) {
     [userId]
   );
 
-
-      return state;
-    },
-    [userId]
-  );
 
   const resetSessionId = useCallback(() => {
     sessionIdRef.current = null;
