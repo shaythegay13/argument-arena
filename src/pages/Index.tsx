@@ -1553,7 +1553,8 @@ const Index = () => {
 
             {state.phase === "judge" && (
               <>
-                <div className="flex justify-end gap-2 flex-wrap">
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:flex-wrap">
+                  <ReadOnlyLinkButton sessionId={sessionIdRef.current ?? undefined} />
                   <SocialShareButton
                     topic={state.topic}
                     verdict={state.judgeVerdict}
