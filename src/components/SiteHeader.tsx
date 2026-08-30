@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, X, Zap, Trophy, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, Zap, Trophy, LogOut, LayoutDashboard, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +31,7 @@ export default function SiteHeader() {
 
   const authedItems = [
     { label: "Dashboard", icon: LayoutDashboard, onClick: () => navigate("/dashboard") },
+    { label: "Panelists", icon: Users, onClick: () => navigate("/panelists") },
     { label: "New Debate", icon: Zap, onClick: () => navigate("/debate") },
     { label: "Leaderboard", icon: Trophy, onClick: () => navigate("/leaderboard") },
     { label: "Sign Out", icon: LogOut, onClick: handleSignOut },
