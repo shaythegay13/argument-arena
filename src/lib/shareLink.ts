@@ -33,3 +33,25 @@ export async function ensurePermalink(sessionId?: string | null): Promise<string
   }
   return url;
 }
+
+/** The 1200x630 image every link-preview crawler fetches for a result page. */
+export const OG_IMAGE_URL = `${PUBLIC_SITE_URL}/og-verdict.png`;
+
+/**
+ * Crawler-safe share URL. Link-preview bots (LinkedIn, Slack, Facebook, X) do not
+ * run JavaScript, so they can't read the SPA's per-route head. This URL is
+ * server-rendered with the session's real OG/Twitter tags and 302-redirects
+ * real browsers to /result/<id>.
+ */
+export function crawlerShareLinkFor(sessionId?: string | null): string {
+  if (!sessionId) return permalinkFor(sessionId);
+  const base = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  if (!base) return permalinkFor(sessionId);
+  return `${base.replace(/\/$/, "")}/functions/v1/og-result/${sessionId}`;
+}
+
+/** Makes the session public and returns the crawler-safe link used inside posts. */
+export async function ensureShareLink(sessionId?: string | null): Promise<string> {
+  await ensurePermalink(sessionId);
+  return crawlerShareLinkFor(sessionId);
+}
