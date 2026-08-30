@@ -1,0 +1,26 @@
+{
+  "customizations": [
+    { "token": "--background/--foreground navy theme values", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--card/--card-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--popover/--popover-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--primary (Jury Orange) + foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--secondary + foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--muted/--muted-foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--accent (Tech Blue) + foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--destructive + foreground", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--border/--input/--ring", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--radius 0.875rem", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--verdict-go/--verdict-maybe/--verdict-nogo", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "16 persona accent variables (--persona-*)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "--stage-glow/--stage-spotlight", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "8 sidebar variables (--sidebar-*)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "Google Fonts import (Inter + JetBrains Mono)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "base layer typography (body/code/headings font rules)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": ".stage-glow utility", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "16 .persona-glow-* utilities", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "16 .text-persona-* utilities", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "16 .bg-persona-* utilities", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "6 verdict color utilities (.verdict-* / .bg-verdict-*)", "source": "src/index.css", "reappliedIn": "src/styles.css" },
+    { "token": "@media print PDF-export styles", "source": "src/index.css", "reappliedIn": "src/styles.css" }
+  ]
+}

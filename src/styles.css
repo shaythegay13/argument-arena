@@ -1,0 +1,256 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition — Startup Jury AI "VC Boardroom" theme.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * Semantic tokens keep their original HSL values from the Classic theme.
+ * Persona / verdict / stage tokens stay as raw HSL triplets because the
+ * custom utilities below consume them via hsl(var(--x) / alpha).
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* Deep Navy – authority, credibility */
+  --background: hsl(222 47% 11%);
+  --foreground: hsl(0 0% 100%);
+
+  /* Dark Slate – cards, panels */
+  --card: hsl(217 33% 17%);
+  --card-foreground: hsl(0 0% 100%);
+
+  --popover: hsl(217 33% 17%);
+  --popover-foreground: hsl(0 0% 100%);
+
+  /* Jury Orange – energy, momentum */
+  --primary: hsl(25 95% 53%);
+  --primary-foreground: hsl(0 0% 100%);
+
+  /* Dark Slate secondary */
+  --secondary: hsl(217 33% 17%);
+  --secondary-foreground: hsl(214 32% 91%);
+
+  /* Muted tones */
+  --muted: hsl(217 33% 17%);
+  --muted-foreground: hsl(215 16% 65%);
+
+  /* Tech Blue – intelligence, innovation */
+  --accent: hsl(199 89% 60%);
+  --accent-foreground: hsl(222 47% 11%);
+
+  /* Verdict Red */
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  /* Borders & Input – subtle slate */
+  --border: hsl(217 24% 22%);
+  --input: hsl(217 24% 22%);
+  --ring: hsl(25 95% 53%);
+
+  /* Sidebar */
+  --sidebar: hsl(222 47% 9%);
+  --sidebar-foreground: hsl(0 0% 100%);
+  --sidebar-primary: hsl(25 95% 53%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(217 33% 17%);
+  --sidebar-accent-foreground: hsl(214 32% 91%);
+  --sidebar-border: hsl(217 24% 22%);
+  --sidebar-ring: hsl(25 95% 53%);
+
+  /* Verdict colors (raw HSL triplets, consumed via hsl(var(--x))) */
+  --verdict-go: 142 71% 45%;
+  --verdict-maybe: 38 92% 50%;
+  --verdict-nogo: 0 84% 60%;
+
+  /* Persona accent colors — original 8 */
+  --persona-angel: 25 95% 53%;
+  --persona-vc: 199 89% 60%;
+  --persona-customer: 142 71% 45%;
+  --persona-operator: 142 60% 50%;
+  --persona-skeptic: 0 84% 60%;
+  --persona-quant: 215 16% 65%;
+  --persona-insider: 25 75% 50%;
+  --persona-visionary: 280 55% 55%;
+
+  /* Persona accent colors — new 8 */
+  --persona-accelerator: 45 90% 50%;
+  --persona-growth: 330 70% 55%;
+  --persona-scout: 170 60% 45%;
+  --persona-strategist: 220 50% 55%;
+  --persona-marketplace: 15 80% 55%;
+  --persona-ux: 300 50% 60%;
+  --persona-tech: 190 70% 50%;
+  --persona-institutional: 250 45% 55%;
+
+  /* Stage glow */
+  --stage-glow: 25 95% 53%;
+  --stage-spotlight: 0 0% 100%;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+  }
+
+  code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+  }
+}
+
+@layer utilities {
+  .stage-glow {
+    box-shadow: 0 0 40px -10px hsl(var(--stage-glow) / 0.15),
+                0 0 80px -20px hsl(var(--stage-glow) / 0.08);
+  }
+
+  .persona-glow-angel { border-color: hsl(var(--persona-angel) / 0.4); }
+  .persona-glow-vc { border-color: hsl(var(--persona-vc) / 0.4); }
+  .persona-glow-customer { border-color: hsl(var(--persona-customer) / 0.4); }
+  .persona-glow-operator { border-color: hsl(var(--persona-operator) / 0.4); }
+  .persona-glow-skeptic { border-color: hsl(var(--persona-skeptic) / 0.4); }
+  .persona-glow-quant { border-color: hsl(var(--persona-quant) / 0.4); }
+  .persona-glow-insider { border-color: hsl(var(--persona-insider) / 0.4); }
+  .persona-glow-visionary { border-color: hsl(var(--persona-visionary) / 0.4); }
+  .persona-glow-accelerator { border-color: hsl(var(--persona-accelerator) / 0.4); }
+  .persona-glow-growth { border-color: hsl(var(--persona-growth) / 0.4); }
+  .persona-glow-scout { border-color: hsl(var(--persona-scout) / 0.4); }
+  .persona-glow-strategist { border-color: hsl(var(--persona-strategist) / 0.4); }
+  .persona-glow-marketplace { border-color: hsl(var(--persona-marketplace) / 0.4); }
+  .persona-glow-ux { border-color: hsl(var(--persona-ux) / 0.4); }
+  .persona-glow-tech { border-color: hsl(var(--persona-tech) / 0.4); }
+  .persona-glow-institutional { border-color: hsl(var(--persona-institutional) / 0.4); }
+
+  .text-persona-angel { color: hsl(var(--persona-angel)); }
+  .text-persona-vc { color: hsl(var(--persona-vc)); }
+  .text-persona-customer { color: hsl(var(--persona-customer)); }
+  .text-persona-operator { color: hsl(var(--persona-operator)); }
+  .text-persona-skeptic { color: hsl(var(--persona-skeptic)); }
+  .text-persona-quant { color: hsl(var(--persona-quant)); }
+  .text-persona-insider { color: hsl(var(--persona-insider)); }
+  .text-persona-visionary { color: hsl(var(--persona-visionary)); }
+  .text-persona-accelerator { color: hsl(var(--persona-accelerator)); }
+  .text-persona-growth { color: hsl(var(--persona-growth)); }
+  .text-persona-scout { color: hsl(var(--persona-scout)); }
+  .text-persona-strategist { color: hsl(var(--persona-strategist)); }
+  .text-persona-marketplace { color: hsl(var(--persona-marketplace)); }
+  .text-persona-ux { color: hsl(var(--persona-ux)); }
+  .text-persona-tech { color: hsl(var(--persona-tech)); }
+  .text-persona-institutional { color: hsl(var(--persona-institutional)); }
+
+  .bg-persona-angel { background-color: hsl(var(--persona-angel) / 0.12); }
+  .bg-persona-vc { background-color: hsl(var(--persona-vc) / 0.12); }
+  .bg-persona-customer { background-color: hsl(var(--persona-customer) / 0.12); }
+  .bg-persona-operator { background-color: hsl(var(--persona-operator) / 0.12); }
+  .bg-persona-skeptic { background-color: hsl(var(--persona-skeptic) / 0.12); }
+  .bg-persona-quant { background-color: hsl(var(--persona-quant) / 0.12); }
+  .bg-persona-insider { background-color: hsl(var(--persona-insider) / 0.12); }
+  .bg-persona-visionary { background-color: hsl(var(--persona-visionary) / 0.12); }
+  .bg-persona-accelerator { background-color: hsl(var(--persona-accelerator) / 0.12); }
+  .bg-persona-growth { background-color: hsl(var(--persona-growth) / 0.12); }
+  .bg-persona-scout { background-color: hsl(var(--persona-scout) / 0.12); }
+  .bg-persona-strategist { background-color: hsl(var(--persona-strategist) / 0.12); }
+  .bg-persona-marketplace { background-color: hsl(var(--persona-marketplace) / 0.12); }
+  .bg-persona-ux { background-color: hsl(var(--persona-ux) / 0.12); }
+  .bg-persona-tech { background-color: hsl(var(--persona-tech) / 0.12); }
+  .bg-persona-institutional { background-color: hsl(var(--persona-institutional) / 0.12); }
+
+  /* Verdict utilities */
+  .verdict-go { color: hsl(var(--verdict-go)); }
+  .verdict-maybe { color: hsl(var(--verdict-maybe)); }
+  .verdict-nogo { color: hsl(var(--verdict-nogo)); }
+  .bg-verdict-go { background-color: hsl(var(--verdict-go)); }
+  .bg-verdict-maybe { background-color: hsl(var(--verdict-maybe)); }
+  .bg-verdict-nogo { background-color: hsl(var(--verdict-nogo)); }
+}
+
+/* Print styles for PDF export */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  header, footer, nav,
+  button, .no-print,
+  [data-no-print] {
+    display: none !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .rounded-\[14px\],
+  .rounded-\[10px\] {
+    break-inside: avoid;
+  }
+
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+}
