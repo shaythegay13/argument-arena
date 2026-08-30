@@ -171,7 +171,24 @@ export default function ResultPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <link rel="canonical" href={`https://www.startupjuryai.com/result/${id}`} />
+        <title>{`${verdict?.verdict ?? "Verdict"} — ${startupName || "Startup idea"} | Startup Jury AI`}</title>
+        <meta
+          name="description"
+          content={metaDescription}
+        />
+        <link rel="canonical" href={permalink} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Startup Jury AI" />
+        <meta property="og:title" content={`${verdict?.verdict ?? "Verdict"} — ${startupName || "Startup idea"} | Startup Jury AI`} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:url" content={permalink} />
+        <meta property="og:image" content="https://www.startupjuryai.com/og-verdict.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${verdict?.verdict ?? "Verdict"} — ${startupName || "Startup idea"} | Startup Jury AI`} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content="https://www.startupjuryai.com/og-verdict.png" />
       </Helmet>
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-4">
