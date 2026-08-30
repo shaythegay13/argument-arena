@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, Loader2, Mail } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { z } from "zod";
+import { submitContactMessage } from "@/lib/contact.functions";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be under 100 characters"),
@@ -143,21 +144,19 @@ export default function ContactPage() {
           >
             {sending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : user ? (
-              <Send className="w-4 h-4 mr-2" />
             ) : (
-              <Mail className="w-4 h-4 mr-2" />
+              <Send className="w-4 h-4 mr-2" />
             )}
-            {user ? "Send Message" : "Send via Email"}
+            {sending ? "Sending…" : "Send Message"}
           </Button>
 
           {!loading && !user && (
             <p className="text-xs text-muted-foreground text-center">
-              Prefer in-app support?{" "}
+              You can send this without an account.{" "}
               <button type="button" onClick={() => navigate("/auth")} className="text-primary hover:underline">
                 Sign in
               </button>{" "}
-              to send and track your message, or email us at{" "}
+              to track your messages, or email us directly at{" "}
               <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">{SUPPORT_EMAIL}</a>.
             </p>
           )}
