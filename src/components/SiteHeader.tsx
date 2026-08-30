@@ -44,55 +44,11 @@ export default function SiteHeader() {
           <img src={logo} alt="Startup Jury AI" className="h-28 sm:h-40 md:h-48 -my-8 sm:-my-12 w-auto" width={307} height={305} fetchPriority="high" decoding="async" />
         </Link>
 
-        {/* Desktop nav */}
-        <nav aria-label="Main" className="hidden sm:flex items-center gap-2 sm:gap-3">
-          {publicLinks.map((l) => (
-            <Link
-              key={l.label}
-              to={l.href}
-              aria-current={pathname === l.href ? "page" : undefined}
-              className={`text-xs sm:text-sm transition-colors px-2 py-1.5 ${
-                pathname === l.href ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
-          {loading ? (
-            <div
-              className="flex items-center gap-2"
-              role="status"
-              aria-live="polite"
-              aria-label="Checking your session"
-              data-testid="header-auth-loading"
-            >
-              <span className="h-8 w-20 rounded-[10px] bg-muted/60 animate-pulse" />
-              <span className="h-8 w-24 rounded-[10px] bg-muted/60 animate-pulse" />
-            </div>
-          ) : user ? (
-            authedItems.map((item) => (
-              <Button key={item.label} variant="ghost" size="sm" onClick={item.onClick} className="text-muted-foreground hover:text-foreground text-xs sm:text-sm">
-                <item.icon className="w-4 h-4 mr-1.5" aria-hidden="true" />
-                {item.label}
-              </Button>
-            ))
-          ) : (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="text-muted-foreground hover:text-foreground text-xs sm:text-sm">
-                Sign In
-              </Button>
-              <Button size="sm" onClick={() => navigate("/auth")} className="font-semibold text-xs sm:text-sm rounded-[10px]">
-                Get Started
-              </Button>
-            </>
-          )}
-        </nav>
-
-        {/* Mobile hamburger */}
+        {/* Hamburger menu — all header actions live in the dropdown at every screen size */}
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground sm:hidden"
+          className="text-muted-foreground"
           onClick={() => setOpen(!open)}
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
@@ -102,12 +58,12 @@ export default function SiteHeader() {
         </Button>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Dropdown menu */}
       {open && (
         <nav
           id="site-header-mobile-menu"
-          aria-label="Mobile"
-          className="absolute top-full left-0 right-0 z-50 border-b border-border bg-card sm:hidden"
+          aria-label="Site menu"
+          className="absolute top-full right-2 sm:right-4 z-50 w-64 rounded-xl border border-border bg-card shadow-xl shadow-black/20"
         >
           <div className="px-4 py-2 space-y-1">
             {publicLinks.map((l) => (
@@ -124,7 +80,7 @@ export default function SiteHeader() {
               </Link>
             ))}
             {loading ? (
-              <div className="px-3 py-3" role="status" aria-live="polite" aria-label="Checking your session">
+              <div className="px-3 py-3" role="status" aria-live="polite" aria-label="Checking your session" data-testid="header-auth-loading">
                 <span className="block h-5 w-28 rounded bg-muted/60 animate-pulse" />
               </div>
             ) : user ? (

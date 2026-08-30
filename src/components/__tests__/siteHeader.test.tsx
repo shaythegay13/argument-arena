@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 const mockAuth = vi.fn();
@@ -20,11 +20,15 @@ vi.mock("@tanstack/react-router", () => ({
   useRouterState: ({ select }: { select: (s: unknown) => unknown }) =>
     select({ location: { pathname: currentPath.value } }),
 }));
-
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
 const ROUTES = ["/", "/about", "/pricing", "/contact", "/terms", "/privacy"];
+
+/** All header actions live in the hamburger dropdown at every screen size. */
+function openMenu() {
+  fireEvent.click(screen.getByRole("button", { name: /menu/i }));
+}
 
 describe("SiteHeader session-aware menus", () => {
   beforeEach(() => {
@@ -32,9 +36,19 @@ describe("SiteHeader session-aware menus", () => {
     currentPath.value = "/";
   });
 
+  it("keeps all navigation behind the hamburger dropdown by default", () => {
+    mockAuth.mockReturnValue({ user: null, loading: false });
+    render(<SiteHeader />);
+
+    expect(screen.getByRole("button", { name: "Open menu" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "About" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign In" })).not.toBeInTheDocument();
+  });
+
   it("shows a neutral loading placeholder while the session resolves", () => {
     mockAuth.mockReturnValue({ user: null, loading: true });
     render(<SiteHeader />);
+    openMenu();
 
     expect(screen.getByTestId("header-auth-loading")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Sign In" })).not.toBeInTheDocument();
@@ -45,6 +59,7 @@ describe("SiteHeader session-aware menus", () => {
     currentPath.value = path;
     mockAuth.mockReturnValue({ user: null, loading: false });
     render(<SiteHeader />);
+    openMenu();
 
     expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Pricing" })).toBeInTheDocument();
@@ -58,6 +73,7 @@ describe("SiteHeader session-aware menus", () => {
     currentPath.value = path;
     mockAuth.mockReturnValue({ user: { id: "u1", email: "a@b.com" }, loading: false });
     render(<SiteHeader />);
+    openMenu();
 
     expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Pricing" })).toBeInTheDocument();
@@ -73,6 +89,7 @@ describe("SiteHeader session-aware menus", () => {
     currentPath.value = "/pricing";
     mockAuth.mockReturnValue({ user: null, loading: false });
     render(<SiteHeader />);
+    openMenu();
 
     expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("aria-current", "page");
   });
