@@ -1072,7 +1072,15 @@ const Index = () => {
           </button>
         </div>
       </footer>
+      <CreditsHelpModal
+        open={showCreditsHelp}
+        onOpenChange={setShowCreditsHelp}
+        isPro={subscription.isPro}
+        credits={subscription.credits}
+        onBuyCredits={() => { setUpgradeReason("out_of_credits"); setShowUpgrade(true); }}
+      />
       <UpgradeModal
+
         open={showUpgrade}
         onClose={() => { setShowUpgrade(false); setUpgradeReason("default"); }}
         isPro={subscription.isPro}
