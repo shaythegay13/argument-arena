@@ -9,6 +9,7 @@ export interface Persona {
   subtitle: string;
   colorKey: string;
   emoji: string;        // visual icon for quick scanning
+  photoUrl?: string | null; // real panelist headshot when seated from the roster
   vibe: string;         // short personality tagline
   systemPrompt: string;
   scoringWeights: ScoringWeight[];

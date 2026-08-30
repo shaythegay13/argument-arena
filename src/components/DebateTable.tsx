@@ -3,6 +3,7 @@ import { Persona, Round, PersonaRating } from "@/types/debate";
 import { MessageCircle, Star, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getPersonaColors } from "@/data/personaColors";
+import PanelistAvatar from "@/components/PanelistAvatar";
 
 const ROUND_THEMES: Record<number, { label: string; description: string }> = {
   1: { label: "Initial Reactions", description: "First impressions from the panel" },
@@ -186,7 +187,7 @@ export default function DebateTable({
                   className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 ${colors.glow}`}
                 >
                   <span className="text-base leading-none" role="img" aria-label={persona.subtitle}>
-                    {persona.emoji}
+                    <PanelistAvatar photoUrl={persona.photoUrl} emoji={persona.emoji} name={persona.name} size={26} />
                   </span>
                 </div>
 
@@ -304,7 +305,7 @@ export default function DebateTable({
                   <div
                     className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0`}
                   >
-                    <span className="text-base leading-none">{persona.emoji}</span>
+                    <PanelistAvatar photoUrl={persona.photoUrl} emoji={persona.emoji} name={persona.name} size={26} />
                   </div>
                   <div className="flex-1 min-w-0 rounded-lg border border-border bg-card">
                     <div className="px-3 sm:px-4 py-2.5 flex items-center gap-1.5 sm:gap-2 flex-wrap">
@@ -346,7 +347,7 @@ export default function DebateTable({
                   transition={{ duration: 1.5, repeat: Infinity }}
                   className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 opacity-70`}
                 >
-                  <span className="text-base leading-none">{persona.emoji}</span>
+                  <PanelistAvatar photoUrl={persona.photoUrl} emoji={persona.emoji} name={persona.name} size={26} />
                 </motion.div>
                 <div className="flex-1 rounded-lg border border-border bg-card px-4 py-3">
                   <div className="flex items-center gap-2">

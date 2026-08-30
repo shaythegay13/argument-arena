@@ -1,5 +1,6 @@
 import { Persona, Round } from "@/types/debate";
 import { getPersonaColors } from "@/data/personaColors";
+import PanelistAvatar from "@/components/PanelistAvatar";
 
 interface PersonaStageProps {
   personas: Persona[];
@@ -51,7 +52,7 @@ export default function PersonaStage({
           >
             {/* Header */}
             <div className="flex items-center gap-2">
-              <span className="text-lg leading-none">{persona.emoji}</span>
+              <PanelistAvatar photoUrl={persona.photoUrl} emoji={persona.emoji} name={persona.name} size={30} />
               <div>
                 <h3 className={`font-semibold text-base ${colors.text}`}>
                   {persona.name}

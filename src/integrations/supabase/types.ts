@@ -234,6 +234,63 @@ export type Database = {
         }
         Relationships: []
       }
+      panelists: {
+        Row: {
+          background: string | null
+          base_persona_id: string
+          bio: string | null
+          created_at: string
+          credentials: string | null
+          expertise: string[]
+          firm: string | null
+          id: string
+          is_active: boolean
+          linkedin_url: string | null
+          name: string
+          photo_url: string | null
+          signature_style: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background?: string | null
+          base_persona_id?: string
+          bio?: string | null
+          created_at?: string
+          credentials?: string | null
+          expertise?: string[]
+          firm?: string | null
+          id?: string
+          is_active?: boolean
+          linkedin_url?: string | null
+          name: string
+          photo_url?: string | null
+          signature_style?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background?: string | null
+          base_persona_id?: string
+          bio?: string | null
+          created_at?: string
+          credentials?: string | null
+          expertise?: string[]
+          firm?: string | null
+          id?: string
+          is_active?: boolean
+          linkedin_url?: string | null
+          name?: string
+          photo_url?: string | null
+          signature_style?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_agreements: {
         Row: {
           created_at: string

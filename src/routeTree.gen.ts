@@ -18,6 +18,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DebateRouteImport } from './routes/debate'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as PanelistsRouteImport } from './routes/panelists'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -73,6 +74,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelistsRoute = PanelistsRouteImport.update({
+  id: '/panelists',
+  path: '/panelists',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/panelists': typeof PanelistsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/panelists': typeof PanelistsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/panelists': typeof PanelistsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/debate'
     | '/forgot-password'
     | '/leaderboard'
+    | '/panelists'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/debate'
     | '/forgot-password'
     | '/leaderboard'
+    | '/panelists'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/debate'
     | '/forgot-password'
     | '/leaderboard'
+    | '/panelists'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   DebateRoute: typeof DebateRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  PanelistsRoute: typeof PanelistsRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -353,6 +366,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panelists': {
+      id: '/panelists'
+      path: '/panelists'
+      fullPath: '/panelists'
+      preLoaderRoute: typeof PanelistsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -445,6 +465,7 @@ const rootRouteChildren: RootRouteChildren = {
   DebateRoute: DebateRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LeaderboardRoute: LeaderboardRoute,
+  PanelistsRoute: PanelistsRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
