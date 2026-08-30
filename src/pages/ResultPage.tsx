@@ -10,6 +10,7 @@ import CommunityVote from "@/components/CommunityVote";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
+import SiteFooter from "@/components/SiteFooter";
 
 const verdictConfig: Record<string, { emoji: string; color: string; bg: string; border: string; label: string; tagline: string }> = {
   GO: { emoji: "🚀", color: "text-verdict-go", bg: "bg-verdict-go/10", border: "border-verdict-go/30", label: "GO", tagline: "High Potential" },

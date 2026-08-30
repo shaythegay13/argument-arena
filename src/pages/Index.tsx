@@ -55,6 +55,7 @@ import ExportDebateButton from "@/components/ExportDebateButton";
 import SocialShareButton from "@/components/SocialShareButton";
 import ReadOnlyLinkButton from "@/components/ReadOnlyLinkButton";
 import logo from "@/assets/logo.png";
+import SiteFooter from "@/components/SiteFooter";
 
 const MAX_ROUNDS = 4;
 

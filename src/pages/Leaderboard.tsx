@@ -7,6 +7,7 @@ import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, Zap, ArrowLeft } from 
 import { motion } from "framer-motion";
 import CommunityVote from "@/components/CommunityVote";
 import logo from "@/assets/logo.png";
+import SiteFooter from "@/components/SiteFooter";
 
 type Tab = "week" | "month" | "all" | "controversial" | "viewed";
 

@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import logo from "@/assets/logo.png";
+import SiteFooter from "@/components/SiteFooter";
 
 type FilterOption = "all" | "in-progress" | "finished";
 
