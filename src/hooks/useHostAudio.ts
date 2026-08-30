@@ -37,7 +37,13 @@ async function buildRoundScript(
     ? `\n\nThe founder responded:\n"${founderSnippet}"`
     : "";
 
-  const systemPrompt = `You are the host of "Startup Jury AI", a fast-paced startup debate panel. Your job is to deliver a spoken recap of round ${roundNumber}.
+  const isFinalRound = roundNumber >= 4;
+
+  const closingRule = isFinalRound
+    ? `- Close by summarizing the panel's final positions — who ended up bullish, who ended up bearish, and the strongest piece of advice given. Do NOT mention or ask any questions for the founder; this was the last round and there is nothing left for the founder to answer`
+    : `- Close by listing specific questions the panelists raised for the founder, attributed by name`;
+
+  const systemPrompt = `You are the host of "Startup Jury AI", a fast-paced startup debate panel. Your job is to deliver a spoken recap of round ${roundNumber}${isFinalRound ? ", the FINAL round" : ""}.
 
 Rules:
 - ALWAYS refer to each panelist BY NAME when summarizing their position (e.g. "Riley warns that…", "Jordan is bullish because…", "Morgan points out…")
@@ -45,7 +51,7 @@ Rules:
 - Summarize each panelist's core take in one punchy sentence, attributed by name
 - Then highlight where they agreed and where they sharply disagreed — always naming names
 - Mention any concrete scores or ratings panelists gave
-- Close by listing specific questions the panelists raised for the founder, attributed by name
+${closingRule}
 - Keep it under 200 words — this will be read aloud
 - Be energetic, professional, and direct
 - Speak in second person to the founder ("Your idea…", "The panel thinks…")
