@@ -32,7 +32,7 @@ import { useDebateAgentState, emitAgUIEvent } from "@/hooks/useDebateAgentState"
 import { useRedisMemory } from "@/hooks/useRedisMemory";
 import { useHostAudio } from "@/hooks/useHostAudio";
 import { useAuth } from "@/hooks/useAuth";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import { useSessionPersistence, getStoredSessionId } from "@/hooks/useSessionPersistence";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle } from "lucide-react";
@@ -176,6 +176,7 @@ const Index = () => {
   // Capture the session and iterate params once at mount
   const sessionParamRef = useRef(searchParams.get("session"));
   const iterateParamRef = useRef(searchParams.get("iterate"));
+  const resumeAttemptedRef = useRef(false);
   const [isLoadingSession, setIsLoadingSession] = useState(!!sessionParamRef.current || !!iterateParamRef.current);
   const { saveSession, loadSession, resetSessionId, setIteration, ensureSession, sessionId: sessionIdRef } = useSessionPersistence(user?.id);
   // Session-ready gate: rounds may not start until a session row exists.
