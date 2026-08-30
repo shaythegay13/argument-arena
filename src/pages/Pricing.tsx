@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -10,6 +10,10 @@ import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CREDIT_PACKS, STRIPE_PRO, STRIPE_STUDIO, SINGLE_EVAL } from "@/data/pricing";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const freeFeatures = [
   "2 full jury evaluations",
@@ -91,8 +95,57 @@ const faqs = [
   },
 ];
 
+const PENDING_KEY = "sj_pending_purchase";
+
 const Pricing = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const { isPro, isStudio, tier, credits, startCheckout, purchaseCredits, manageSubscription } = useSubscription();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const runPurchase = useCallback(
+    async (kind: "plan" | "pack", id: string) => {
+      setBusy(`${kind}:${id}`);
+      try {
+        if (kind === "plan") await startCheckout(id);
+        else await purchaseCredits(id);
+      } catch (err) {
+        toast({
+          title: "Checkout unavailable",
+          description: err instanceof Error ? err.message : "Please try again in a moment.",
+          variant: "destructive",
+        });
+      } finally {
+        setBusy(null);
+      }
+    },
+    [startCheckout, purchaseCredits, toast]
+  );
+
+  const handleBuy = (kind: "plan" | "pack", id: string) => {
+    if (!user) {
+      try {
+        sessionStorage.setItem(PENDING_KEY, JSON.stringify({ kind, id }));
+      } catch { /* storage unavailable — user can retry after signing in */ }
+      toast({ title: "Sign in to continue", description: "We'll bring you right back to checkout." });
+      navigate("/auth");
+      return;
+    }
+    void runPurchase(kind, id);
+  };
+
+  // Resume an interrupted purchase after the user signs in and returns here.
+  useEffect(() => {
+    if (authLoading || !user) return;
+    let pending: { kind: "plan" | "pack"; id: string } | null = null;
+    try {
+      const raw = sessionStorage.getItem(PENDING_KEY);
+      if (raw) pending = JSON.parse(raw);
+      sessionStorage.removeItem(PENDING_KEY);
+    } catch { pending = null; }
+    if (pending?.kind && pending?.id) void runPurchase(pending.kind, pending.id);
+  }, [authLoading, user, runPurchase]);
 
   useEffect(() => {
     document.title = "Pricing — Startup Jury AI";
@@ -121,7 +174,7 @@ const Pricing = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Pricing — Startup Jury AI | Free, Credits & Unlimited Plans</title>
-        <meta name="description" content="Compare Startup Jury AI plans: 2 free evaluations, pay-as-you-go credit packs, or unlimited monthly access for $8.99." />
+        <meta name="description" content="Compare Startup Jury AI plans: 2 free evaluations, credit packs from $3, Pro at $19/mo, or unlimited Studio access at $79/mo." />
         <link rel="canonical" href="https://www.startupjuryai.com/pricing" />
         <meta property="og:title" content="Pricing — Startup Jury AI" />
         <meta property="og:description" content="Free trial, credit packs, and unlimited plans for AI startup validation." />
@@ -140,7 +193,21 @@ const Pricing = () => {
             Identify risks, uncover blind spots, and see if your idea actually holds up.
           </p>
         </motion.div>
+
+        {user && !authLoading && (
+          <div className="max-w-md mx-auto rounded-[14px] border border-border bg-card px-5 py-4 text-sm flex flex-col sm:flex-row items-center justify-center gap-2">
+            <span className="text-muted-foreground">Your plan:</span>
+            <span className="font-semibold text-foreground">
+              {isStudio ? "Studio — unlimited" : isPro ? "Pro" : "Free"}
+            </span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">
+              Credits: <span className="font-semibold text-foreground">{isPro ? "Unlimited" : credits}</span>
+            </span>
+          </div>
+        )}
       </section>
+
 
       {/* Value Propositions */}
       <section className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-16">
@@ -173,7 +240,9 @@ const Pricing = () => {
               <div className="text-4xl font-bold text-foreground">$0</div>
               <div className="text-sm text-muted-foreground">2 evaluations, forever free</div>
             </div>
-            <Button variant="outline" size="lg" onClick={() => navigate("/auth")} className="w-full h-11 rounded-[10px]">Start Free Evaluation</Button>
+            <Button variant="outline" size="lg" onClick={() => navigate(user ? "/debate" : "/auth")} className="w-full h-11 rounded-[10px]">
+              {user ? "Start an Evaluation" : "Start Free Evaluation"}
+            </Button>
             <ul className="space-y-2.5">
               {freeFeatures.map((f) => (
                 <li key={f} className="flex items-center gap-2.5 text-sm text-muted-foreground">
@@ -201,9 +270,25 @@ const Pricing = () => {
               <div className="text-sm text-muted-foreground">{STRIPE_PRO.monthlyCredits} evaluations/month</div>
               <div className="text-xs text-muted-foreground/70">≈ ${(STRIPE_PRO.price / STRIPE_PRO.monthlyCredits).toFixed(2)} per evaluation</div>
             </div>
-            <Button size="lg" onClick={() => navigate("/auth")} className="w-full h-11 rounded-[10px] font-semibold">
-              Start Pro <ArrowRight className="w-4 h-4 ml-2" />
+            <Button
+              size="lg"
+              disabled={busy !== null || tier === "pro"}
+              onClick={() => (tier === "pro" ? void manageSubscription() : handleBuy("plan", "pro"))}
+              className="w-full h-11 rounded-[10px] font-semibold"
+            >
+              {busy === "plan:pro" ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening checkout…</>
+              ) : tier === "pro" ? (
+                "Your current plan"
+              ) : (
+                <>Subscribe to Pro — ${STRIPE_PRO.price}/mo <ArrowRight className="w-4 h-4 ml-2" /></>
+              )}
             </Button>
+            {tier === "pro" && (
+              <button type="button" onClick={() => void manageSubscription()} className="w-full text-xs text-primary hover:underline">
+                Manage subscription
+              </button>
+            )}
             <ul className="space-y-2.5">
               {proFeatures.map((f) => (
                 <li key={f} className="flex items-center gap-2.5 text-sm text-foreground">
@@ -225,8 +310,20 @@ const Pricing = () => {
               </div>
               <div className="text-sm text-muted-foreground">Unlimited evaluations</div>
             </div>
-            <Button variant="outline" size="lg" onClick={() => navigate("/auth")} className="w-full h-11 rounded-[10px]">
-              Start Studio <ArrowRight className="w-4 h-4 ml-2" />
+            <Button
+              variant="outline"
+              size="lg"
+              disabled={busy !== null || isStudio}
+              onClick={() => (isStudio ? void manageSubscription() : handleBuy("plan", "studio"))}
+              className="w-full h-11 rounded-[10px]"
+            >
+              {busy === "plan:studio" ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening checkout…</>
+              ) : isStudio ? (
+                "Your current plan"
+              ) : (
+                <>Subscribe to Studio — ${STRIPE_STUDIO.price}/mo <ArrowRight className="w-4 h-4 ml-2" /></>
+              )}
             </Button>
             <ul className="space-y-2.5">
               {studioFeatures.map((f) => (
@@ -261,7 +358,14 @@ const Pricing = () => {
               <p className="text-3xl font-bold text-foreground mt-2">${SINGLE_EVAL.price}</p>
               <p className="text-sm text-muted-foreground mt-1">1 evaluation</p>
             </div>
-            <Button variant="outline" onClick={() => navigate("/auth")} className="w-full rounded-[10px]">Buy Now</Button>
+            <Button
+              variant="outline"
+              disabled={busy !== null}
+              onClick={() => handleBuy("pack", SINGLE_EVAL.id)}
+              className="w-full rounded-[10px]"
+            >
+              {busy === `pack:${SINGLE_EVAL.id}` ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening…</> : `Buy for $${SINGLE_EVAL.price}`}
+            </Button>
           </motion.div>
 
           {CREDIT_PACKS.map((pack, i) => (
@@ -286,8 +390,13 @@ const Pricing = () => {
                 <p className="text-sm text-muted-foreground mt-1">{pack.credits} evaluations</p>
                 <p className="text-[11px] text-muted-foreground">${pack.perCredit.toFixed(2)} per evaluation</p>
               </div>
-              <Button variant={pack.popular ? "default" : "outline"} onClick={() => navigate("/auth")} className="w-full rounded-[10px]">
-                Buy {pack.name}
+              <Button
+                variant={pack.popular ? "default" : "outline"}
+                disabled={busy !== null}
+                onClick={() => handleBuy("pack", pack.id)}
+                className="w-full rounded-[10px]"
+              >
+                {busy === `pack:${pack.id}` ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening…</> : `Buy ${pack.name} — $${pack.price}`}
               </Button>
             </motion.div>
           ))}

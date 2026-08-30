@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, Loader2, Mail } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { z } from "zod";
+import { submitContactMessage } from "@/lib/contact.functions";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be under 100 characters"),
@@ -47,33 +48,35 @@ export default function ContactPage() {
       return;
     }
 
-    if (!user) {
-      window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
-        `Startup Jury AI — message from ${result.data.name}`
-      )}&body=${encodeURIComponent(result.data.message)}`;
-      return;
-    }
-
     setSending(true);
-    const { error } = await supabase.from("contact_messages").insert({
-      user_id: user.id,
-      name: result.data.name,
-      email: result.data.email,
-      message: result.data.message,
-    });
 
-    if (error) {
-      toast({ title: "Error sending message", description: error.message, variant: "destructive" });
+    try {
+      await submitContactMessage({
+        data: {
+          name: result.data.name,
+          email: result.data.email,
+          message: result.data.message,
+          userId: user?.id ?? null,
+        },
+      });
+    } catch (err) {
+      toast({
+        title: "Error sending message",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
       setSending(false);
       return;
     }
 
-    try {
-      await supabase.functions.invoke("send-contact-email", {
-        body: { name: result.data.name, email: result.data.email, message: result.data.message },
-      });
-    } catch (emailErr) {
-      console.error("Email notification failed:", emailErr);
+    if (user) {
+      try {
+        await supabase.functions.invoke("send-contact-email", {
+          body: { name: result.data.name, email: result.data.email, message: result.data.message },
+        });
+      } catch (emailErr) {
+        console.error("Email notification failed:", emailErr);
+      }
     }
 
     toast({ title: "Message sent", description: "We'll get back to you soon." });
@@ -81,6 +84,7 @@ export default function ContactPage() {
     setMessage("");
     setSending(false);
   };
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -140,21 +144,19 @@ export default function ContactPage() {
           >
             {sending ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : user ? (
-              <Send className="w-4 h-4 mr-2" />
             ) : (
-              <Mail className="w-4 h-4 mr-2" />
+              <Send className="w-4 h-4 mr-2" />
             )}
-            {user ? "Send Message" : "Send via Email"}
+            {sending ? "Sending…" : "Send Message"}
           </Button>
 
           {!loading && !user && (
             <p className="text-xs text-muted-foreground text-center">
-              Prefer in-app support?{" "}
+              You can send this without an account.{" "}
               <button type="button" onClick={() => navigate("/auth")} className="text-primary hover:underline">
                 Sign in
               </button>{" "}
-              to send and track your message, or email us at{" "}
+              to track your messages, or email us directly at{" "}
               <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">{SUPPORT_EMAIL}</a>.
             </p>
           )}
