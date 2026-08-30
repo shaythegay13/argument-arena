@@ -1,6 +1,6 @@
 import { useScribe, CommitStrategy } from "@elevenlabs/react";
 import { useState, useCallback, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getElevenLabsScribeToken } from "@/lib/media.functions";
 import { Mic, MicOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -39,8 +39,8 @@ export default function VoiceInputButton({ onTranscript, disabled, className }: 
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      const { data, error } = await supabase.functions.invoke("elevenlabs-scribe-token");
-      if (error || !data?.token) {
+      const data = await getElevenLabsScribeToken();
+      if (!data?.token) {
         throw new Error("Failed to get scribe token");
       }
 

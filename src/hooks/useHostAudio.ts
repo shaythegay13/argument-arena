@@ -126,19 +126,15 @@ export function useHostAudio() {
         }
         const accessToken = session.access_token;
 
-        const response = await fetch(
-          `${import.meta.env['VITE_SUPABASE_URL']}/functions/v1/elevenlabs-tts`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'],
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ text: script }),
-            signal: controller.signal,
-          }
-        );
+        const response = await fetch("/api/elevenlabs-tts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ text: script }),
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error(`TTS failed: ${response.status}`);
