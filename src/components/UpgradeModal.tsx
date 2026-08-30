@@ -135,13 +135,18 @@ export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, cre
                   {isStudio ? <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-primary" /> : isPro ? <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-primary" /> : <Coins className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />}
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                  {isStudio ? "Studio Plan Active" : isPro ? "Pro Plan Active" : "Get More Evaluations"}
+                  {outOfCredits && !hasSubscription
+                    ? "You're out of evaluation credits"
+                    : isStudio ? "Studio Plan Active" : isPro ? "Pro Plan Active" : "Get More Evaluations"}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {hasSubscription
+                  {outOfCredits && !hasSubscription
+                    ? "The jury needs 1 credit to run a full 4-round evaluation. Buy credits below to continue."
+                    : hasSubscription
                     ? `Renews ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString() : "soon"} · ${isStudio ? "Unlimited" : `${credits} credits remaining`}`
                     : `You have ${credits} credit${credits !== 1 ? "s" : ""} remaining`}
                 </p>
+
               </div>
 
               {/* Tab selector */}
