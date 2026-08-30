@@ -11,6 +11,8 @@ import {
   generateJudgeVerdict,
   generateAutoResponse,
   setCurrentSessionId,
+  isOutOfCreditsError,
+
 } from "@/lib/ai";
 import { trackEvent } from "@/lib/analytics";
 import { PERSONAS, PERSONA_MAP } from "@/data/personas";
@@ -102,6 +104,8 @@ const Index = () => {
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"default" | "out_of_credits">("default");
+
   const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("private");
   const [finishedCount, setFinishedCount] = useState(0);
   const subscription = useSubscription();
@@ -248,9 +252,32 @@ const Index = () => {
 
   const handleStartDebate = useCallback(async () => {
     if (finishedCount >= FREE_LIMIT && !isPro) {
+      setUpgradeReason("out_of_credits");
       setShowUpgrade(true);
       return;
     }
+    // Hard credit gate — a full jury run costs 1 credit, never start a partial run
+    if (!isPro) {
+      let credits = subscription.credits;
+      try {
+        await subscription.checkSubscription();
+      } catch { /* fall back to cached balance */ }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: creditRow } = await supabase
+          .from("user_credits")
+          .select("credits")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (creditRow) credits = creditRow.credits;
+      }
+      if (credits <= 0) {
+        setUpgradeReason("out_of_credits");
+        setShowUpgrade(true);
+        return;
+      }
+    }
+
     if (isPro && finishedCount >= PRO_LIMIT) {
       toast({
         title: "Monthly limit reached",
@@ -316,10 +343,28 @@ const Index = () => {
     generateClip(1, personas, { roundNumber: 1, messages });
     } catch (err) {
       console.error("[Round 1] Generation failed:", err);
+      if (isOutOfCreditsError(err)) {
+        // Reset the stage entirely — no partial jury output
+        setState((prev) => ({
+          ...prev,
+          phase: "setup",
+          isGenerating: false,
+          generatingPersonaIds: [],
+          rounds: [],
+          currentRoundNumber: 1,
+          ratings: [],
+          judgeVerdict: null,
+        }));
+        subscription.checkSubscription();
+        setUpgradeReason("out_of_credits");
+        setShowUpgrade(true);
+        return;
+      }
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again.", variant: "destructive" });
     }
-  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast]);
+  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription]);
+
 
   const allResponsesReady =
     currentRound &&
@@ -902,7 +947,7 @@ const Index = () => {
           </button>
         </div>
       </footer>
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} isPro={subscription.isPro} isStudio={subscription.isStudio} tier={subscription.tier} credits={subscription.credits} subscriptionEnd={subscription.subscriptionEnd} onCheckout={subscription.startCheckout} onPurchaseCredits={subscription.purchaseCredits} onManage={subscription.manageSubscription} />
+      <UpgradeModal open={showUpgrade} onClose={() => { setShowUpgrade(false); setUpgradeReason("default"); }} isPro={subscription.isPro} isStudio={subscription.isStudio} tier={subscription.tier} credits={subscription.credits} subscriptionEnd={subscription.subscriptionEnd} reason={upgradeReason} onCheckout={subscription.startCheckout} onPurchaseCredits={subscription.purchaseCredits} onManage={subscription.manageSubscription} />
     </div>
   );
 };

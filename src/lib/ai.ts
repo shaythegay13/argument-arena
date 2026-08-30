@@ -4,12 +4,20 @@ import { Persona, Round, RoundMessage, PersonaRating } from "@/types/debate";
 const MAX_RETRIES = 2;
 const RETRY_BASE_MS = 1500;
 
+export const OUT_OF_CREDITS = "OUT_OF_CREDITS";
+
+export function isOutOfCreditsError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return msg.includes(OUT_OF_CREDITS) || msg.toLowerCase().includes("evaluation credits");
+}
+
 // Module-level session ID for current debate
 let _currentSessionId: string | undefined;
 
 export function setCurrentSessionId(id: string | undefined) {
   _currentSessionId = id;
 }
+
 
 async function callCompletion(
   systemPrompt: string,
@@ -24,6 +32,18 @@ async function callCompletion(
 
       if (error) {
         const msg = error.message || "AI call failed";
+
+        // Read the response body to detect a hard "out of credits" refusal
+        let bodyText = "";
+        try {
+          const res = (error as any).context;
+          if (res && typeof res.clone === "function") bodyText = await res.clone().text();
+        } catch { /* ignore */ }
+
+        if (/evaluation credits/i.test(bodyText) || /evaluation credits/i.test(msg)) {
+          throw new Error(OUT_OF_CREDITS);
+        }
+
         // Retry on rate-limit or transient errors
         if (attempt < MAX_RETRIES && (msg.includes("429") || msg.includes("Rate limit") || msg.includes("temporarily"))) {
           console.warn(`[callCompletion] Attempt ${attempt + 1} rate-limited, retrying in ${RETRY_BASE_MS * (attempt + 1)}ms`);
@@ -35,6 +55,9 @@ async function callCompletion(
       }
 
       if (data?.error) {
+        if (/evaluation credits/i.test(data.error)) {
+          throw new Error(OUT_OF_CREDITS);
+        }
         if (attempt < MAX_RETRIES && (data.error.includes("Rate limit") || data.error.includes("temporarily"))) {
           console.warn(`[callCompletion] Attempt ${attempt + 1} transient error, retrying...`);
           await delay(RETRY_BASE_MS * (attempt + 1));
@@ -45,10 +68,12 @@ async function callCompletion(
 
       return data?.content ?? "No response generated.";
     } catch (err) {
+      if (isOutOfCreditsError(err)) throw err;
       if (attempt >= MAX_RETRIES) throw err;
       console.warn(`[callCompletion] Attempt ${attempt + 1} failed, retrying...`, err);
       await delay(RETRY_BASE_MS * (attempt + 1));
     }
+
   }
   throw new Error("AI call failed after retries");
 }

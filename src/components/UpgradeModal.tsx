@@ -2,7 +2,7 @@ import { Crown, Check, Zap, X, Settings, Coins, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CREDIT_PACKS, STRIPE_PRO, STRIPE_STUDIO, SINGLE_EVAL } from "@/data/pricing";
 
@@ -14,10 +14,12 @@ interface UpgradeModalProps {
   tier?: string | null;
   credits?: number;
   subscriptionEnd?: string | null;
+  reason?: "default" | "out_of_credits";
   onCheckout: (plan?: string) => Promise<void>;
   onPurchaseCredits: (pack: string) => Promise<void>;
   onManage?: () => Promise<void>;
 }
+
 
 const PRO_FEATURES = [
   "15 evaluations / month",
@@ -38,12 +40,18 @@ const STUDIO_FEATURES = [
   "Early access to new features",
 ];
 
-export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, credits = 0, subscriptionEnd, onCheckout, onPurchaseCredits, onManage }: UpgradeModalProps) {
+export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, credits = 0, subscriptionEnd, reason = "default", onCheckout, onPurchaseCredits, onManage }: UpgradeModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const dragControls = useDragControls();
   const [tab, setTab] = useState<"credits" | "pro" | "studio">("credits");
+  const outOfCredits = reason === "out_of_credits";
+
+  useEffect(() => {
+    if (open && outOfCredits) setTab("credits");
+  }, [open, outOfCredits]);
+
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     if (info.offset.y > 100 || info.velocity.y > 300) {
@@ -127,13 +135,18 @@ export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, cre
                   {isStudio ? <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-primary" /> : isPro ? <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-primary" /> : <Coins className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />}
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                  {isStudio ? "Studio Plan Active" : isPro ? "Pro Plan Active" : "Get More Evaluations"}
+                  {outOfCredits && !hasSubscription
+                    ? "You're out of evaluation credits"
+                    : isStudio ? "Studio Plan Active" : isPro ? "Pro Plan Active" : "Get More Evaluations"}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {hasSubscription
+                  {outOfCredits && !hasSubscription
+                    ? "The jury needs 1 credit to run a full 4-round evaluation. Buy credits below to continue."
+                    : hasSubscription
                     ? `Renews ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString() : "soon"} · ${isStudio ? "Unlimited" : `${credits} credits remaining`}`
                     : `You have ${credits} credit${credits !== 1 ? "s" : ""} remaining`}
                 </p>
+
               </div>
 
               {/* Tab selector */}
