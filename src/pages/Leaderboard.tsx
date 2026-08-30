@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords } from "lucide-react";
+import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import CommunityVote from "@/components/CommunityVote";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import LeaderboardCompare, { type CompareEntry } from "@/components/LeaderboardCompare";
+import { PERSONA_MAP } from "@/data/personas";
 
 type Tab = "week" | "month" | "all" | "controversial" | "viewed";
 
@@ -71,6 +73,18 @@ export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("week");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+
+  const toggleCompare = (entry: LeaderboardEntry) => {
+    setCompareIds((prev) =>
+      prev.includes(entry.id)
+        ? prev.filter((id) => id !== entry.id)
+        : prev.length >= 3
+          ? prev
+          : [...prev, entry.id]
+    );
+  };
   const navigate = useNavigate();
 
   useEffect(() => {
