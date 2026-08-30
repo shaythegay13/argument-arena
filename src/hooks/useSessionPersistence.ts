@@ -72,7 +72,10 @@ export function useSessionPersistence(userId: string | undefined) {
             .insert(payload as any) as any)
             .select("id")
             .single();
-          if (data) sessionIdRef.current = (data as any).id;
+          if (data) {
+            sessionIdRef.current = (data as any).id;
+            storeSessionId(sessionIdRef.current);
+          }
         }
       } finally {
         savingRef.current = false;
@@ -129,6 +132,7 @@ export function useSessionPersistence(userId: string | undefined) {
 
       // Set the session ID so future saves update this session
       sessionIdRef.current = sessionId;
+      storeSessionId(sessionId);
 
       return state;
     },
@@ -167,6 +171,7 @@ export function useSessionPersistence(userId: string | undefined) {
         const newId = (data as { id?: string } | null)?.id;
         if (newId) {
           sessionIdRef.current = newId;
+          storeSessionId(newId);
           return newId;
         }
         console.error(`[ensureSession] insert failed (attempt ${attempt + 1}):`, error);
@@ -180,6 +185,7 @@ export function useSessionPersistence(userId: string | undefined) {
   const resetSessionId = useCallback(() => {
     sessionIdRef.current = null;
     iterationRef.current = null;
+    storeSessionId(null);
   }, []);
 
   const setIteration = useCallback((parentSessionId: string, version: number) => {
