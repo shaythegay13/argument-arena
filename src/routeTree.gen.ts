@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AcceptTermsRouteImport } from './routes/accept-terms'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DebateRouteImport } from './routes/debate'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -47,6 +48,11 @@ const AcceptTermsRoute = AcceptTermsRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/accept-terms': typeof AcceptTermsRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/accept-terms': typeof AcceptTermsRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/accept-terms': typeof AcceptTermsRoute
   '/auth': typeof AuthRoute
+  '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/accept-terms'
     | '/auth'
+    | '/contact'
     | '/dashboard'
     | '/debate'
     | '/forgot-password'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/accept-terms'
     | '/auth'
+    | '/contact'
     | '/dashboard'
     | '/debate'
     | '/forgot-password'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/accept-terms'
     | '/auth'
+    | '/contact'
     | '/dashboard'
     | '/debate'
     | '/forgot-password'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AcceptTermsRoute: typeof AcceptTermsRoute
   AuthRoute: typeof AuthRoute
+  ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   DebateRoute: typeof DebateRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -420,6 +440,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AcceptTermsRoute: AcceptTermsRoute,
   AuthRoute: AuthRoute,
+  ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   DebateRoute: DebateRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,

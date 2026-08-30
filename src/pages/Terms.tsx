@@ -2,12 +2,13 @@ import { useNavigate } from "@/lib/router-compat";
 import { ArrowLeft } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
+import SiteFooter from "@/components/SiteFooter";
 
 const Terms = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Helmet>
         <title>Terms & Conditions — Startup Jury AI</title>
         <meta name="description" content="Read the Startup Jury AI Terms & Conditions covering account use, AI-generated evaluations, and your rights as a user of the platform." />
@@ -25,7 +26,7 @@ const Terms = () => {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 prose prose-invert prose-sm">
+      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 prose prose-invert prose-sm">
         <h1 className="text-2xl font-bold text-foreground">Terms and Conditions</h1>
         <p className="text-muted-foreground text-sm">Last updated: February 22, 2026</p>
 
@@ -58,9 +59,11 @@ const Terms = () => {
           <p>We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the modified terms.</p>
 
           <h2 className="text-foreground text-base font-semibold">10. Contact</h2>
-          <p>If you have questions about these Terms, please visit our <button onClick={() => navigate("/auth")} className="text-primary hover:underline">Contact Us</button> page.</p>
+          <p>If you have questions about these Terms, please visit our <button onClick={() => navigate("/contact")} className="text-primary hover:underline">Contact Us</button> page.</p>
         </section>
       </main>
+
+      <SiteFooter />
     </div>
   );
 };
