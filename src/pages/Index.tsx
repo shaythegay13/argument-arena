@@ -115,6 +115,10 @@ const Index = () => {
   const handlersRef = useRef<{ start?: () => void; submit?: (r?: string) => void }>({});
   const [awaitingCredits, setAwaitingCredits] = useState(false);
   const [genRounds, setGenRounds] = useState<RoundGenStatus[]>([]);
+  const [isRetryingFailed, setIsRetryingFailed] = useState(false);
+  // Remembers the pitch response that drove each round, so failed jurors can be retried in context
+  const roundResponsesRef = useRef<Record<number, string>>({});
+
 
   const setRoundGen = useCallback(
     (roundNumber: number, updater: (round: RoundGenStatus) => RoundGenStatus) => {
