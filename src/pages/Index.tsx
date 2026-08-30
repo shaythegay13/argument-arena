@@ -105,6 +105,11 @@ const Index = () => {
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<"default" | "out_of_credits">("default");
+  // Pending work to auto-resume once credits land after the buy-credits flow
+  const pendingCreditActionRef = useRef<{ kind: "start" } | { kind: "submit"; response: string } | null>(null);
+  const handlersRef = useRef<{ start?: () => void; submit?: (r?: string) => void }>({});
+  const [awaitingCredits, setAwaitingCredits] = useState(false);
+
 
   const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("private");
   const [finishedCount, setFinishedCount] = useState(0);
