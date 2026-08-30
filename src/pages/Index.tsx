@@ -552,7 +552,7 @@ const Index = () => {
       }
 
     },
-    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, toast, subscription]
+    [state.topic, state.selectedPersonas, state.rounds, state.userResponse, getRecentMemories, storeRoundMemories, generateClip, toast, subscription, setRoundGen]
   );
 
   // Keep latest handlers reachable from the credit-resume effect
