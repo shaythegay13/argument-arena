@@ -355,11 +355,19 @@ ${crossRefRule}`;
 
   const founderCtx = userResponse.length > 3000 ? userResponse.slice(0, 3000) + "…" : userResponse;
 
+  const closingRule = isFinalRound
+    ? `This is the FINAL round of the debate — the founder will NOT have another chance to respond. Do NOT ask the founder any questions. Instead:
+- Deliver your final, definitive position on the idea (bullish, bearish, or conditional — say it plainly)
+- State the single strongest reason for your position and the single biggest remaining risk
+- Close with one piece of direct advice or a final verdict the founder can act on immediately
+- Speak in conclusive language ("My final take:", "Bottom line:", "If I had to vote today…") — nothing that implies another round follows`
+    : `End with 1-2 new questions for the founder.`;
+
   const userPrompt = `Topic/Idea: "${topic}"
 
 The founder responded: "${founderCtx}"
 
-This is ${roundLabel}. Respond to the idea, the founder's response, and to 1–2 key points made by the other judges in the last round. Refer to them BY NAME (e.g., "Marcus," "Priya," "Victor"). Be direct and specific. Push back on weak reasoning. End with 1-2 new questions for the founder.
+This is ${roundLabel}. Respond to the idea, the founder's response, and to 1–2 key points made by the other judges in the last round. Refer to them BY NAME (e.g., "Marcus," "Priya," "Victor"). Be direct and specific. Push back on weak reasoning. ${closingRule}
 
 Keep your response under ${wordLimit} words.`;
 
