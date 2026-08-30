@@ -285,14 +285,7 @@ export default function Leaderboard() {
         )}
       </main>
 
-      <footer className="border-t border-border px-4 sm:px-6 py-6 mt-auto">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
-          <span>Powered by</span>
-          <button onClick={() => navigate("/")} className="text-primary hover:underline font-semibold">
-            Startup Jury AI
-          </button>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
