@@ -11,7 +11,7 @@ export default function PanelistAvatar({
   size = 28,
   className = "",
 }: {
-  photoUrl?: string | null;
+  photoUrl?: string | null | undefined;
   emoji: string;
   name?: string;
   size?: number;
