@@ -61,7 +61,15 @@ export const getPublicSessionMeta = createServerFn({ method: "GET" })
 
     const verdictObj = (row.judge_verdict ?? {}) as Record<string, unknown>;
     const rawScore = verdictObj["overallScore"];
-    const topic = String(row.topic ?? "").replace(/\s+/g, " ").trim();
+    // Strip markdown so social previews read as plain prose.
+    const topic = String(row.topic ?? "")
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/^#{1,6}\s*/gm, "")
+      .replace(/^\s*[-*+]\s+/gm, "")
+      .replace(/(\*\*|__|\*|_|`|>)/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
     return {
       found: true,
