@@ -10,29 +10,30 @@ import { CREDIT_PACKS, STRIPE_PRO, STRIPE_STUDIO, SINGLE_EVAL } from "@/data/pri
 
 const freeFeatures = [
   "2 full jury evaluations",
-  "8 AI expert judges",
+  "8 AI expert judges (AI Auto-Select panel)",
   "4-round debate format",
   "GO / MAYBE / NO-GO verdict",
   "Judge-by-judge score breakdowns",
-  "Shareable result link",
+  "Read-only shareable result link",
+  "Shareable verdict image card",
 ];
 
 const proFeatures = [
   "15 evaluations per month",
-  "Access to all jury panels",
-  "Startup Verdict Cards",
-  "Downloadable Jury Reports",
-  "Pitch Simulation Mode",
+  "Curated + fully custom jury panels",
+  "Downloadable jury reports (PDF, Markdown, JSON)",
+  "Idea iteration tracking across re-pitches",
+  "Pitch simulation mode with founder rebuttals",
   "Priority processing",
   "Unused credits roll over 1 month",
 ];
 
 const studioFeatures = [
   "Unlimited jury evaluations",
-  "All jury panels",
-  "Advanced jury reports",
-  "Pitch simulation mode",
-  "Idea iteration tracking",
+  "Everything in Pro",
+  "All curated + custom jury panels",
+  "Advanced jury reports and exports",
+  "Full idea iteration history",
   "Early access to new features",
 ];
 
