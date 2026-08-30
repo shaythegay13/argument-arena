@@ -204,13 +204,19 @@ const Index = () => {
       });
   }, [user?.id]);
 
-  // Load session from URL parameter — wait for auth to resolve first so userId is available
+  // Load session from URL parameter — or resume the in-progress debate after a refresh.
+  // Waits for auth to resolve first so userId is available.
   useEffect(() => {
-    const sessionId = sessionParamRef.current;
+    if (resumeAttemptedRef.current) return;
     const iterateId = iterateParamRef.current;
-    
+    // A stored id lets a plain page refresh pick the same debate back up.
+    const storedId = iterateId ? null : getStoredSessionId();
+    const sessionId = sessionParamRef.current ?? storedId;
+    const isRefreshResume = !sessionParamRef.current && !!storedId;
+
     if (!sessionId && !iterateId) return;
     if (authLoading) return;
+    resumeAttemptedRef.current = true;
     if (!user?.id) {
       setIsLoadingSession(false);
       setSearchParams({});
@@ -218,6 +224,8 @@ const Index = () => {
       iterateParamRef.current = null;
       return;
     }
+    if (isRefreshResume) setIsLoadingSession(true);
+
 
     // Handle iterate: load the parent session topic but start fresh
     if (iterateId) {
