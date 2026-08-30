@@ -1,8 +1,8 @@
-import { CheckCircle2, Clock, Loader2, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, RotateCcw, Square, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Persona } from "@/types/debate";
 
-export type GenStatus = "queued" | "generating" | "succeeded" | "refunded" | "failed";
+export type GenStatus = "queued" | "generating" | "succeeded" | "refunded" | "failed" | "cancelled";
 
 export interface RoundGenStatus {
   roundNumber: number;
@@ -17,6 +17,7 @@ const STATUS_META: Record<GenStatus, { label: string; className: string; Icon: t
   succeeded: { label: "Succeeded", className: "text-primary border-primary/40", Icon: CheckCircle2 },
   refunded: { label: "Refunded", className: "text-secondary border-secondary/40", Icon: RotateCcw },
   failed: { label: "Failed · no charge", className: "text-destructive border-destructive/40", Icon: XCircle },
+  cancelled: { label: "Stopped", className: "text-muted-foreground border-muted-foreground/40", Icon: Square },
 };
 
 const StatusChip = ({ status, label }: { status: GenStatus; label: string }) => {
@@ -39,6 +40,8 @@ interface GenerationStatusPanelProps {
   failedCount?: number;
   isRetrying?: boolean;
   onRetryFailed?: () => void;
+  /** Called with the round number when the user stops that round mid-stream. */
+  onCancelRound?: (roundNumber: number) => void;
 }
 
 const GenerationStatusPanel = ({
@@ -49,6 +52,7 @@ const GenerationStatusPanel = ({
   failedCount = 0,
   isRetrying = false,
   onRetryFailed,
+  onCancelRound,
 }: GenerationStatusPanelProps) => {
   if (!personas.length) return null;
 
@@ -111,6 +115,17 @@ const GenerationStatusPanel = ({
               {!round.charged && round.overall === "succeeded" && (
                 <span className="text-[10px] font-mono text-muted-foreground">included · 0 credits</span>
               )}
+              {round.overall === "generating" && onCancelRound && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2 ml-auto text-[10px] font-mono uppercase tracking-wide text-destructive hover:bg-destructive/10"
+                  onClick={() => onCancelRound(round.roundNumber)}
+                >
+                  <Square className="w-3 h-3 mr-1.5" />
+                  Stop round
+                </Button>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -126,7 +141,8 @@ const GenerationStatusPanel = ({
       <p className="text-[10px] font-sans text-muted-foreground leading-relaxed">
         A generation counts as successful once a juror returns their response. Failed or refunded generations are
         never charged, and a started session always finishes all {maxRounds} rounds. Retrying only re-runs the
-        jurors marked failed — already-succeeded responses are kept as-is.
+        jurors marked failed — already-succeeded responses are kept as-is. Stopping a round leaves every juror who
+        already answered untouched; the stopped ones can be retried without an extra charge.
       </p>
     </div>
   );
