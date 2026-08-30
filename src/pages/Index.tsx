@@ -57,6 +57,14 @@ import ReadOnlyLinkButton from "@/components/ReadOnlyLinkButton";
 import logo from "@/assets/logo.png";
 import SiteFooter from "@/components/SiteFooter";
 import PanelistBiosDialog from "@/components/PanelistBiosDialog";
+import PanelistAvatar from "@/components/PanelistAvatar";
+import {
+  fetchPanelists,
+  panelistHeadline,
+  panelistToPersona,
+  resolvePhotoUrls,
+  type Panelist,
+} from "@/lib/panelists";
 import {
   applyPanelistProfiles,
   fetchPanelistProfiles,
@@ -178,6 +186,8 @@ const Index = () => {
   const isStudio = subscription.isStudio;
   const [showBios, setShowBios] = useState(false);
   const [panelistProfiles, setPanelistProfiles] = useState<PanelistProfileMap>({});
+  const [roster, setRoster] = useState<Panelist[]>([]);
+  const [rosterPhotos, setRosterPhotos] = useState<Record<string, string>>({});
   const panelistProfilesRef = useRef<PanelistProfileMap>({});
   useEffect(() => {
     panelistProfilesRef.current = panelistProfiles;
@@ -198,8 +208,18 @@ const Index = () => {
     }
     let cancelled = false;
     void (async () => {
-      const profiles = await fetchPanelistProfiles(user?.id);
+      const profiles = await fetchPanelistProfiles(user.id);
       if (!cancelled) setPanelistProfiles(profiles);
+      try {
+        const rows = (await fetchPanelists(user.id)).filter((r) => r.is_active);
+        const photos = await resolvePhotoUrls(rows.map((r) => r.photo_url));
+        if (!cancelled) {
+          setRoster(rows);
+          setRosterPhotos(photos);
+        }
+      } catch (err) {
+        console.warn("[Index] panelist roster load failed:", err);
+      }
     })();
     return () => {
       cancelled = true;
@@ -1336,6 +1356,76 @@ const Index = () => {
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {panelMode === "custom" && roster.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                      Your panelists ({roster.length})
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/panelists")}
+                      className="text-[11px] text-primary hover:underline"
+                    >
+                      Manage database
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {roster.map((panelist) => {
+                      const persona = panelistToPersona(
+                        panelist,
+                        panelist.photo_url ? rosterPhotos[panelist.photo_url] ?? null : null
+                      );
+                      const selected = state.selectedPersonas.some((p) => p.id === persona.id);
+                      const colors = getPersonaColors(persona.colorKey);
+                      return (
+                        <button
+                          key={panelist.id}
+                          type="button"
+                          onClick={() => togglePersona(persona)}
+                          aria-pressed={selected}
+                          className={`flex items-center gap-2.5 text-left px-3 py-2 rounded-[10px] border transition-all ${
+                            selected
+                              ? `${colors.bg} ${colors.border} border`
+                              : "bg-muted/30 border-border hover:border-muted-foreground/40"
+                          }`}
+                        >
+                          <PanelistAvatar
+                            photoUrl={persona.photoUrl}
+                            emoji={persona.emoji}
+                            name={persona.name}
+                            size={34}
+                          />
+                          <span className="min-w-0">
+                            <span className={`block text-sm font-semibold truncate ${selected ? colors.text : "text-foreground"}`}>
+                              {panelist.name}
+                            </span>
+                            <span className="block text-[11px] text-muted-foreground truncate">
+                              {panelistHeadline(panelist)}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Real panelists bring their own credentials and voice into every round. Mix them with the
+                    archetypes below.
+                  </p>
+                </div>
+              )}
+
+              {panelMode === "custom" && roster.length === 0 && (
+                <div className="mb-4 rounded-[10px] border border-dashed border-border bg-muted/20 p-3 flex items-center justify-between gap-3">
+                  <p className="text-[11px] text-muted-foreground">
+                    Build a roster of real panelists with photos and credentials, then seat them by name.
+                  </p>
+                  <Button size="sm" variant="outline" onClick={() => navigate("/panelists")}>
+                    <Users className="w-3.5 h-3.5 mr-1.5" /> Panelist database
+                  </Button>
                 </div>
               )}
 
