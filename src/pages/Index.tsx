@@ -1678,6 +1678,16 @@ const Index = () => {
         onPurchaseCredits={async (pack: string) => { await subscription.purchaseCredits(pack); setAwaitingCredits(true); }}
         onManage={subscription.manageSubscription}
       />
+      {user && (
+        <PanelistBiosDialog
+          open={showBios}
+          onOpenChange={setShowBios}
+          userId={user.id}
+          profiles={panelistProfiles}
+          onProfilesChange={setPanelistProfiles}
+        />
+      )}
+
     </div>
   );
 };
