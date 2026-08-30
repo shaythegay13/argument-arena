@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import { Persona, Round } from "@/types/debate";
+import { createTavusConversation } from "@/lib/media.functions";
 
 const MOCK_CONVERSATION_URL = "";
-const TAVUS_EDGE_FN_URL = `https://${import.meta.env['VITE_SUPABASE_PROJECT_ID']}.supabase.co/functions/v1/tavus-clip`;
 
 interface TavusClip {
   roundNumber: number;
@@ -75,28 +75,14 @@ export function useTavusClips() {
       };
 
       try {
-        const apikey = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
-
         // Create conversation directly
-        const res = await fetch(TAVUS_EDGE_FN_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey,
-          },
-          body: JSON.stringify({ script }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.conversation_url) {
-            console.log(`[Tavus] Conversation created: ${data.conversation_id}`);
-            setReady(data.conversation_url);
-            return;
-          }
+        const data = await createTavusConversation({ data: { script } });
+        if (data.conversation_url) {
+          console.log(`[Tavus] Conversation created: ${data.conversation_id}`);
+          setReady(data.conversation_url);
+          return;
         }
-        const errData = await res.json().catch(() => ({}));
-        console.warn("[Tavus] Create conversation failed:", res.status, errData);
+        console.warn("[Tavus] Create conversation failed: no conversation_url");
         setMock();
       } catch (err) {
         console.warn("[Tavus] Error, falling back to mock:", err);

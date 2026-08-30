@@ -1,5 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  checkSubscription as checkSubscriptionFn,
+  createCheckout,
+  purchaseCredits as purchaseCreditsFn,
+  openCustomerPortal,
+} from "@/lib/billing.functions";
 
 interface SubscriptionState {
   isPro: boolean;
@@ -28,8 +34,7 @@ export function useSubscription() {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke("check-subscription");
-      if (error) throw error;
+      const data = await checkSubscriptionFn();
 
       const tier = data?.tier ?? null;
       setState({
@@ -112,28 +117,21 @@ export function useSubscription() {
 
 
   const startCheckout = async (plan: string = "pro") => {
-    const { data, error } = await supabase.functions.invoke("create-checkout", {
-      body: { plan },
-    });
-    if (error) throw error;
+    const data = await createCheckout({ data: { plan } });
     if (data?.url) {
       window.open(data.url, "_blank");
     }
   };
 
   const purchaseCredits = async (pack: string) => {
-    const { data, error } = await supabase.functions.invoke("purchase-credits", {
-      body: { pack },
-    });
-    if (error) throw error;
+    const data = await purchaseCreditsFn({ data: { pack } });
     if (data?.url) {
       window.open(data.url, "_blank");
     }
   };
 
   const manageSubscription = async () => {
-    const { data, error } = await supabase.functions.invoke("customer-portal");
-    if (error) throw error;
+    const data = await openCustomerPortal();
     if (data?.url) {
       window.open(data.url, "_blank");
     }
