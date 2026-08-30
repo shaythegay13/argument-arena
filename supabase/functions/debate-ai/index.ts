@@ -78,11 +78,14 @@ serve(async (req) => {
       });
     }
 
-    const { systemPrompt, userPrompt, model, sessionId, stream } = await req.json();
+    const { systemPrompt, userPrompt, model, sessionId, stream, mode } = await req.json();
     const wantStream = stream === true;
+    // Utility calls (panel routing, completeness hints, host recap script) are not
+    // jury evaluations: they are never billed and need no session row.
+    const isUtility = mode === "utility";
 
     // Structured validation: sessionId is required for idempotent billing.
-    if (typeof sessionId !== "string" || sessionId.trim().length === 0) {
+    if (!isUtility && (typeof sessionId !== "string" || sessionId.trim().length === 0)) {
       console.error("[debate-ai] missing sessionId", { userId: user.id, received: typeof sessionId });
       return new Response(
         JSON.stringify({
@@ -100,6 +103,7 @@ serve(async (req) => {
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
 
 
     // Use service role to check credits
