@@ -1180,7 +1180,7 @@ const Index = () => {
 
       <main className="max-w-[1200px] mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4 sm:space-y-6">
         {isSetup && (
-          <section className="rounded-[14px] border border-border bg-card p-6 space-y-5">
+          <section className="rounded-[14px] border border-border bg-card p-4 sm:p-6 space-y-5">
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
                 Startup Idea
