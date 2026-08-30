@@ -120,3 +120,4 @@ const ExportDebateButton = ({ isPro, onUpgrade, ...data }: ExportDebateButtonPro
   );
 };
 
+export default ExportDebateButton;
