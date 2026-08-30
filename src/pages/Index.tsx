@@ -44,6 +44,7 @@ import DebateTable from "@/components/DebateTable";
 import RoundTimeline from "@/components/RoundTimeline";
 import UserResponsePanel from "@/components/UserResponsePanel";
 import RatingsOverview from "@/components/RatingsOverview";
+import FinalStatementsReview from "@/components/FinalStatementsReview";
 import HostVideoPlayer from "@/components/HostVideoPlayer";
 import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
@@ -1055,6 +1056,8 @@ const Index = () => {
     resetSessionId();
     setSessionPrep("idle");
     setState(initialState);
+    setGradesError(null);
+    setFinalReviewAck(false);
     setAutoDebate(false);
     setIsAutoResponding(false);
   }, [resetSessionId]);
