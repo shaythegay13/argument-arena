@@ -80,7 +80,7 @@ export default function SiteHeader() {
               </Link>
             ))}
             {loading ? (
-              <div className="px-3 py-3" role="status" aria-live="polite" aria-label="Checking your session">
+              <div className="px-3 py-3" role="status" aria-live="polite" aria-label="Checking your session" data-testid="header-auth-loading">
                 <span className="block h-5 w-28 rounded bg-muted/60 animate-pulse" />
               </div>
             ) : user ? (
