@@ -40,12 +40,18 @@ const STUDIO_FEATURES = [
   "Early access to new features",
 ];
 
-export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, credits = 0, subscriptionEnd, onCheckout, onPurchaseCredits, onManage }: UpgradeModalProps) {
+export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, credits = 0, subscriptionEnd, reason = "default", onCheckout, onPurchaseCredits, onManage }: UpgradeModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const dragControls = useDragControls();
   const [tab, setTab] = useState<"credits" | "pro" | "studio">("credits");
+  const outOfCredits = reason === "out_of_credits";
+
+  useEffect(() => {
+    if (open && outOfCredits) setTab("credits");
+  }, [open, outOfCredits]);
+
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     if (info.offset.y > 100 || info.velocity.y > 300) {
