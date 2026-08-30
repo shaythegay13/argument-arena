@@ -200,14 +200,18 @@ export default function Leaderboard() {
                 ? (entry.startup_name || "Anonymous Idea")
                 : (entry.startup_name || entry.topic.slice(0, 80));
 
+              const expanded = expandedId === entry.id;
+              const selected = compareIds.includes(entry.id);
+
               return (
                 <motion.div
                   key={entry.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03, duration: 0.25 }}
-                  onClick={() => handleEntryClick(entry)}
-                  className="rounded-[14px] border border-border bg-card hover:bg-muted/20 transition-all cursor-pointer group"
+                  className={`rounded-[14px] border bg-card transition-all ${
+                    selected ? "border-primary/50" : "border-border"
+                  }`}
                 >
                   <div className="px-4 py-3 flex items-center gap-3">
                     {/* Rank */}
@@ -220,8 +224,16 @@ export default function Leaderboard() {
                     </div>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(expanded ? null : entry.id)}
+                      aria-expanded={expanded}
+                      className="flex-1 min-w-0 text-left"
+                    >
+                      <p className="text-sm font-medium text-foreground truncate flex items-center gap-1.5">
+                        {displayName}
+                        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
+                      </p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {entry.category && (
                           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-accent/10 text-accent border border-accent/20">
@@ -242,7 +254,7 @@ export default function Leaderboard() {
                           </span>
                         )}
                       </div>
-                    </div>
+                    </button>
 
                     {/* Score + Verdict + Votes */}
                     <div className="flex items-center gap-2 shrink-0">
@@ -251,12 +263,98 @@ export default function Leaderboard() {
                         {score}
                       </span>
                       {v && verdictBadge(v.verdict)}
+                      <button
+                        type="button"
+                        onClick={() => toggleCompare(entry)}
+                        aria-pressed={selected}
+                        aria-label={selected ? `Remove ${displayName} from comparison` : `Compare ${displayName}`}
+                        className={`text-[10px] font-mono px-2 py-1 rounded-[8px] border transition-colors ${
+                          selected
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {selected ? "Comparing" : "Compare"}
+                      </button>
                     </div>
                   </div>
+
+                  {/* Detail view */}
+                  {expanded && (
+                    <div className="border-t border-border px-4 py-4 space-y-4">
+                      <p className="text-xs text-muted-foreground leading-relaxed">{entry.topic}</p>
+
+                      {v && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Judge's verdict</p>
+                            <p className="text-sm text-foreground leading-relaxed">{v.why}</p>
+                            {typeof v.percentile === "number" && (
+                              <p className="text-[11px] text-muted-foreground">Top {100 - v.percentile}% of ideas evaluated</p>
+                            )}
+                            {v.nextStep && (
+                              <p className="text-xs text-foreground"><span className="text-muted-foreground">Next step: </span>{v.nextStep}</p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            {Array.isArray(v.strengths) && v.strengths.length > 0 && (
+                              <div>
+                                <p className="text-[10px] font-mono uppercase tracking-widest text-verdict-go">Strengths</p>
+                                <ul className="mt-1 space-y-0.5">
+                                  {v.strengths.map((s: string, idx: number) => (
+                                    <li key={idx} className="text-xs text-muted-foreground">• {s}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {Array.isArray(v.risks) && v.risks.length > 0 && (
+                              <div>
+                                <p className="text-[10px] font-mono uppercase tracking-widest text-verdict-nogo">Risks</p>
+                                <ul className="mt-1 space-y-0.5">
+                                  {v.risks.map((s: string, idx: number) => (
+                                    <li key={idx} className="text-xs text-muted-foreground">• {s}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Per-judge grades */}
+                      {entry.ratings?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Panel grades</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {entry.ratings.map((r: any) => (
+                              <div key={r.personaId} className="rounded-[10px] border border-border bg-muted/20 px-3 py-2">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs font-medium text-foreground">
+                                    {PERSONA_MAP[r.personaId]?.name ?? r.personaId}
+                                  </span>
+                                  <span className={`text-sm font-bold ${scoreColor(r.score ?? 0)}`}>{r.score}</span>
+                                </div>
+                                {r.verdict && <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{r.verdict}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleEntryClick(entry)}
+                        className="text-xs font-semibold text-primary hover:underline"
+                      >
+                        Open full debate →
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               );
             })}
           </div>
+
         )}
       </main>
 
