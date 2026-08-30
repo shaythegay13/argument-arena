@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, ChevronDown } from "lucide-react";
+import { Loader2, Trophy, Flame, TrendingUp, Eye, Swords, ChevronDown, User } from "lucide-react";
 import { motion } from "framer-motion";
 import CommunityVote from "@/components/CommunityVote";
+import { useAuth } from "@/hooks/useAuth";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import LeaderboardCompare, { type CompareEntry } from "@/components/LeaderboardCompare";
 import { PERSONA_MAP } from "@/data/personas";
 
-type Tab = "week" | "month" | "all" | "controversial" | "viewed";
+type Tab = "week" | "month" | "all" | "controversial" | "viewed" | "mine";
 
 interface LeaderboardEntry {
   id: string;
@@ -67,6 +68,7 @@ const tabs: { id: Tab; label: string; icon: typeof Trophy }[] = [
   { id: "all", label: "All Time", icon: Trophy },
   { id: "controversial", label: "Most Debated", icon: Swords },
   { id: "viewed", label: "Most Viewed", icon: Eye },
+  { id: "mine", label: "Your Runs", icon: User },
 ];
 
 export default function Leaderboard() {
@@ -86,10 +88,11 @@ export default function Leaderboard() {
     );
   };
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadEntries();
-  }, [tab]);
+  }, [tab, user?.id]);
 
   const loadEntries = async () => {
     setLoading(true);
@@ -97,9 +100,20 @@ export default function Leaderboard() {
     let query = supabase
       .from("debate_sessions")
       .select("id, topic, startup_name, category, judge_verdict, ratings, created_at, visibility, view_count, is_public, selected_persona_ids" as any)
-      .eq("is_public", true)
-      .in("visibility", ["anonymous", "public"])
       .not("judge_verdict", "is", null);
+
+    if (tab === "mine") {
+      // Full personal history: every graded run this founder has created,
+      // including private ones that never hit the public leaderboard.
+      if (!user?.id) {
+        setEntries([]);
+        setLoading(false);
+        return;
+      }
+      query = query.eq("user_id", user.id);
+    } else {
+      query = query.eq("is_public", true).in("visibility", ["anonymous", "public"]);
+    }
 
     // Time filters
     const now = new Date();
@@ -117,7 +131,7 @@ export default function Leaderboard() {
       query = query.order("created_at", { ascending: false });
     }
 
-    query = query.limit(50);
+    query = query.limit(tab === "mine" ? 200 : 50);
 
     const { data, error } = await query;
     if (error) {
@@ -129,7 +143,7 @@ export default function Leaderboard() {
       // Sort by score for week/month/all, by controversy for controversial
       if (tab === "controversial") {
         items.sort((a, b) => controversy(b.ratings) - controversy(a.ratings));
-      } else if (tab !== "viewed") {
+      } else if (tab !== "viewed" && tab !== "mine") {
         items.sort((a, b) => avgScore(b.ratings) - avgScore(a.ratings));
       }
 

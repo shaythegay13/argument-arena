@@ -35,7 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSessionPersistence, getStoredSessionId } from "@/hooks/useSessionPersistence";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle, Lock } from "lucide-react";
+import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle, Lock, UserPen } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import IdeaSubmissionForm from "@/components/IdeaSubmissionForm";
 import VisibilitySelector from "@/components/VisibilitySelector";
@@ -56,6 +56,13 @@ import SocialShareButton from "@/components/SocialShareButton";
 import ReadOnlyLinkButton from "@/components/ReadOnlyLinkButton";
 import logo from "@/assets/logo.png";
 import SiteFooter from "@/components/SiteFooter";
+import PanelistBiosDialog from "@/components/PanelistBiosDialog";
+import {
+  applyPanelistProfiles,
+  fetchPanelistProfiles,
+  isProfileFilled,
+  type PanelistProfileMap,
+} from "@/lib/panelistProfiles";
 
 const MAX_ROUNDS = 4;
 
@@ -164,16 +171,40 @@ const Index = () => {
 
 
 
-  const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("private");
+  const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("anonymous");
   const [finishedCount, setFinishedCount] = useState(0);
   const subscription = useSubscription();
   const isPro = subscription.isPro;
+  const isStudio = subscription.isStudio;
+  const [showBios, setShowBios] = useState(false);
+  const [panelistProfiles, setPanelistProfiles] = useState<PanelistProfileMap>({});
+  const panelistProfilesRef = useRef<PanelistProfileMap>({});
+  useEffect(() => {
+    panelistProfilesRef.current = panelistProfiles;
+  }, [panelistProfiles]);
+  const customBioCount = Object.values(panelistProfiles).filter((p) => isProfileFilled(p)).length;
   const FREE_LIMIT = 2;
   const PRO_LIMIT = 100;
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+
+  // Load the founder's saved panelist bios once their session resolves.
+  useEffect(() => {
+    if (!user?.id) {
+      setPanelistProfiles({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const profiles = await fetchPanelistProfiles(user?.id);
+      if (!cancelled) setPanelistProfiles(profiles);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   // Capture the session and iterate params once at mount
   const sessionParamRef = useRef(searchParams.get("session"));
@@ -388,6 +419,10 @@ const Index = () => {
       personas = state.selectedPersonas;
     }
     if (!personas.length) return;
+
+    // Fold the founder's own panelist bios into each judge so their debate and
+    // closing statement come from a real background, not a generic template.
+    personas = applyPanelistProfiles(personas, panelistProfilesRef.current);
 
     // SESSION-READY GATE: create the session row before anything else so every
     // round request carries a session id and billing stays idempotent.
@@ -1194,9 +1229,24 @@ const Index = () => {
 
             {/* Panel selection */}
             <div>
-              <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">
-                Jury Panel
-              </label>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                  Jury Panel
+                </label>
+                {user && (
+                  <button
+                    type="button"
+                    onClick={() => setShowBios(true)}
+                    className="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:underline"
+                  >
+                    <UserPen className="w-3.5 h-3.5" />
+                    Panelist bios
+                    {customBioCount > 0 && (
+                      <span className="font-mono text-[10px] text-muted-foreground">({customBioCount} custom)</span>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="flex flex-wrap gap-2 mb-3">
                 <button
                   onClick={() => { setPanelMode("auto"); setSelectedPanelId(null); }}
@@ -1229,10 +1279,10 @@ const Index = () => {
                 ))}
                 <button
                   onClick={() => {
-                    if (!isPro) { setUpgradeReason("default"); setShowUpgrade(true); return; }
+                    if (!isStudio) { setUpgradeReason("default"); setShowUpgrade(true); return; }
                     setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] }));
                   }}
-                  aria-label={isPro ? "Build a custom panel" : "Custom panel — Pro feature"}
+                  aria-label={isStudio ? "Build a custom panel" : "Custom panel — Studio feature"}
                   className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium border transition-all ${
                     panelMode === "custom"
                       ? "bg-primary/20 text-primary border-primary/40"
@@ -1240,12 +1290,19 @@ const Index = () => {
                   }`}
                 >
                   Custom
-                  {!isPro && <Lock className="w-3 h-3 opacity-70" />}
+                  {!isStudio && <Lock className="w-3 h-3 opacity-70" />}
                 </button>
               </div>
-              {!isPro && (
+              {!isStudio && (
                 <p className="text-[11px] text-muted-foreground mb-3">
-                  Curated and custom panels are a Pro feature — the free plan uses AI Auto-Select.
+                  {isPro
+                    ? "Curated panels are unlocked on your Pro plan. Building a fully custom panel is a Studio feature."
+                    : "Curated panels unlock on Pro and custom panels on Studio — the free plan uses AI Auto-Select."}
+                </p>
+              )}
+              {isPro && (
+                <p className="text-[11px] text-verdict-go mb-3">
+                  ✓ {isStudio ? "Studio active — every curated panel and custom panel building is unlocked." : "Pro active — all curated panels are unlocked."}
                 </p>
               )}
 
@@ -1638,6 +1695,16 @@ const Index = () => {
         onPurchaseCredits={async (pack: string) => { await subscription.purchaseCredits(pack); setAwaitingCredits(true); }}
         onManage={subscription.manageSubscription}
       />
+      {user && (
+        <PanelistBiosDialog
+          open={showBios}
+          onOpenChange={setShowBios}
+          userId={user.id}
+          profiles={panelistProfiles}
+          onProfilesChange={setPanelistProfiles}
+        />
+      )}
+
     </div>
   );
 };

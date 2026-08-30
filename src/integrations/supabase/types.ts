@@ -195,6 +195,45 @@ export type Database = {
           },
         ]
       }
+      panelist_profiles: {
+        Row: {
+          background: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          persona_id: string
+          signature_style: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          persona_id: string
+          signature_style?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          persona_id?: string
+          signature_style?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_agreements: {
         Row: {
           created_at: string
