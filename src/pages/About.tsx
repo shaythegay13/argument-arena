@@ -226,7 +226,7 @@ const About = () => {
       </header>
 
       {/* Hero */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28 text-center space-y-8">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28 text-center space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -237,7 +237,7 @@ const About = () => {
             <Zap className="w-3 h-3 text-primary" />
             About Startup Jury AI
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
             Built to give founders<br />
             <span className="text-primary">honest answers</span>
           </h1>
@@ -249,7 +249,7 @@ const About = () => {
 
       {/* Why We Built This */}
       <section className="bg-card/60 border-y border-border">
-        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -305,7 +305,7 @@ const About = () => {
       </section>
 
       {/* The 8 Judges */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -344,7 +344,7 @@ const About = () => {
 
       {/* How It Works */}
       <section className="bg-card/60 border-y border-border">
-        <div className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -382,7 +382,7 @@ const About = () => {
       </section>
 
       {/* Who Uses It */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -412,7 +412,7 @@ const About = () => {
 
       {/* Stats */}
       <section className="bg-card/60 border-y border-border">
-        <div className="max-w-[1200px] mx-auto px-6 py-14">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-14">
           <div className="grid grid-cols-3 gap-8 text-center">
             {[
               { value: "2,400+",  label: "Ideas evaluated"  },
@@ -429,7 +429,7 @@ const About = () => {
       </section>
 
       {/* CTA */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28 text-center">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28 text-center">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -459,7 +459,7 @@ const About = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border px-6 py-10">
+      <footer className="border-t border-border px-4 sm:px-6 py-10">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
           <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-32 -my-8 sm:-my-10" width={307} height={305} loading="lazy" decoding="async" />
           <span className="font-light">Validate your idea before you build.</span>

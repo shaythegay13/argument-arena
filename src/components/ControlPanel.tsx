@@ -71,7 +71,7 @@ export default function ControlPanel({
                 onClick={() => !hasStarted && !disabled && onTogglePersona(persona)}
                 disabled={hasStarted || disabled}
                 className={`
-                  px-3 py-1.5 rounded-md text-sm font-medium border transition-all
+                  px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium border transition-all
                   ${selected
                     ? `${colors.bg} ${colors.text} ${colors.border} border`
                     : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
@@ -90,12 +90,12 @@ export default function ControlPanel({
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:flex-wrap">
         {!hasStarted ? (
           <Button
             onClick={onStartDebate}
             disabled={!canStart || isGenerating}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+            className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
           >
             <Play className="w-4 h-4 mr-2" />
             Start Debate
@@ -105,12 +105,12 @@ export default function ControlPanel({
             <Button
               onClick={onJudgeSummary}
               disabled={isGenerating || isGeneratingSummary}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+              className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
             >
               <Star className="w-4 h-4 mr-2" />
               Get Panel Grades
             </Button>
-            <Button disabled variant="outline" className="border-border text-muted-foreground">
+            <Button disabled variant="outline" className="w-full sm:w-auto border-border text-muted-foreground">
               <SkipForward className="w-4 h-4 mr-2" />
               Final Statements complete
             </Button>
@@ -121,7 +121,7 @@ export default function ControlPanel({
               onClick={onNextRound}
               disabled={isGenerating}
               variant="outline"
-              className="border-primary/40 text-primary hover:bg-primary/10"
+              className="w-full sm:w-auto border-primary/40 text-primary hover:bg-primary/10"
             >
               <SkipForward className="w-4 h-4 mr-2" />
               Next Round ({currentRound + 1}/{maxRounds})
@@ -130,7 +130,7 @@ export default function ControlPanel({
               onClick={onJudgeSummary}
               disabled={isGenerating || isGeneratingSummary}
               variant="outline"
-              className="border-muted-foreground/30 text-foreground hover:bg-muted"
+              className="w-full sm:w-auto border-muted-foreground/30 text-foreground hover:bg-muted"
             >
               <Scale className="w-4 h-4 mr-2" />
               Judge's Summary

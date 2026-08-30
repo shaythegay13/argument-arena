@@ -178,9 +178,11 @@ export default function ResultPage() {
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <img src={logo} alt="Startup Jury AI" className="h-40 sm:h-48 -my-12 w-auto" width={307} height={305} decoding="async" />
+          <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-40 md:h-48 -my-7 sm:-my-12 w-auto" width={307} height={305} decoding="async" />
           <h1 className="sr-only">Startup Jury Verdict</h1>
-          <span className="text-xs font-mono text-muted-foreground">/ result</span>
+          <span className="text-[10px] sm:text-xs font-mono px-2 py-0.5 rounded-sm border border-border bg-muted/30 text-muted-foreground">
+            Read-only view
+          </span>
 
           <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleCopyLink} className="gap-1.5 text-muted-foreground">
@@ -422,7 +424,7 @@ export default function ResultPage() {
         </motion.div>
       </main>
 
-      <footer className="border-t border-border px-6 py-6">
+      <footer className="border-t border-border px-4 sm:px-6 py-6">
         <div className="max-w-3xl mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <span>Powered by</span>
           <button onClick={() => navigate("/")} className="text-primary hover:underline font-semibold">Startup Jury AI</button>

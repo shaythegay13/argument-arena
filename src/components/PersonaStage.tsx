@@ -22,13 +22,17 @@ export default function PersonaStage({
 
   const gridCols =
     personas.length === 2
-      ? "grid-cols-1 sm:grid-cols-2"
+      ? "sm:grid-cols-2"
       : personas.length === 3
-      ? "grid-cols-1 sm:grid-cols-3"
-      : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+      ? "sm:grid-cols-3"
+      : "sm:grid-cols-2 lg:grid-cols-4";
 
   return (
-    <div className={`grid ${gridCols} gap-4`}>
+    // Mobile: horizontal snap-scrolling columns so each persona stays readable.
+    // sm and up: a normal responsive grid.
+    <div
+      className={`flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-visible sm:grid sm:gap-4 ${gridCols} [&>*]:min-w-[78%] [&>*]:snap-start sm:[&>*]:min-w-0`}
+    >
       {personas.map((persona) => {
         const colors = getPersonaColors(persona.colorKey);
         const message = currentRound?.messages.find(
@@ -40,7 +44,7 @@ export default function PersonaStage({
           <div
             key={persona.id}
             className={`
-              rounded-lg border-2 ${colors.border} bg-card p-5 flex flex-col gap-3
+              rounded-lg border-2 ${colors.border} bg-card p-4 sm:p-5 flex flex-col gap-3
               transition-all duration-300
               ${isThinking ? "animate-pulse" : ""}
             `}

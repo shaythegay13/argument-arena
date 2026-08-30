@@ -39,7 +39,7 @@ export default function RoundTimeline({
   const judgeEnabled = phase === "final-ratings" || phase === "judge" || hasVerdict;
 
   return (
-    <nav aria-label="Debate rounds and results" className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+    <nav aria-label="Debate rounds and results" className="flex items-center gap-1 sm:gap-1.5 flex-wrap overflow-x-auto">
       {Array.from({ length: maxRounds }, (_, k) => k + 1).map((round) => {
         const completed = round <= totalRounds;
         const isCurrent = round === currentRound && phase === "debating";

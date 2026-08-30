@@ -22,6 +22,9 @@ interface JudgeVerdictCardProps {
   ratings?: PersonaRating[];
   personas?: Persona[];
   topic?: string;
+  /** Pro/Studio unlocks idea iteration tracking. */
+  isPro?: boolean;
+  onUpgrade?: () => void;
 }
 
 const verdictConfig: Record<
@@ -199,6 +202,8 @@ export default function JudgeVerdictCard({
   ratings = [],
   personas = [],
   topic = "",
+  isPro = false,
+  onUpgrade,
 }: JudgeVerdictCardProps) {
   const [revealed, setRevealed] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
@@ -474,10 +479,24 @@ export default function JudgeVerdictCard({
                     {verdict.nextStep}
                   </p>
                 </motion.div>
-                {/* Version Comparison */}
-                {sessionId && (
+                {/* Version Comparison — idea iteration tracking (Pro / Studio) */}
+                {sessionId && (isPro ? (
                   <VersionComparison sessionId={sessionId} />
-                )}
+                ) : (
+                  <div className="rounded-[14px] border border-border bg-muted/20 px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex-1">
+                      <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-1">
+                        Idea Iteration Tracking
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Compare this verdict against every earlier version of your pitch — available on Pro and Studio.
+                      </p>
+                    </div>
+                    <Button size="sm" onClick={onUpgrade} className="rounded-[10px] w-full sm:w-auto">
+                      Unlock with Pro
+                    </Button>
+                  </div>
+                ))}
 
                 {/* Community Vote */}
                 {sessionId && (
@@ -487,12 +506,12 @@ export default function JudgeVerdictCard({
                 )}
 
                 {/* CTA buttons */}
-                <div className="flex flex-wrap gap-3 pt-3 border-t border-border">
-                  <Button variant="outline" size="sm" onClick={onReset} className="gap-2 rounded-[10px]">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 pt-3 border-t border-border">
+                  <Button variant="outline" size="sm" onClick={onReset} className="gap-2 rounded-[10px] w-full sm:w-auto">
                     <RotateCcw className="w-3.5 h-3.5" />
                     New Idea
                   </Button>
-                  <Button variant="outline" size="sm" onClick={onRefine} className="gap-2 rounded-[10px]">
+                  <Button variant="outline" size="sm" onClick={onRefine} className="gap-2 rounded-[10px] w-full sm:w-auto">
                     <RefreshCw className="w-3.5 h-3.5" />
                     Refine & Re-pitch
                   </Button>
@@ -500,7 +519,7 @@ export default function JudgeVerdictCard({
                     variant="default"
                     size="sm"
                     onClick={() => setShowShareCard((v) => !v)}
-                    className="gap-2 rounded-[10px] bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="gap-2 rounded-[10px] w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     {showShareCard ? "Hide Verdict Card" : "🔥 Share My Score"}

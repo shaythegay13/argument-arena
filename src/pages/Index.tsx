@@ -35,7 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSessionPersistence, getStoredSessionId } from "@/hooks/useSessionPersistence";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle } from "lucide-react";
+import { Play, RotateCcw, Loader2, Zap, Users, LayoutDashboard, Mail, HelpCircle, Lock } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import IdeaSubmissionForm from "@/components/IdeaSubmissionForm";
 import VisibilitySelector from "@/components/VisibilitySelector";
@@ -53,6 +53,7 @@ import CreditsHelpModal from "@/components/CreditsHelpModal";
 import GenerationStatusPanel, { type GenStatus, type RoundGenStatus } from "@/components/GenerationStatusPanel";
 import ExportDebateButton from "@/components/ExportDebateButton";
 import SocialShareButton from "@/components/SocialShareButton";
+import ReadOnlyLinkButton from "@/components/ReadOnlyLinkButton";
 import logo from "@/assets/logo.png";
 
 const MAX_ROUNDS = 4;
@@ -1177,9 +1178,9 @@ const Index = () => {
         </div>
       )}
 
-      <main className="max-w-[1200px] mx-auto px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
+      <main className="max-w-[1200px] mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4 sm:space-y-6">
         {isSetup && (
-          <section className="rounded-[14px] border border-border bg-card p-6 space-y-5">
+          <section className="rounded-[14px] border border-border bg-card p-4 sm:p-6 space-y-5">
             <div>
               <label className="block text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
                 Startup Idea
@@ -1210,27 +1211,42 @@ const Index = () => {
                 {PANELS.map((panel) => (
                   <button
                     key={panel.id}
-                    onClick={() => { setPanelMode("panel"); setSelectedPanelId(panel.id); }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                    onClick={() => {
+                      if (!isPro) { setUpgradeReason("default"); setShowUpgrade(true); return; }
+                      setPanelMode("panel"); setSelectedPanelId(panel.id);
+                    }}
+                    aria-label={isPro ? `Use the ${panel.name} panel` : `${panel.name} panel — Pro feature`}
+                    className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium border transition-all ${
                       panelMode === "panel" && selectedPanelId === panel.id
                         ? "bg-primary/20 text-primary border-primary/40"
                         : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                     }`}
                   >
                     {panel.name}
+                    {!isPro && <Lock className="w-3 h-3 opacity-70" />}
                   </button>
                 ))}
                 <button
-                  onClick={() => { setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] })); }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                  onClick={() => {
+                    if (!isPro) { setUpgradeReason("default"); setShowUpgrade(true); return; }
+                    setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] }));
+                  }}
+                  aria-label={isPro ? "Build a custom panel" : "Custom panel — Pro feature"}
+                  className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium border transition-all ${
                     panelMode === "custom"
                       ? "bg-primary/20 text-primary border-primary/40"
                       : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                   }`}
                 >
                   Custom
+                  {!isPro && <Lock className="w-3 h-3 opacity-70" />}
                 </button>
               </div>
+              {!isPro && (
+                <p className="text-[11px] text-muted-foreground mb-3">
+                  Curated and custom panels are a Pro feature — the free plan uses AI Auto-Select.
+                </p>
+              )}
 
               {/* Panel description */}
               {panelMode === "auto" && (
@@ -1552,7 +1568,8 @@ const Index = () => {
 
             {state.phase === "judge" && (
               <>
-                <div className="flex justify-end gap-2 flex-wrap">
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:flex-wrap">
+                  <ReadOnlyLinkButton sessionId={sessionIdRef.current ?? undefined} />
                   <SocialShareButton
                     topic={state.topic}
                     verdict={state.judgeVerdict}
@@ -1581,6 +1598,8 @@ const Index = () => {
                   ratings={state.ratings}
                   personas={state.selectedPersonas}
                   topic={state.topic}
+                  isPro={isPro}
+                  onUpgrade={() => { setUpgradeReason("default"); setShowUpgrade(true); }}
                 />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer

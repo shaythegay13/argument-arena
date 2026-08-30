@@ -10,29 +10,30 @@ import { CREDIT_PACKS, STRIPE_PRO, STRIPE_STUDIO, SINGLE_EVAL } from "@/data/pri
 
 const freeFeatures = [
   "2 full jury evaluations",
-  "8 AI expert judges",
+  "8 AI expert judges (AI Auto-Select panel)",
   "4-round debate format",
   "GO / MAYBE / NO-GO verdict",
   "Judge-by-judge score breakdowns",
-  "Shareable result link",
+  "Read-only shareable result link",
+  "Shareable verdict image card",
 ];
 
 const proFeatures = [
   "15 evaluations per month",
-  "Access to all jury panels",
-  "Startup Verdict Cards",
-  "Downloadable Jury Reports",
-  "Pitch Simulation Mode",
+  "Curated + fully custom jury panels",
+  "Downloadable jury reports (PDF, Markdown, JSON)",
+  "Idea iteration tracking across re-pitches",
+  "Pitch simulation mode with founder rebuttals",
   "Priority processing",
   "Unused credits roll over 1 month",
 ];
 
 const studioFeatures = [
   "Unlimited jury evaluations",
-  "All jury panels",
-  "Advanced jury reports",
-  "Pitch simulation mode",
-  "Idea iteration tracking",
+  "Everything in Pro",
+  "All curated + custom jury panels",
+  "Advanced jury reports and exports",
+  "Full idea iteration history",
   "Early access to new features",
 ];
 
@@ -135,13 +136,13 @@ const Pricing = () => {
       </header>
 
       {/* Hero */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28 text-center space-y-6">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28 text-center space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
             <Zap className="w-3 h-3 text-primary" />
             Pricing
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
             Pitch Your Startup to an<br className="hidden sm:block" /> AI Investor Panel
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
@@ -152,7 +153,7 @@ const Pricing = () => {
       </section>
 
       {/* Value Propositions */}
-      <section className="max-w-[1200px] mx-auto px-6 pb-16">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-16">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {benefits.map((b, i) => (
             <motion.div
@@ -173,7 +174,7 @@ const Pricing = () => {
       </section>
 
       {/* Plans: Free + Pro + Studio */}
-      <section className="max-w-[1200px] mx-auto px-6 pb-16">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {/* Free */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="rounded-[14px] border border-border bg-card p-7 space-y-6">
@@ -249,7 +250,7 @@ const Pricing = () => {
       </section>
 
       {/* Credit Packs */}
-      <section className="max-w-[1200px] mx-auto px-6 pb-20 sm:pb-28">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
         <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-10 space-y-3">
           <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary flex items-center justify-center gap-1.5">
             <Coins className="w-3.5 h-3.5" /> Credit Packs
@@ -305,7 +306,7 @@ const Pricing = () => {
 
       {/* Social Proof */}
       <section className="bg-card/60 border-y border-border">
-        <div className="max-w-4xl mx-auto px-6 py-20 sm:py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-24">
           <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-10">
             <div className="text-center space-y-3">
               <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">Social Proof</div>
@@ -332,7 +333,7 @@ const Pricing = () => {
       </section>
 
       {/* FAQ */}
-      <section className="max-w-2xl mx-auto px-6 py-20 sm:py-28">
+      <section className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-28">
         <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-10">
           <div className="text-center space-y-3">
             <div className="text-xs font-mono uppercase tracking-[0.2em] text-primary">FAQ</div>
@@ -342,8 +343,8 @@ const Pricing = () => {
             <Accordion type="single" collapsible>
               {faqs.map((faq, i) => (
                 <AccordionItem key={i} value={`faq-${i}`} className={i === faqs.length - 1 ? "border-b-0" : ""}>
-                  <AccordionTrigger className="px-6 text-sm font-medium text-foreground text-left hover:no-underline">{faq.q}</AccordionTrigger>
-                  <AccordionContent className="px-6 text-sm text-muted-foreground leading-relaxed">{faq.a}</AccordionContent>
+                  <AccordionTrigger className="px-4 sm:px-6 text-sm font-medium text-foreground text-left hover:no-underline">{faq.q}</AccordionTrigger>
+                  <AccordionContent className="px-4 sm:px-6 text-sm text-muted-foreground leading-relaxed">{faq.a}</AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
@@ -352,7 +353,7 @@ const Pricing = () => {
       </section>
 
       {/* CTA */}
-      <section className="max-w-[1200px] mx-auto px-6 py-20 sm:py-28 text-center">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28 text-center">
         <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-6">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight">Test your idea before you build it.</h2>
           <p className="text-muted-foreground text-base font-light max-w-lg mx-auto">No credit card. No commitment. Just honest feedback from an AI investor panel.</p>
@@ -370,7 +371,7 @@ const Pricing = () => {
         </motion.div>
       </section>
 
-      <footer className="border-t border-border px-6 py-10">
+      <footer className="border-t border-border px-4 sm:px-6 py-10">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-xs text-muted-foreground">
           <img src={logo} alt="Startup Jury AI" className="h-24 sm:h-32 -my-8 sm:-my-10" width={307} height={305} loading="lazy" />
           <span className="font-light">Validate your idea before you build.</span>

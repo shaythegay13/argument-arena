@@ -138,7 +138,7 @@ export default function DebateTable({
         key={roundNumber}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3"
+        className="flex items-start sm:items-center gap-2 sm:gap-3 flex-wrap"
       >
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-bold text-primary bg-primary/15 px-2.5 py-1 rounded-md border border-primary/25">
@@ -179,11 +179,11 @@ export default function DebateTable({
                 animate={{ opacity: 1, x: 0, y: 0 }}
                 transition={{ delay: i * 0.12, duration: 0.4, ease: "easeOut" }}
                 layout
-                className="flex gap-3 items-start"
+                className="flex gap-2 sm:gap-3 items-start"
               >
                 {/* Avatar with emoji */}
                 <div
-                  className={`w-10 h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 ${colors.glow}`}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 ${colors.glow}`}
                 >
                   <span className="text-base leading-none" role="img" aria-label={persona.subtitle}>
                     {persona.emoji}
@@ -210,7 +210,7 @@ export default function DebateTable({
                   }}
                 >
                   {/* Bubble header */}
-                  <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap">
+                  <div className="px-3 sm:px-4 py-2.5 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                     <span className={`text-sm font-semibold ${colors.text}`}>{persona.name}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">
                       {persona.subtitle}
@@ -224,12 +224,12 @@ export default function DebateTable({
                   </div>
 
                   {/* Vibe tagline */}
-                  <div className="px-4 -mt-1 mb-1">
+                  <div className="px-3 sm:px-4 -mt-1 mb-1">
                     <span className="text-[10px] italic text-muted-foreground/60">{persona.vibe}</span>
                   </div>
 
                   {/* Message with typewriter for new messages */}
-                  <div className="px-4 pb-3">
+                  <div className="px-3 sm:px-4 pb-3">
                     <p className={`text-sm text-foreground/85 leading-relaxed ${
                       !isExpanded ? "line-clamp-3" : ""
                     }`}>
@@ -299,15 +299,15 @@ export default function DebateTable({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0 }}
-                  className="flex gap-3 items-start"
+                  className="flex gap-2 sm:gap-3 items-start"
                 >
                   <div
-                    className={`w-10 h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0`}
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0`}
                   >
                     <span className="text-base leading-none">{persona.emoji}</span>
                   </div>
                   <div className="flex-1 min-w-0 rounded-lg border border-border bg-card">
-                    <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap">
+                    <div className="px-3 sm:px-4 py-2.5 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       <span className={`text-sm font-semibold ${colors.text}`}>{persona.name}</span>
                       <span className="text-[10px] text-muted-foreground font-mono">{persona.subtitle}</span>
                       <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wide text-secondary">
@@ -315,7 +315,7 @@ export default function DebateTable({
                         Generating
                       </span>
                     </div>
-                    <div className="px-4 pb-3">
+                    <div className="px-3 sm:px-4 pb-3">
                       <p className="text-sm text-foreground/85 leading-relaxed">
                         {streamingTexts[persona.id]}
                         <span className="inline-block w-0.5 h-4 bg-primary/60 animate-pulse ml-0.5 align-text-bottom" />
@@ -339,12 +339,12 @@ export default function DebateTable({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ delay: i * 0.05 }}
-                className="flex gap-3 items-start"
+                className="flex gap-2 sm:gap-3 items-start"
               >
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
-                  className={`w-10 h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 opacity-70`}
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 ${colors.border} ${colors.bg} flex items-center justify-center shrink-0 opacity-70`}
                 >
                   <span className="text-base leading-none">{persona.emoji}</span>
                 </motion.div>
