@@ -4,12 +4,20 @@ import { Persona, Round, RoundMessage, PersonaRating } from "@/types/debate";
 const MAX_RETRIES = 2;
 const RETRY_BASE_MS = 1500;
 
+export const OUT_OF_CREDITS = "OUT_OF_CREDITS";
+
+export function isOutOfCreditsError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return msg.includes(OUT_OF_CREDITS) || msg.toLowerCase().includes("evaluation credits");
+}
+
 // Module-level session ID for current debate
 let _currentSessionId: string | undefined;
 
 export function setCurrentSessionId(id: string | undefined) {
   _currentSessionId = id;
 }
+
 
 async function callCompletion(
   systemPrompt: string,
