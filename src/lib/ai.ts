@@ -6,6 +6,37 @@ const RETRY_BASE_MS = 1500;
 
 export const OUT_OF_CREDITS = "OUT_OF_CREDITS";
 export const MISSING_SESSION = "MISSING_SESSION";
+export const CANCELLED = "GENERATION_CANCELLED";
+
+export function isCancelledError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return msg.includes(CANCELLED) || (err instanceof DOMException && err.name === "AbortError");
+}
+
+// ---- Cancellation -----------------------------------------------------------
+// Every in-flight streaming request registers its controller here so a round
+// can be stopped without touching responses that already succeeded.
+const _activeControllers = new Set<AbortController>();
+let _cancelRequested = false;
+
+/** Aborts every in-flight juror/judge generation. Already-finished responses are untouched. */
+export function cancelActiveGenerations() {
+  _cancelRequested = true;
+  _activeControllers.forEach((c) => {
+    try { c.abort(); } catch { /* ignore */ }
+  });
+  _activeControllers.clear();
+}
+
+/** Clears the cancel flag before starting a new round. */
+export function resetCancellation() {
+  _cancelRequested = false;
+  _activeControllers.clear();
+}
+
+export function isCancellationRequested() {
+  return _cancelRequested;
+}
 
 export const MISSING_SESSION_MESSAGE =
   "We couldn't start a jury session record, so nothing was sent to the panel (and no credit was used). Please refresh and try again.";
@@ -129,9 +160,17 @@ async function callCompletionStreaming(
   const accessToken = session?.access_token;
   if (!accessToken) return callCompletion(systemPrompt, userPrompt, model);
 
+  const controller = new AbortController();
+  _activeControllers.add(controller);
+  if (_cancelRequested) {
+    _activeControllers.delete(controller);
+    throw new Error(CANCELLED);
+  }
+
   let res: Response;
   try {
     res = await fetch(url, {
+      signal: controller.signal,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -147,6 +186,8 @@ async function callCompletionStreaming(
       }),
     });
   } catch (networkErr) {
+    _activeControllers.delete(controller);
+    if (isCancelledError(networkErr) || _cancelRequested) throw new Error(CANCELLED);
     console.warn("[callCompletionStreaming] network error, falling back:", networkErr);
     return callCompletion(systemPrompt, userPrompt, model);
   }
@@ -163,6 +204,7 @@ async function callCompletionStreaming(
   let buffer = "";
   let full = "";
 
+  try {
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
@@ -191,7 +233,15 @@ async function callCompletionStreaming(
     }
   }
 
+  } catch (streamErr) {
+    if (isCancelledError(streamErr) || _cancelRequested) throw new Error(CANCELLED);
+    throw streamErr;
+  } finally {
+    _activeControllers.delete(controller);
+  }
+
   if (!full.trim()) {
+    if (_cancelRequested) throw new Error(CANCELLED);
     // Nothing streamed back; the backend refunds, so retry through the buffered path.
     return callCompletion(systemPrompt, userPrompt, model);
   }
@@ -372,6 +422,7 @@ async function runStaggered<T>(
   delayMs = 800
 ): Promise<void> {
   for (let i = 0; i < items.length; i += batchSize) {
+    if (_cancelRequested) break;
     const batch = items.slice(i, i + batchSize);
     await Promise.allSettled(batch.map(fn));
     if (i + batchSize < items.length) await delay(delayMs);
@@ -401,6 +452,11 @@ export async function generateRound1(
       messages.push(msg);
       onPersonaComplete(persona.id, text);
     } catch (err) {
+      if (isCancelledError(err)) {
+        // Stopped by the user — leave the slot empty so it can be retried later.
+        onPersonaFailed?.(persona.id, err);
+        return;
+      }
       console.error(`[Round 1] ${persona.id} failed:`, err);
       const fallback = "I wasn't able to weigh in this round — please continue.";
       messages.push({ personaId: persona.id, text: fallback });
@@ -442,6 +498,10 @@ export async function generateNextRound(
       messages.push(msg);
       onPersonaComplete(persona.id, text);
     } catch (err) {
+      if (isCancelledError(err)) {
+        onPersonaFailed?.(persona.id, err);
+        return;
+      }
       console.error(`[Round ${roundNumber}] ${persona.id} failed:`, err);
       const fallback = "I wasn't able to weigh in this round — please continue.";
       messages.push({ personaId: persona.id, text: fallback });
@@ -577,7 +637,8 @@ export async function generateJudgeVerdict(
   topic: string,
   rounds: Round[],
   personas: Persona[],
-  ratings: PersonaRating[]
+  ratings: PersonaRating[],
+  onDelta?: (partial: string) => void
 ): Promise<{ script: string; judgeVerdict: import("@/types/debate").JudgeVerdict }> {
   const overallScore =
     ratings.length > 0
@@ -641,7 +702,11 @@ Overall average: ${overallScore}/10
 
 Deliver your verdict as JSON.`;
 
-  const raw = await callCompletion(systemPrompt, userPrompt);
+  const raw = onDelta
+    ? await callCompletionStreaming(systemPrompt, userPrompt, (_chunk, full) =>
+        onDelta(full)
+      )
+    : await callCompletion(systemPrompt, userPrompt);
 
   // Parse JSON from response
   let parsed: {
@@ -738,4 +803,42 @@ ${roundsText}
 Summarize the key points and questions from this round in 2-3 short paragraphs. Highlight the most important questions the panelists are asking the founder. Be concise and actionable.`;
 
   return callCompletion(systemPrompt, userPrompt);
+}
+
+
+/**
+ * Best-effort reader for the judge's partially streamed JSON so the UI can show
+ * the summary forming instead of raw braces.
+ */
+export function extractPartialJudge(partial: string): {
+  verdict?: string;
+  overallScore?: string;
+  why?: string;
+  strengths: string[];
+  risks: string[];
+  nextStep?: string;
+} {
+  const str = (key: string) => {
+    const m = partial.match(new RegExp(`"${key}"\\s*:\\s*"([^"]*)`));
+    return m?.[1]?.trim() || undefined;
+  };
+  const num = (key: string) => {
+    const m = partial.match(new RegExp(`"${key}"\\s*:\\s*([0-9.]+)`));
+    return m?.[1];
+  };
+  const arr = (key: string) => {
+    const m = partial.match(new RegExp(`"${key}"\\s*:\\s*\\[([^\\]]*)`));
+    if (!m) return [];
+    return (m[1].match(/"([^"]*)"/g) ?? [])
+      .map((s) => s.replace(/"/g, "").trim())
+      .filter(Boolean);
+  };
+  return {
+    verdict: str("verdict"),
+    overallScore: num("overallScore"),
+    why: str("why"),
+    strengths: arr("strengths"),
+    risks: arr("risks"),
+    nextStep: str("nextStep"),
+  };
 }
