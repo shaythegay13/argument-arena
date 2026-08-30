@@ -349,11 +349,22 @@ const Index = () => {
     }));
 
     trackEvent("debate_started", { personaCount: personas.length });
+
+    setGenRounds([
+      {
+        roundNumber: 1,
+        charged: !isPro,
+        overall: "generating",
+        personas: Object.fromEntries(personas.map((p) => [p.id, "generating" as GenStatus])),
+      },
+    ]);
+
     try {
     const messages = await generateRound1(
       state.topic,
       personas,
       (personaId, text) => {
+        setRoundGen(1, (r) => ({ ...r, personas: { ...r.personas, [personaId]: "succeeded" } }));
         setState((prev) => ({
           ...prev,
           generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
@@ -366,6 +377,12 @@ const Index = () => {
     messages.forEach((m) => { responseMap[m.personaId] = m.text; });
     await storeRoundMemories(personas.map((p) => p.id), state.topic, 1, "", responseMap);
 
+    setRoundGen(1, (r) => ({
+      ...r,
+      overall: "succeeded",
+      personas: Object.fromEntries(personas.map((p) => [p.id, "succeeded" as GenStatus])),
+    }));
+
     setState((prev) => ({
       ...prev,
       isGenerating: false,
@@ -376,6 +393,14 @@ const Index = () => {
     generateClip(1, personas, { roundNumber: 1, messages });
     } catch (err) {
       console.error("[Round 1] Generation failed:", err);
+      // Round 1 is the only charged round — the backend refunds it when it fails.
+      setRoundGen(1, (r) => ({
+        ...r,
+        overall: r.charged ? "refunded" : "failed",
+        personas: Object.fromEntries(
+          personas.map((p) => [p.id, r.personas[p.id] === "succeeded" ? "succeeded" : ("failed" as GenStatus)])
+        ),
+      }));
       if (isOutOfCreditsError(err)) {
         // Reset the stage entirely — no partial jury output
         setState((prev) => ({
@@ -395,9 +420,10 @@ const Index = () => {
         return;
       }
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
-      toast({ title: "Generation failed", description: "Could not start the debate. Please try again.", variant: "destructive" });
+      toast({ title: "Generation failed", description: "Could not start the debate. Please try again. No credit was charged.", variant: "destructive" });
     }
-  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription]);
+  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription, setRoundGen]);
+
 
 
   const allResponsesReady =
