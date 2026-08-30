@@ -17,11 +17,11 @@ export default function SummaryPanel({ summary, isGenerating }: SummaryPanelProp
 
       {isGenerating ? (
         <div className="space-y-2 animate-pulse">
-          <div className="h-3 bg-muted rounded w-full" />
-          <div className="h-3 bg-muted rounded w-5/6" />
-          <div className="h-3 bg-muted rounded w-4/6" />
-          <div className="h-3 bg-muted rounded w-full mt-4" />
-          <div className="h-3 bg-muted rounded w-3/4" />
+          <div className="h-3 bg-muted rounded-sm w-full" />
+          <div className="h-3 bg-muted rounded-sm w-5/6" />
+          <div className="h-3 bg-muted rounded-sm w-4/6" />
+          <div className="h-3 bg-muted rounded-sm w-full mt-4" />
+          <div className="h-3 bg-muted rounded-sm w-3/4" />
         </div>
       ) : (
         <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">

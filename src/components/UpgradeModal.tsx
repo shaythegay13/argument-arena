@@ -156,7 +156,7 @@ export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, cre
                     <button
                       onClick={() => setTab("credits")}
                       className={`flex-1 px-2 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
-                        tab === "credits" ? "bg-background text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        tab === "credits" ? "bg-background text-foreground shadow-xs border border-border" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       <Coins className="w-3 h-3 inline mr-1" />
@@ -165,7 +165,7 @@ export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, cre
                     <button
                       onClick={() => setTab("pro")}
                       className={`flex-1 px-2 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
-                        tab === "pro" ? "bg-background text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        tab === "pro" ? "bg-background text-foreground shadow-xs border border-border" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       <Crown className="w-3 h-3 inline mr-1" />
@@ -174,7 +174,7 @@ export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, cre
                     <button
                       onClick={() => setTab("studio")}
                       className={`flex-1 px-2 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
-                        tab === "studio" ? "bg-background text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        tab === "studio" ? "bg-background text-foreground shadow-xs border border-border" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       <Sparkles className="w-3 h-3 inline mr-1" />

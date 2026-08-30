@@ -94,15 +94,15 @@ export default function RatingsOverview({ personas, ratings, isGenerating }: Rat
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-muted" />
                   <div className="flex-1 space-y-1.5">
-                    <div className="h-3 bg-muted rounded w-24" />
-                    <div className="h-2 bg-muted rounded w-16" />
+                    <div className="h-3 bg-muted rounded-sm w-24" />
+                    <div className="h-2 bg-muted rounded-sm w-16" />
                   </div>
-                  <div className="h-6 w-8 bg-muted rounded" />
+                  <div className="h-6 w-8 bg-muted rounded-sm" />
                 </div>
                 <div className="space-y-1.5 mt-2">
-                  <div className="h-2 bg-muted rounded w-full" />
-                  <div className="h-2 bg-muted rounded w-4/5" />
-                  <div className="h-2 bg-muted rounded w-3/5" />
+                  <div className="h-2 bg-muted rounded-sm w-full" />
+                  <div className="h-2 bg-muted rounded-sm w-4/5" />
+                  <div className="h-2 bg-muted rounded-sm w-3/5" />
                 </div>
               </div>
             ))}

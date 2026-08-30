@@ -191,7 +191,7 @@ export default function Leaderboard() {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-medium transition-all ${
                 tab === t.id
-                  ? "bg-background text-foreground shadow-sm border border-border"
+                  ? "bg-background text-foreground shadow-xs border border-border"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -249,7 +249,7 @@ export default function Leaderboard() {
                       <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {entry.category && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent/10 text-accent border border-accent/20">
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-accent/10 text-accent border border-accent/20">
                             {entry.category}
                           </span>
                         )}

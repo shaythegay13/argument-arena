@@ -66,9 +66,9 @@ export default function PersonaStage({
             <div className="flex-1 min-h-[80px]">
               {isThinking ? (
                 <div className="space-y-2">
-                  <div className="h-3 bg-muted rounded w-full" />
-                  <div className="h-3 bg-muted rounded w-4/5" />
-                  <div className="h-3 bg-muted rounded w-3/5" />
+                  <div className="h-3 bg-muted rounded-sm w-full" />
+                  <div className="h-3 bg-muted rounded-sm w-4/5" />
+                  <div className="h-3 bg-muted rounded-sm w-3/5" />
                 </div>
               ) : message ? (
                 <p className="text-sm text-foreground/90 leading-relaxed">
