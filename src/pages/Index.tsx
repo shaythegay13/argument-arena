@@ -105,6 +105,8 @@ const Index = () => {
   const [autoDebate, setAutoDebate] = useState(false);
   const [isAutoResponding, setIsAutoResponding] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showCreditsHelp, setShowCreditsHelp] = useState(false);
+
   const [upgradeReason, setUpgradeReason] = useState<"default" | "out_of_credits">("default");
   // Pending work to auto-resume once credits land after the buy-credits flow
   const pendingCreditActionRef = useRef<{ kind: "start" } | { kind: "submit"; response: string } | null>(null);
