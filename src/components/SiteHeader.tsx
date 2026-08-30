@@ -48,8 +48,10 @@ export default function SiteHeader() {
             <Link
               key={l.label}
               to={l.href}
-              className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5"
-              activeProps={{ className: "text-foreground font-semibold", "aria-current": "page" }}
+              aria-current={pathname === l.href ? "page" : undefined}
+              className={`text-xs sm:text-sm transition-colors px-2 py-1.5 ${
+                pathname === l.href ? "text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               {l.label}
             </Link>
