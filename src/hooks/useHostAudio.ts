@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { Persona, Round } from "@/types/debate";
 import { supabase } from "@/integrations/supabase/client";
+import { callDebateJson } from "@/lib/debateEndpoint";
 
 interface HostClip {
   roundNumber: number;
@@ -56,11 +57,9 @@ ${panelResponses}${userPart}`;
   const userPrompt = `Deliver your spoken host recap summary for Round ${roundNumber} now.`;
 
   try {
-    const { data, error } = await supabase.functions.invoke("debate-ai", {
-      body: { systemPrompt, userPrompt, mode: "utility" },
-    });
-    if (error || data?.error) throw new Error(error?.message || data?.error);
-    return data?.content ?? fallbackScript(roundNumber, personas, round, userResponse);
+    const { content, error } = await callDebateJson({ systemPrompt, userPrompt, mode: "utility" });
+    if (error) throw new Error(error);
+    return content ?? fallbackScript(roundNumber, personas, round, userResponse);
   } catch (err) {
     console.warn("[HostAudio] AI summary failed, using fallback:", err);
     return fallbackScript(roundNumber, personas, round, userResponse);
