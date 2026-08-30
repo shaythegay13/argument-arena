@@ -341,10 +341,28 @@ const Index = () => {
     generateClip(1, personas, { roundNumber: 1, messages });
     } catch (err) {
       console.error("[Round 1] Generation failed:", err);
+      if (isOutOfCreditsError(err)) {
+        // Reset the stage entirely — no partial jury output
+        setState((prev) => ({
+          ...prev,
+          phase: "setup",
+          isGenerating: false,
+          generatingPersonaIds: [],
+          rounds: [],
+          currentRoundNumber: 1,
+          ratings: [],
+          judgeVerdict: null,
+        }));
+        subscription.checkSubscription();
+        setUpgradeReason("out_of_credits");
+        setShowUpgrade(true);
+        return;
+      }
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again.", variant: "destructive" });
     }
-  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast]);
+  }, [state.topic, state.selectedPersonas, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription]);
+
 
   const allResponsesReady =
     currentRound &&
