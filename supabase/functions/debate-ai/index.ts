@@ -158,11 +158,13 @@ serve(async (req) => {
 
     // Input validation
     if (typeof systemPrompt !== "string" || systemPrompt.length > MAX_PROMPT_LENGTH) {
+      await refundIfCharged();
       return new Response(JSON.stringify({ error: "Invalid or too long systemPrompt" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (typeof userPrompt !== "string" || userPrompt.length > MAX_PROMPT_LENGTH) {
+      await refundIfCharged();
       return new Response(JSON.stringify({ error: "Invalid or too long userPrompt" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -171,27 +173,42 @@ serve(async (req) => {
     const selectedModel = ALLOWED_MODELS.includes(model) ? model : "google/gemini-3-flash-preview";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("Server configuration error");
+    if (!LOVABLE_API_KEY) {
+      await refundIfCharged();
+      throw new Error("Server configuration error");
+    }
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      }
-    );
+    let response: Response;
+    try {
+      response = await fetch(
+        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+          }),
+        }
+      );
+    } catch (networkError) {
+      console.error("AI gateway network error:", networkError);
+      await refundIfCharged();
+      return new Response(
+        JSON.stringify({ error: "Service temporarily unavailable" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!response.ok) {
+      // The evaluation never produced output — never keep the credit.
+      await refundIfCharged();
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please wait a moment and try again." }),
@@ -212,12 +229,26 @@ serve(async (req) => {
       );
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content ?? "";
+    let content = "";
+    try {
+      const data = await response.json();
+      content = data.choices?.[0]?.message?.content ?? "";
+    } catch (parseError) {
+      console.error("AI gateway parse error:", parseError);
+    }
+
+    if (!content.trim()) {
+      await refundIfCharged();
+      return new Response(
+        JSON.stringify({ error: "The panel returned an empty response. Please try again — no credit was charged." }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(JSON.stringify({ content }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (e) {
     console.error("debate-ai error:", e);
     return new Response(
