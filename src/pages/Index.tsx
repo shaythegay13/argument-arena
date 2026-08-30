@@ -385,11 +385,14 @@ const Index = () => {
     messages.forEach((m) => { responseMap[m.personaId] = m.text; });
     await storeRoundMemories(personas.map((p) => p.id), state.topic, 1, "", responseMap);
 
-    setRoundGen(1, (r) => ({
-      ...r,
-      overall: "succeeded",
-      personas: Object.fromEntries(personas.map((p) => [p.id, "succeeded" as GenStatus])),
-    }));
+    setRoundGen(1, (r) => {
+      const personaStatuses = Object.fromEntries(
+        personas.map((p) => [p.id, (r.personas[p.id] === "failed" ? "failed" : "succeeded") as GenStatus])
+      );
+      const anyFailed = Object.values(personaStatuses).some((s) => s === "failed");
+      return { ...r, overall: anyFailed ? "failed" : "succeeded", personas: personaStatuses };
+    });
+
 
     setState((prev) => ({
       ...prev,
