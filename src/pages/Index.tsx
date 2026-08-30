@@ -1177,7 +1177,7 @@ const Index = () => {
         </div>
       )}
 
-      <main className="max-w-[1200px] mx-auto px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
+      <main className="max-w-[1200px] mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-4 sm:space-y-6">
         {isSetup && (
           <section className="rounded-[14px] border border-border bg-card p-6 space-y-5">
             <div>
