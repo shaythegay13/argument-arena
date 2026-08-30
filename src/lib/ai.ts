@@ -330,10 +330,14 @@ function buildRoundNPrompt(
     ? `\nMEMORY (your past notes):\n${personaMemory.slice(0, 1200)}\n`
     : "";
 
+  const isFinalRound = roundNumber >= 4;
+
   const roundLabel = roundNumber === 2
     ? "Round 2 — Risk & Challenge Debate"
     : roundNumber === 3
     ? "Round 3 — Post-Founder Defense"
+    : isFinalRound
+    ? "Round 4 — Final Statements"
     : `Round ${roundNumber}`;
 
   const crossRefRule = `
