@@ -587,6 +587,143 @@ const Index = () => {
     [state, getRecentMemories, storeRoundMemories, generateClip, toast, subscription, setRoundGen, ensureSession, sessionIdRef]
   );
 
+  // Failed-no-charge generations only: re-run just those jurors in just those rounds.
+  const failedTargets = genRounds
+    .map((r) => ({
+      roundNumber: r.roundNumber,
+      personaIds: Object.entries(r.personas)
+        .filter(([, s]) => s === "failed")
+        .map(([id]) => id),
+    }))
+    .filter((r) => r.personaIds.length > 0);
+  const failedCount = failedTargets.reduce((sum, r) => sum + r.personaIds.length, 0);
+
+  const handleRetryFailed = useCallback(async () => {
+    if (!failedTargets.length || isRetryingFailed) return;
+    setIsRetryingFailed(true);
+
+    const sid = sessionIdRef.current ?? (await ensureSession(state));
+    setCurrentSessionId(sid ?? undefined);
+
+    let recovered = 0;
+    try {
+      for (const target of failedTargets) {
+        const personas = state.selectedPersonas.filter((p) => target.personaIds.includes(p.id));
+        if (!personas.length) continue;
+
+        setRoundGen(target.roundNumber, (r) => ({
+          ...r,
+          overall: "generating",
+          personas: {
+            ...r.personas,
+            ...Object.fromEntries(personas.map((p) => [p.id, "generating" as GenStatus])),
+          },
+        }));
+        setState((prev) => ({
+          ...prev,
+          isGenerating: true,
+          generatingPersonaIds: personas.map((p) => p.id),
+        }));
+
+        const applyMessage = (personaId: string, text: string) => {
+          setState((prev) => ({
+            ...prev,
+            generatingPersonaIds: prev.generatingPersonaIds.filter((id) => id !== personaId),
+            rounds: prev.rounds.map((r) =>
+              r.roundNumber === target.roundNumber
+                ? {
+                    ...r,
+                    messages: r.messages.some((m) => m.personaId === personaId)
+                      ? r.messages.map((m) => (m.personaId === personaId ? { ...m, text } : m))
+                      : [...r.messages, { personaId, text }],
+                  }
+                : r
+            ),
+          }));
+        };
+
+        const stillFailed = new Set<string>();
+        const onFailed = (personaId: string) => {
+          stillFailed.add(personaId);
+          setRoundGen(target.roundNumber, (r) => ({
+            ...r,
+            personas: { ...r.personas, [personaId]: "failed" },
+          }));
+        };
+
+        let messages: RoundMessage[] = [];
+        if (target.roundNumber === 1) {
+          messages = await generateRound1(state.topic, personas, applyMessage, onFailed);
+        } else {
+          const previousRound = state.rounds.find((r) => r.roundNumber === target.roundNumber - 1);
+          if (!previousRound) continue;
+          messages = await generateNextRound(
+            state.topic,
+            target.roundNumber,
+            personas,
+            previousRound,
+            roundResponsesRef.current[target.roundNumber] ?? "",
+            applyMessage,
+            getRecentMemories,
+            onFailed,
+            state.selectedPersonas
+          );
+        }
+
+        const responseMap: Record<string, string> = {};
+        messages.forEach((m) => { responseMap[m.personaId] = m.text; });
+        const succeededIds = personas.map((p) => p.id).filter((id) => !stillFailed.has(id));
+        recovered += succeededIds.length;
+        if (succeededIds.length) {
+          await storeRoundMemories(
+            succeededIds,
+            state.topic,
+            target.roundNumber,
+            roundResponsesRef.current[target.roundNumber] ?? "",
+            responseMap
+          );
+        }
+
+        setRoundGen(target.roundNumber, (r) => {
+          const personaStatuses = {
+            ...r.personas,
+            ...Object.fromEntries(
+              personas.map((p) => [p.id, (stillFailed.has(p.id) ? "failed" : "succeeded") as GenStatus])
+            ),
+          };
+          const anyFailed = Object.values(personaStatuses).some((s) => s === "failed");
+          return { ...r, overall: anyFailed ? "failed" : "succeeded", personas: personaStatuses };
+        });
+      }
+
+      setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+      toast(
+        recovered > 0
+          ? {
+              title: "Retry complete",
+              description: `${recovered} juror response${recovered === 1 ? "" : "s"} recovered. No extra credit was charged.`,
+            }
+          : {
+              title: "Retry failed",
+              description: "Those jurors still couldn't respond. No extra credit was charged.",
+              variant: "destructive",
+            }
+      );
+    } catch (err) {
+      console.error("[Retry failed generations]", err);
+      setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+      toast({
+        title: "Retry failed",
+        description: "Couldn't re-run the failed jurors. No extra credit was charged.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRetryingFailed(false);
+    }
+  }, [failedTargets, isRetryingFailed, state, getRecentMemories, storeRoundMemories, setRoundGen, ensureSession, sessionIdRef, toast]);
+
+
+
   // Keep latest handlers reachable from the credit-resume effect
   handlersRef.current.start = handleStartDebate;
   handlersRef.current.submit = handleUserSubmit;
