@@ -107,6 +107,98 @@ async function callCompletion(
   throw new Error("AI call failed after retries");
 }
 
+
+/**
+ * Streaming completion — relays the edge function's SSE stream so a juror's
+ * response appears progressively. Falls back to the buffered call if streaming
+ * is unavailable, so a round never fails just because SSE couldn't be used.
+ */
+async function callCompletionStreaming(
+  systemPrompt: string,
+  userPrompt: string,
+  onDelta: (chunk: string, full: string) => void,
+  model?: string
+): Promise<string> {
+  if (!_currentSessionId || !String(_currentSessionId).trim()) {
+    console.error("[callCompletionStreaming] Blocked: missing sessionId");
+    throw new Error(MISSING_SESSION);
+  }
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/debate-ai`;
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  if (!accessToken) return callCompletion(systemPrompt, userPrompt, model);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({
+        systemPrompt,
+        userPrompt,
+        ...(model && { model }),
+        sessionId: _currentSessionId,
+        stream: true,
+      }),
+    });
+  } catch (networkErr) {
+    console.warn("[callCompletionStreaming] network error, falling back:", networkErr);
+    return callCompletion(systemPrompt, userPrompt, model);
+  }
+
+  if (!res.ok || !res.body) {
+    const bodyText = await res.text().catch(() => "");
+    if (/MISSING_SESSION/.test(bodyText)) throw new Error(MISSING_SESSION);
+    if (/evaluation credits/i.test(bodyText)) throw new Error(OUT_OF_CREDITS);
+    console.warn("[callCompletionStreaming] stream unavailable, falling back:", res.status, bodyText.slice(0, 200));
+    return callCompletion(systemPrompt, userPrompt, model);
+  }
+
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  let full = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+
+    let nlIndex: number;
+    while ((nlIndex = buffer.indexOf("\n")) !== -1) {
+      const line = buffer.slice(0, nlIndex).trim();
+      buffer = buffer.slice(nlIndex + 1);
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(payload);
+        const delta: string =
+          parsed.choices?.[0]?.delta?.content ??
+          parsed.choices?.[0]?.message?.content ??
+          "";
+        if (delta) {
+          full += delta;
+          onDelta(delta, full);
+        }
+      } catch {
+        /* partial JSON line — ignore */
+      }
+    }
+  }
+
+  if (!full.trim()) {
+    // Nothing streamed back; the backend refunds, so retry through the buffered path.
+    return callCompletion(systemPrompt, userPrompt, model);
+  }
+
+  return full;
+}
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
