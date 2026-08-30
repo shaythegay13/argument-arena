@@ -1455,24 +1455,64 @@ const Index = () => {
                   </div>
                 )}
 
-                {/* Show "Get Grades" button after round 4 completes */}
+                {/* Round 4 wrap-up: review final statements, then unlock grading */}
                 {allResponsesReady && state.currentRoundNumber >= MAX_ROUNDS && state.phase === "debating" && (
-                  <div className="flex justify-center">
-                    <Button
-                      onClick={() => {
-                        if (state.ratings.length > 0) {
-                          setState((prev) => ({ ...prev, phase: "final-ratings" }));
-                        } else {
-                          handleGenerateRatings();
+                  <div className="space-y-4">
+                    {state.ratings.length === 0 && (
+                      <FinalStatementsReview
+                        personas={state.selectedPersonas}
+                        round={currentRound}
+                        acknowledged={finalReviewAck}
+                        onAcknowledge={() => setFinalReviewAck(true)}
+                      />
+                    )}
+
+                    {gradesError && (
+                      <p role="alert" className="text-sm text-destructive text-center">
+                        {gradesError}
+                      </p>
+                    )}
+
+                    <div className="flex flex-col items-center gap-2">
+                      <Button
+                        onClick={() => {
+                          if (state.ratings.length > 0) {
+                            setState((prev) => ({ ...prev, phase: "final-ratings" }));
+                          } else {
+                            handleGenerateRatings();
+                          }
+                        }}
+                        disabled={
+                          state.isGeneratingRatings ||
+                          (state.ratings.length === 0 && !finalReviewAck)
                         }
-                      }}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      {state.ratings.length > 0 ? "View Panel Grades" : "Get Panel Grades"}
-                    </Button>
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                      >
+                        {state.isGeneratingRatings ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Grading the pitch…
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-4 h-4 mr-2" />
+                            {state.ratings.length > 0
+                              ? "View Panel Grades"
+                              : gradesError
+                              ? "Retry Panel Grades"
+                              : "Get Panel Grades"}
+                          </>
+                        )}
+                      </Button>
+                      {state.ratings.length === 0 && !finalReviewAck && !state.isGeneratingRatings && (
+                        <p className="text-xs text-muted-foreground font-mono">
+                          Review the final statements above to unlock grading.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
+
               </>
             )}
 
