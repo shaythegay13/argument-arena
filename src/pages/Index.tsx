@@ -1211,27 +1211,42 @@ const Index = () => {
                 {PANELS.map((panel) => (
                   <button
                     key={panel.id}
-                    onClick={() => { setPanelMode("panel"); setSelectedPanelId(panel.id); }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                    onClick={() => {
+                      if (!isPro) { setUpgradeReason("default"); setShowUpgrade(true); return; }
+                      setPanelMode("panel"); setSelectedPanelId(panel.id);
+                    }}
+                    aria-label={isPro ? `Use the ${panel.name} panel` : `${panel.name} panel — Pro feature`}
+                    className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium border transition-all ${
                       panelMode === "panel" && selectedPanelId === panel.id
                         ? "bg-primary/20 text-primary border-primary/40"
                         : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                     }`}
                   >
                     {panel.name}
+                    {!isPro && <Lock className="w-3 h-3 opacity-70" />}
                   </button>
                 ))}
                 <button
-                  onClick={() => { setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] })); }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border transition-all ${
+                  onClick={() => {
+                    if (!isPro) { setUpgradeReason("default"); setShowUpgrade(true); return; }
+                    setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] }));
+                  }}
+                  aria-label={isPro ? "Build a custom panel" : "Custom panel — Pro feature"}
+                  className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium border transition-all ${
                     panelMode === "custom"
                       ? "bg-primary/20 text-primary border-primary/40"
                       : "bg-muted/30 text-muted-foreground border-border hover:border-muted-foreground/40"
                   }`}
                 >
                   Custom
+                  {!isPro && <Lock className="w-3 h-3 opacity-70" />}
                 </button>
               </div>
+              {!isPro && (
+                <p className="text-[11px] text-muted-foreground mb-3">
+                  Curated and custom panels are a Pro feature — the free plan uses AI Auto-Select.
+                </p>
+              )}
 
               {/* Panel description */}
               {panelMode === "auto" && (
