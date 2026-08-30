@@ -10,6 +10,7 @@ import CommunityVote from "@/components/CommunityVote";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
+import SiteFooter from "@/components/SiteFooter";
 
 const verdictConfig: Record<string, { emoji: string; color: string; bg: string; border: string; label: string; tagline: string }> = {
   GO: { emoji: "🚀", color: "text-verdict-go", bg: "bg-verdict-go/10", border: "border-verdict-go/30", label: "GO", tagline: "High Potential" },
@@ -424,12 +425,7 @@ export default function ResultPage() {
         </motion.div>
       </main>
 
-      <footer className="border-t border-border px-4 sm:px-6 py-6">
-        <div className="max-w-3xl mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
-          <span>Powered by</span>
-          <button onClick={() => navigate("/")} className="text-primary hover:underline font-semibold">Startup Jury AI</button>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

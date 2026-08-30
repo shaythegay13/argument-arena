@@ -55,6 +55,7 @@ import ExportDebateButton from "@/components/ExportDebateButton";
 import SocialShareButton from "@/components/SocialShareButton";
 import ReadOnlyLinkButton from "@/components/ReadOnlyLinkButton";
 import logo from "@/assets/logo.png";
+import SiteFooter from "@/components/SiteFooter";
 
 const MAX_ROUNDS = 4;
 
@@ -1615,17 +1616,7 @@ const Index = () => {
         )}
       </main>
 
-      <footer className="border-t border-border px-6 py-6 mt-auto">
-        <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3 text-xs text-muted-foreground">
-          <button onClick={() => navigate("/app/terms")} className="hover:text-foreground underline underline-offset-2 transition-colors">
-            Terms & Conditions
-          </button>
-          <span>·</span>
-          <button onClick={() => navigate("/app/privacy")} className="hover:text-foreground underline underline-offset-2 transition-colors">
-            Privacy Policy
-          </button>
-        </div>
-      </footer>
+      <SiteFooter />
       <CreditsHelpModal
         open={showCreditsHelp}
         onOpenChange={setShowCreditsHelp}
