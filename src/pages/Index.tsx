@@ -265,22 +265,36 @@ const Index = () => {
         if (loadedState) {
           setState(loadedState);
           setPanelMode("custom");
+          if (loadedState.rounds.length >= MAX_ROUNDS || loadedState.ratings.length > 0) {
+            setFinalReviewAck(true);
+          }
           for (const round of loadedState.rounds) {
             if (round.messages.length === loadedState.selectedPersonas.length) {
               generateClip(round.roundNumber, loadedState.selectedPersonas, round);
             }
           }
+          if (isRefreshResume) {
+            toast({
+              title: "Debate resumed",
+              description: `Picked up where you left off — Round ${Math.max(loadedState.rounds.length, 1)} of ${MAX_ROUNDS}.`,
+            });
+          }
+        } else if (isRefreshResume) {
+          // The stored id no longer resolves (deleted or different account) — forget it.
+          resetSessionId();
         }
         setSearchParams({});
       })
       .catch((err) => {
         console.error("Failed to load session:", err);
+        if (isRefreshResume) resetSessionId();
         setSearchParams({});
       })
       .finally(() => {
         setIsLoadingSession(false);
       });
-  }, [authLoading, user?.id, loadSession, setSearchParams, generateClip, setIteration, toast]);
+  }, [authLoading, user?.id, loadSession, setSearchParams, generateClip, setIteration, toast, resetSessionId]);
+
 
   const currentRound = state.rounds.find((r) => r.roundNumber === state.currentRoundNumber);
 
