@@ -5,6 +5,15 @@ const MAX_RETRIES = 2;
 const RETRY_BASE_MS = 1500;
 
 export const OUT_OF_CREDITS = "OUT_OF_CREDITS";
+export const MISSING_SESSION = "MISSING_SESSION";
+
+export const MISSING_SESSION_MESSAGE =
+  "We couldn't start a jury session record, so nothing was sent to the panel (and no credit was used). Please refresh and try again.";
+
+export function isMissingSessionError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  return msg.includes(MISSING_SESSION);
+}
 
 export function isOutOfCreditsError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err ?? "");
@@ -18,17 +27,29 @@ export function setCurrentSessionId(id: string | undefined) {
   _currentSessionId = id;
 }
 
+export function getCurrentSessionId(): string | undefined {
+  return _currentSessionId;
+}
+
 
 async function callCompletion(
   systemPrompt: string,
   userPrompt: string,
   model?: string
 ): Promise<string> {
+  // Client-side guard: never call the edge function without a session id —
+  // billing is keyed on it, so a missing id can only produce a 400.
+  if (!_currentSessionId || !String(_currentSessionId).trim()) {
+    console.error("[callCompletion] Blocked: missing sessionId");
+    throw new Error(MISSING_SESSION);
+  }
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
       const { data, error } = await supabase.functions.invoke("debate-ai", {
-        body: { systemPrompt, userPrompt, ...(model && { model }), ...(_currentSessionId && { sessionId: _currentSessionId }) },
+        body: { systemPrompt, userPrompt, ...(model && { model }), sessionId: _currentSessionId },
       });
+
 
       if (error) {
         const msg = error.message || "AI call failed";
@@ -39,6 +60,11 @@ async function callCompletion(
           const res = (error as any).context;
           if (res && typeof res.clone === "function") bodyText = await res.clone().text();
         } catch { /* ignore */ }
+
+        if (/MISSING_SESSION/.test(bodyText) || /MISSING_SESSION/.test(msg)) {
+          console.error("[callCompletion] Server rejected request: missing sessionId", bodyText);
+          throw new Error(MISSING_SESSION);
+        }
 
         if (/evaluation credits/i.test(bodyText) || /evaluation credits/i.test(msg)) {
           throw new Error(OUT_OF_CREDITS);
@@ -55,6 +81,9 @@ async function callCompletion(
       }
 
       if (data?.error) {
+        if (/MISSING_SESSION/.test(String(data.error))) {
+          throw new Error(MISSING_SESSION);
+        }
         if (/evaluation credits/i.test(data.error)) {
           throw new Error(OUT_OF_CREDITS);
         }
@@ -68,7 +97,7 @@ async function callCompletion(
 
       return data?.content ?? "No response generated.";
     } catch (err) {
-      if (isOutOfCreditsError(err)) throw err;
+      if (isOutOfCreditsError(err) || isMissingSessionError(err)) throw err;
       if (attempt >= MAX_RETRIES) throw err;
       console.warn(`[callCompletion] Attempt ${attempt + 1} failed, retrying...`, err);
       await delay(RETRY_BASE_MS * (attempt + 1));

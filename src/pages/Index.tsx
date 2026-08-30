@@ -12,6 +12,11 @@ import {
   generateAutoResponse,
   setCurrentSessionId,
   isOutOfCreditsError,
+  isMissingSessionError,
+  MISSING_SESSION,
+  MISSING_SESSION_MESSAGE,
+
+
 
 } from "@/lib/ai";
 import { trackEvent } from "@/lib/analytics";
@@ -367,6 +372,8 @@ const Index = () => {
     // Create the session row first so credit charging is idempotent per session.
     const newSessionId = await ensureSession({ ...state, selectedPersonas: personas, phase: "debating" } as typeof state);
     setCurrentSessionId(newSessionId ?? undefined);
+    if (!newSessionId) throw new Error(MISSING_SESSION);
+
 
     const messages = await generateRound1(
       state.topic,
@@ -434,9 +441,22 @@ const Index = () => {
         setShowUpgrade(true);
         return;
       }
+      if (isMissingSessionError(err)) {
+        setState((prev) => ({
+          ...prev,
+          phase: "setup",
+          isGenerating: false,
+          generatingPersonaIds: [],
+          rounds: [],
+          currentRoundNumber: 1,
+        }));
+        toast({ title: "Couldn't start the jury", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+        return;
+      }
       setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again. No credit was charged.", variant: "destructive" });
     }
+
   }, [state, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription, setRoundGen, ensureSession]);
 
 
@@ -461,6 +481,12 @@ const Index = () => {
       // Make sure the billing/session id is attached for follow-up rounds too.
       const sid = sessionIdRef.current ?? (await ensureSession(state));
       setCurrentSessionId(sid ?? undefined);
+      if (!sid) {
+        setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+        toast({ title: "Couldn't reach the jury", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+        return;
+      }
+
 
 
       emitAgUIEvent({ type: "user_response", content: userResponse, round: state.currentRoundNumber });
@@ -579,9 +605,15 @@ const Index = () => {
           setShowUpgrade(true);
           return;
         }
+        if (isMissingSessionError(err)) {
+          setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+          toast({ title: "Couldn't reach the jury", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+          return;
+        }
         setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
         toast({ title: "Generation failed", description: "The panel couldn't respond. Please try submitting again — no credit was charged.", variant: "destructive" });
       }
+
 
     },
     [state, getRecentMemories, storeRoundMemories, generateClip, toast, subscription, setRoundGen, ensureSession, sessionIdRef]
@@ -604,6 +636,12 @@ const Index = () => {
 
     const sid = sessionIdRef.current ?? (await ensureSession(state));
     setCurrentSessionId(sid ?? undefined);
+    if (!sid) {
+      setIsRetryingFailed(false);
+      toast({ title: "Couldn't retry", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+      return;
+    }
+
 
     let recovered = 0;
     try {
