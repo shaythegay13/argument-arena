@@ -190,7 +190,34 @@ export default function Leaderboard() {
           ))}
         </div>
 
+        {/* Side-by-side comparison */}
+        <LeaderboardCompare
+          entries={compareIds
+            .map((id) => entries.find((e) => e.id === id))
+            .filter((e): e is LeaderboardEntry => Boolean(e))
+            .map<CompareEntry>((e) => ({
+              id: e.id,
+              label:
+                e.visibility === "anonymous"
+                  ? e.startup_name || "Anonymous Idea"
+                  : e.startup_name || e.topic.slice(0, 60),
+              category: e.category,
+              created_at: e.created_at,
+              score: avgScore(e.ratings),
+              judge_verdict: e.judge_verdict,
+              ratings: e.ratings,
+              selected_persona_ids: e.selected_persona_ids,
+            }))}
+          onRemove={(id) => setCompareIds((prev) => prev.filter((x) => x !== id))}
+          onClear={() => setCompareIds([])}
+          onOpen={(id) => {
+            const entry = entries.find((e) => e.id === id);
+            if (entry) void handleEntryClick(entry);
+          }}
+        />
+
         {/* Entries */}
+
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin" />
