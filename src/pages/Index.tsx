@@ -505,7 +505,13 @@ const Index = () => {
               };
             });
           },
-          getRecentMemories
+          getRecentMemories,
+          (personaId) => {
+            setRoundGen(nextRoundNum, (r) => ({
+              ...r,
+              personas: { ...r.personas, [personaId]: "failed" },
+            }));
+          }
         );
 
         const responseMap: Record<string, string> = {};
@@ -518,13 +524,17 @@ const Index = () => {
           responseMap
         );
 
-        setRoundGen(nextRoundNum, (r) => ({
-          ...r,
-          overall: "succeeded",
-          personas: Object.fromEntries(
-            state.selectedPersonas.map((p) => [p.id, "succeeded" as GenStatus])
-          ),
-        }));
+        setRoundGen(nextRoundNum, (r) => {
+          const personaStatuses = Object.fromEntries(
+            state.selectedPersonas.map((p) => [
+              p.id,
+              (r.personas[p.id] === "failed" ? "failed" : "succeeded") as GenStatus,
+            ])
+          );
+          const anyFailed = Object.values(personaStatuses).some((s) => s === "failed");
+          return { ...r, overall: anyFailed ? "failed" : "succeeded", personas: personaStatuses };
+        });
+
 
         setState((prev) => {
           const updatedRounds = prev.rounds.some((r) => r.roundNumber === nextRoundNum)
