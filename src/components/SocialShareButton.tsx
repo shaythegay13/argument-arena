@@ -9,10 +9,12 @@ import {
   Link2,
   Linkedin,
   Loader2,
+  QrCode,
   Share2,
   Twitter,
 } from "lucide-react";
 import html2canvas from "html2canvas";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -58,6 +60,49 @@ const PLATFORMS: {
   { id: "instagram", label: "Instagram", hint: "Caption + hashtags to paste", Icon: Instagram },
   { id: "copy", label: "Just copy", hint: "Plain text, no platform styling", Icon: Copy },
 ];
+
+/** Composer limits and hashtag conventions per network. */
+export const PLATFORM_LIMITS: Record<
+  SocialPlatform,
+  { charLimit: number | null; maxHashtags: number; suggested: string[] }
+> = {
+  x: { charLimit: 280, maxHashtags: 2, suggested: ["#buildinpublic", "#startups"] },
+  linkedin: {
+    charLimit: 3000,
+    maxHashtags: 5,
+    suggested: ["#startups", "#venturecapital", "#founders", "#productstrategy"],
+  },
+  facebook: { charLimit: 63206, maxHashtags: 3, suggested: ["#startup", "#founders"] },
+  reddit: { charLimit: 40000, maxHashtags: 0, suggested: [] },
+  instagram: {
+    charLimit: 2200,
+    maxHashtags: 30,
+    suggested: [
+      "#startup",
+      "#founder",
+      "#startupidea",
+      "#entrepreneur",
+      "#buildinpublic",
+      "#venturecapital",
+      "#startupjuryai",
+    ],
+  },
+  copy: { charLimit: null, maxHashtags: 0, suggested: [] },
+};
+
+const HASHTAG_RE = /#[\p{L}\p{N}_]+/gu;
+
+/** Splits a draft into body text and its trailing hashtags so both stay editable. */
+export function splitCaption(text: string): { body: string; hashtags: string[] } {
+  const hashtags = Array.from(text.match(HASHTAG_RE) ?? []);
+  const body = text.replace(HASHTAG_RE, "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  return { body, hashtags };
+}
+
+export function joinCaption(body: string, hashtags: string[]): string {
+  const tags = hashtags.join(" ").trim();
+  return tags ? `${body.trim()}\n\n${tags}` : body.trim();
+}
 
 function shortTopic(topic: string, max = 90) {
   const clean = topic.replace(/\s+/g, " ").trim();
