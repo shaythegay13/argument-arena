@@ -257,6 +257,7 @@ const Index = () => {
 
   const handleStartDebate = useCallback(async () => {
     if (finishedCount >= FREE_LIMIT && !isPro) {
+      pendingCreditActionRef.current = { kind: "start" };
       setUpgradeReason("out_of_credits");
       setShowUpgrade(true);
       return;
@@ -277,11 +278,13 @@ const Index = () => {
         if (creditRow) credits = creditRow.credits;
       }
       if (credits <= 0) {
+        pendingCreditActionRef.current = { kind: "start" };
         setUpgradeReason("out_of_credits");
         setShowUpgrade(true);
         return;
       }
     }
+
 
     if (isPro && finishedCount >= PRO_LIMIT) {
       toast({
