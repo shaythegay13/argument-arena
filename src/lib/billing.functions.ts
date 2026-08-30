@@ -83,7 +83,7 @@ export const checkSubscription = createServerFn({ method: "GET" })
         return { subscribed: false, tier: null, subscription_end: null, credits };
       }
 
-      const customerId = customers.data[0].id;
+      const customerId = customers.data[0]!.id;
       const subscriptions = await stripe.subscriptions.list({
         customer: customerId,
         status: "active",
@@ -144,7 +144,7 @@ export const createCheckout = createServerFn({ method: "POST" })
       const customerId: string | undefined = customers.data[0]?.id;
 
       const params: Stripe.Checkout.SessionCreateParams = {
-        line_items: [{ price: priceId, quantity: 1 }],
+        line_items: [{ price: priceId as string, quantity: 1 }],
         mode: "subscription",
         success_url: `${origin}/dashboard?upgrade=success`,
         cancel_url: `${origin}/dashboard?upgrade=canceled`,
