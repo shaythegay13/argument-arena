@@ -4,7 +4,7 @@ import { PERSONAS } from "@/data/personas";
 import { getPersonaColors } from "@/data/personaColors";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Play, SkipForward, Scale } from "lucide-react";
+import { Play, SkipForward, Scale, Star } from "lucide-react";
 
 interface ControlPanelProps {
   topic: string;
@@ -100,16 +100,31 @@ export default function ControlPanel({
             <Play className="w-4 h-4 mr-2" />
             Start Debate
           </Button>
+        ) : currentRound >= maxRounds ? (
+          <>
+            <Button
+              onClick={onJudgeSummary}
+              disabled={isGenerating || isGeneratingSummary}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Get Panel Grades
+            </Button>
+            <Button disabled variant="outline" className="border-border text-muted-foreground">
+              <SkipForward className="w-4 h-4 mr-2" />
+              Final Statements complete
+            </Button>
+          </>
         ) : (
           <>
             <Button
               onClick={onNextRound}
-              disabled={isGenerating || currentRound >= maxRounds}
+              disabled={isGenerating}
               variant="outline"
               className="border-primary/40 text-primary hover:bg-primary/10"
             >
               <SkipForward className="w-4 h-4 mr-2" />
-              Next Round {currentRound < maxRounds && `(${currentRound + 1}/${maxRounds})`}
+              Next Round ({currentRound + 1}/{maxRounds})
             </Button>
             <Button
               onClick={onJudgeSummary}
@@ -122,6 +137,7 @@ export default function ControlPanel({
             </Button>
           </>
         )}
+
       </div>
     </div>
   );

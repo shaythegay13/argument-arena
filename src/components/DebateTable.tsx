@@ -8,7 +8,7 @@ const ROUND_THEMES: Record<number, { label: string; description: string }> = {
   1: { label: "Initial Reactions", description: "First impressions from the panel" },
   2: { label: "Risks & Critiques", description: "Digging into challenges and red flags" },
   3: { label: "Founder Defense", description: "Responding to critiques and pivoting" },
-  4: { label: "Final Evaluations", description: "Closing arguments before scoring" },
+  4: { label: "Final Statements", description: "Final positions — no further founder turn" },
 };
 
 /** Typewriter text component — reveals text character by character */

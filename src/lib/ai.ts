@@ -292,7 +292,42 @@ function getWordLimit(_roundNumber: number): number {
   return 500;
 }
 
-function buildRound1Prompt(topic: string): string {
+/**
+ * Phrases that must never appear in a Round 4 (Final Statements) prompt.
+ * Round 4 is terminal — the founder has no further turn.
+ */
+export const FORBIDDEN_FINAL_ROUND_PHRASES = [
+  "questions for the founder",
+  "pointed questions",
+  "next round",
+  "founder will respond",
+  "founder's next turn",
+  "ask the founder what",
+] as const;
+
+export const FINAL_ROUND_NUMBER = 4;
+
+export function isFinalRoundNumber(roundNumber: number): boolean {
+  return roundNumber >= FINAL_ROUND_NUMBER;
+}
+
+/**
+ * Closing instruction for a round. Rounds 1–3 are question-driven;
+ * Round 4 is finale-style and explicitly forbids question / next-turn language.
+ */
+export function buildClosingRule(roundNumber: number): string {
+  if (!isFinalRoundNumber(roundNumber)) {
+    return `End with 1-2 new questions for the founder.`;
+  }
+  return `This is the FINAL round of the debate — the founder will NOT have another chance to respond. Do NOT ask the founder anything, and do NOT imply that another round, follow-up, or founder turn is coming. Instead:
+- Deliver your final, definitive position on the idea (bullish, bearish, or conditional — say it plainly)
+- State the single strongest reason for your position and the single biggest remaining risk
+- Close with one piece of direct advice or a final verdict the founder can act on immediately
+- Speak in conclusive language ("My final take:", "Bottom line:", "If I had to vote today…") — nothing that implies another round follows
+- Never end on a question mark`;
+}
+
+export function buildRound1Prompt(topic: string): string {
   return `Topic/Idea: "${topic}"
 
 You are on a live startup jury panel with other expert judges. This is Round 1 — Initial Reactions. Give your first impression of this idea in your own voice. Be specific and direct.
@@ -310,7 +345,7 @@ function truncateForContext(text: string): string {
   return text.length > MAX_CTX_CHARS ? text.slice(0, MAX_CTX_CHARS) + "…" : text;
 }
 
-function buildRoundNPrompt(
+export function buildRoundNPrompt(
   topic: string,
   roundNumber: number,
   previousRound: Round,
@@ -355,13 +390,7 @@ ${crossRefRule}`;
 
   const founderCtx = userResponse.length > 3000 ? userResponse.slice(0, 3000) + "…" : userResponse;
 
-  const closingRule = isFinalRound
-    ? `This is the FINAL round of the debate — the founder will NOT have another chance to respond. Do NOT ask the founder any questions. Instead:
-- Deliver your final, definitive position on the idea (bullish, bearish, or conditional — say it plainly)
-- State the single strongest reason for your position and the single biggest remaining risk
-- Close with one piece of direct advice or a final verdict the founder can act on immediately
-- Speak in conclusive language ("My final take:", "Bottom line:", "If I had to vote today…") — nothing that implies another round follows`
-    : `End with 1-2 new questions for the founder.`;
+  const closingRule = buildClosingRule(roundNumber);
 
   const userPrompt = `Topic/Idea: "${topic}"
 

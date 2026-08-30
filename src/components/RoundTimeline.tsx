@@ -17,7 +17,7 @@ const ROUND_LABELS = [
   "Initial Reactions",
   "Risks & Critiques",
   "Founder Defense",
-  "Final Evaluations",
+  "Final Statements",
 ];
 
 export default function RoundTimeline({

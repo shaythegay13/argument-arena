@@ -13,7 +13,7 @@ const ROUND_TITLES: Record<number, string> = {
   1: "Initial Reactions",
   2: "Risks & Critiques",
   3: "Founder Defense",
-  4: "Final Evaluations",
+  4: "Final Statements",
 };
 
 function personaLabel(personas: Persona[], id: string) {
