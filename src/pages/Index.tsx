@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Persona, DebateState, Round } from "@/types/debate";
+import { Persona, DebateState, Round, RoundMessage } from "@/types/debate";
 import {
   generateRound1,
   generateNextRound,
