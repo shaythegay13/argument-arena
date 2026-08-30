@@ -455,6 +455,8 @@ const Index = () => {
       const nextRoundNum = state.rounds.length + 1;
       const previousRound = state.rounds[state.rounds.length - 1];
       const userResponse = overrideResponse ?? state.userResponse;
+      roundResponsesRef.current[nextRoundNum] = userResponse;
+
 
       // Make sure the billing/session id is attached for follow-up rounds too.
       const sid = sessionIdRef.current ?? (await ensureSession(state));
