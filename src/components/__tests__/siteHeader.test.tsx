@@ -1,7 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
-...
+
+const mockAuth = vi.fn();
+const currentPath = { value: "/" };
+
+vi.mock("@/hooks/useAuth", () => ({ useAuth: () => mockAuth() }));
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: { auth: { signOut: vi.fn() } },
+}));
+vi.mock("@/assets/logo.png", () => ({ default: "logo.png" }));
+vi.mock("@/lib/router-compat", () => ({ useNavigate: () => vi.fn() }));
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children, to, ...rest }: { children: ReactNode; to: string }) => (
+    <a href={to} {...rest}>
+      {children}
+    </a>
+  ),
+  useRouterState: ({ select }: { select: (s: unknown) => unknown }) =>
+    select({ location: { pathname: currentPath.value } }),
+}));
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
