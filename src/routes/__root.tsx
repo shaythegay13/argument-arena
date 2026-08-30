@@ -47,18 +47,33 @@ const structuredData = JSON.stringify({
         },
         {
           "@type": "Offer",
-          name: "Unlimited Plan",
-          price: "8.99",
+          name: "Pro Plan",
+          price: "19.00",
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          description: "Unlimited startup idea evaluations",
+          description: "15 evaluation credits per month plus Pro-only exports and panels",
           priceSpecification: {
             "@type": "UnitPriceSpecification",
-            price: "8.99",
+            price: "19.00",
             priceCurrency: "USD",
             billingDuration: "P1M",
           },
         },
+        {
+          "@type": "Offer",
+          name: "Studio Plan",
+          price: "79.00",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          description: "Unlimited startup idea evaluations with custom panels",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "79.00",
+            priceCurrency: "USD",
+            billingDuration: "P1M",
+          },
+        },
+
       ],
       aggregateRating: {
         "@type": "AggregateRating",
