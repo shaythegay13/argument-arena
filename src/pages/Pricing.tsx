@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Zap, Coins, Crown, Sparkles, Target, MessageSquareWarning, Award, Quote } from "lucide-react";
+import { ArrowRight, CheckCircle2, Coins, Crown, Sparkles, Target, MessageSquareWarning, Award, Quote } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -138,10 +138,6 @@ const Pricing = () => {
       {/* Hero */}
       <section className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12 sm:py-28 text-center space-y-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
-            <Zap className="w-3 h-3 text-primary" />
-            Pricing
-          </div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
             Pitch Your Startup to an<br className="hidden sm:block" /> AI Investor Panel
           </h1>
