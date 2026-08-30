@@ -153,5 +153,5 @@ export function useSessionPersistence(userId: string | undefined) {
     iterationRef.current = { parentSessionId, version };
   }, []);
 
-  return { saveSession, loadSession, resetSessionId, setIteration, sessionId: sessionIdRef };
+  return { saveSession, loadSession, resetSessionId, setIteration, ensureSession, sessionId: sessionIdRef };
 }
