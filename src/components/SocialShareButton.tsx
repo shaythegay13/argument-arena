@@ -25,7 +25,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ensurePermalink, permalinkFor } from "@/lib/shareLink";
+import {
+  ensurePermalink,
+  permalinkFor,
+  crawlerShareLinkFor,
+  OG_IMAGE_URL,
+} from "@/lib/shareLink";
+import PlatformPreviewPanel from "@/components/PlatformPreviewPanel";
 import { trackEvent } from "@/lib/analytics";
 import VerdictImageCard from "@/components/VerdictImageCard";
 import type { JudgeVerdict, Persona, PersonaRating } from "@/types/debate";
@@ -263,6 +269,8 @@ const SocialShareButton = ({
 
   // One canonical transcript URL, identical on every platform.
   const shareUrl = permalinkFor(sessionId);
+  // Server-rendered URL handed to networks that build their preview from the link.
+  const crawlerUrl = crawlerShareLinkFor(sessionId);
   // Square reads better on Instagram/Facebook; wide is the link-preview ratio elsewhere.
   const cardShape: "square" | "wide" =
     platform === "instagram" || platform === "facebook" ? "square" : "wide";
@@ -376,7 +384,7 @@ const SocialShareButton = ({
       } else {
         await downloadImage();
         await navigator.clipboard.writeText(draft).catch(() => {});
-        const target = intentUrl(platform, draft, url);
+        const target = intentUrl(platform, draft, crawlerUrl);
         if (target) window.open(target, "_blank", "noopener,noreferrer");
         toast({
           title: "Image saved, caption copied",
@@ -419,7 +427,7 @@ const SocialShareButton = ({
   };
 
   const postNow = async () => {
-    const target = intentUrl(platform, draft, shareUrl);
+    const target = intentUrl(platform, draft, crawlerUrl);
     if (!target) {
       await copyDraft();
       toast({
@@ -439,6 +447,15 @@ const SocialShareButton = ({
   if (!verdict) return null;
 
   const activeMeta = PLATFORMS.find((p) => p.id === platform)!;
+
+  // Mirrors exactly what the og-result function renders for crawlers.
+  const previewScore = verdict ? Math.round(verdict.overallScore * 10) : null;
+  const previewTitle = verdict
+    ? `${verdict.verdict} — ${topic ? shortTopic(topic, 40) : "Startup Idea"} scored ${previewScore}/100 | Startup Jury AI`
+    : "Startup Jury AI";
+  const previewDescription = verdict
+    ? `An AI panel of ${ratings.length || 8} investor personas debated this idea and returned ${verdict.verdict} at ${previewScore}/100. ${shortTopic(topic, 110)}`
+    : "";
 
   return (
     <>
@@ -534,6 +551,19 @@ const SocialShareButton = ({
           </div>
 
           <p className="text-[10px] font-mono text-muted-foreground">{activeMeta.hint}</p>
+
+          <PlatformPreviewPanel
+            platformLabel={activeMeta.label}
+            postText={draft}
+            charLimit={limits.charLimit}
+            hashtagCount={hashtags.length}
+            maxHashtags={limits.maxHashtags}
+            crawlerUrl={crawlerUrl}
+            permalink={shareUrl}
+            ogImageUrl={OG_IMAGE_URL}
+            previewTitle={previewTitle}
+            previewDescription={previewDescription}
+          />
 
           {tab === "image" && (
             <div className="space-y-3">
