@@ -39,7 +39,7 @@ export default function RoundTimeline({
   const judgeEnabled = phase === "final-ratings" || phase === "judge" || hasVerdict;
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+    <nav aria-label="Debate rounds and results" className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
       {Array.from({ length: maxRounds }, (_, k) => k + 1).map((round) => {
         const completed = round <= totalRounds;
         const isCurrent = round === currentRound && phase === "debating";
@@ -51,8 +51,10 @@ export default function RoundTimeline({
             whileTap={completed ? { scale: 0.95 } : {}}
             onClick={() => completed && onSelectRound(round)}
             disabled={!completed}
+            aria-current={isCurrent ? "step" : undefined}
+            aria-label={`Round ${round}: ${ROUND_LABELS[round - 1] ?? `Round ${round}`}${completed ? "" : " (not yet available)"}`}
             className={`
-              flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all
+              flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
               ${isCurrent
                 ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                 : completed
@@ -77,8 +79,10 @@ export default function RoundTimeline({
         whileTap={gradesEnabled ? { scale: 0.95 } : {}}
         onClick={() => gradesEnabled && onGradesClick?.()}
         disabled={!gradesEnabled}
+        aria-current={gradesActive ? "step" : undefined}
+        aria-label="View panel grades"
         className={`
-          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all
+          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
           ${gradesActive
             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
             : gradesEnabled
@@ -87,7 +91,7 @@ export default function RoundTimeline({
           }
         `}
       >
-        <Star className="w-3 h-3" />
+        <Star className="w-3 h-3" aria-hidden="true" />
         Grades
       </motion.button>
 
@@ -97,8 +101,10 @@ export default function RoundTimeline({
         whileTap={judgeEnabled ? { scale: 0.95 } : {}}
         onClick={() => judgeEnabled && onJudgeClick?.()}
         disabled={!judgeEnabled}
+        aria-current={judgeActive ? "step" : undefined}
+        aria-label="View the judge's verdict"
         className={`
-          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all
+          flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 h-7 sm:h-8 rounded-md text-[10px] sm:text-xs font-mono font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
           ${judgeActive
             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
             : judgeEnabled
@@ -107,9 +113,9 @@ export default function RoundTimeline({
           }
         `}
       >
-        <Gavel className="w-3 h-3" />
+        <Gavel className="w-3 h-3" aria-hidden="true" />
         Verdict
       </motion.button>
-    </div>
+    </nav>
   );
 }
