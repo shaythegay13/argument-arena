@@ -1598,6 +1598,8 @@ const Index = () => {
                   ratings={state.ratings}
                   personas={state.selectedPersonas}
                   topic={state.topic}
+                  isPro={isPro}
+                  onUpgrade={() => { setUpgradeReason("default"); setShowUpgrade(true); }}
                 />
                 {clips[MAX_ROUNDS + 1] && (
                   <HostVideoPlayer
