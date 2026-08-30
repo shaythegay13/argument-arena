@@ -605,9 +605,15 @@ const Index = () => {
           setShowUpgrade(true);
           return;
         }
+        if (isMissingSessionError(err)) {
+          setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
+          toast({ title: "Couldn't reach the jury", description: MISSING_SESSION_MESSAGE, variant: "destructive" });
+          return;
+        }
         setState((prev) => ({ ...prev, isGenerating: false, generatingPersonaIds: [] }));
         toast({ title: "Generation failed", description: "The panel couldn't respond. Please try submitting again — no credit was charged.", variant: "destructive" });
       }
+
 
     },
     [state, getRecentMemories, storeRoundMemories, generateClip, toast, subscription, setRoundGen, ensureSession, sessionIdRef]
