@@ -156,7 +156,7 @@ export const createTavusConversation = createServerFn({ method: "POST" })
     };
 
     if (persona_id) {
-      conversationBody.persona_id = persona_id;
+      conversationBody["persona_id"] = persona_id;
     }
 
     console.log(`[Tavus] Creating conversation with replica_id=${replica_id}`);

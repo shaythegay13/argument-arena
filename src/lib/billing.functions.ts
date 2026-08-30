@@ -29,7 +29,7 @@ const PRODUCT_CREDITS: Record<string, number> = {
 function getStripe(): Stripe {
   const stripeKey = process.env["STRIPE_SECRET_KEY"];
   if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-  return new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+  return new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
 }
 
 function getOrigin(): string {
@@ -96,15 +96,16 @@ export const checkSubscription = createServerFn({ method: "GET" })
 
       if (hasActiveSub) {
         for (const subscription of subscriptions.data) {
-          const productId = subscription.items.data[0]?.price?.product;
+          const item = subscription.items.data[0];
+          const productId = item?.price?.product;
           if (productId === STUDIO_PRODUCT_ID) {
             tier = "studio";
-            subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+            subscriptionEnd = item ? new Date(item.current_period_end * 1000).toISOString() : null;
             break;
           }
           if (productId === PRO_PRODUCT_ID) {
             tier = "pro";
-            subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+            subscriptionEnd = item ? new Date(item.current_period_end * 1000).toISOString() : null;
           }
         }
       }
@@ -140,19 +141,16 @@ export const createCheckout = createServerFn({ method: "POST" })
 
       const stripe = getStripe();
       const customers = await stripe.customers.list({ email, limit: 1 });
-      let customerId: string | undefined;
-      if (customers.data.length > 0) {
-        customerId = customers.data[0].id;
-      }
+      const customerId: string | undefined = customers.data[0]?.id;
 
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        customer_email: customerId ? undefined : email,
+      const params: Stripe.Checkout.SessionCreateParams = {
         line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
         success_url: `${origin}/dashboard?upgrade=success`,
         cancel_url: `${origin}/dashboard?upgrade=canceled`,
-      });
+        ...(customerId ? { customer: customerId } : { customer_email: email }),
+      };
+      const session = await stripe.checkout.sessions.create(params);
 
       return { url: session.url };
     } catch (error) {
@@ -180,14 +178,9 @@ export const purchaseCredits = createServerFn({ method: "POST" })
       const origin = getOrigin();
       const stripe = getStripe();
       const customers = await stripe.customers.list({ email, limit: 1 });
-      let customerId: string | undefined;
-      if (customers.data.length > 0) {
-        customerId = customers.data[0].id;
-      }
+      const customerId: string | undefined = customers.data[0]?.id;
 
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        customer_email: customerId ? undefined : email,
+      const params: Stripe.Checkout.SessionCreateParams = {
         line_items: [{ price: packConfig.price_id, quantity: 1 }],
         mode: "payment",
         metadata: {
@@ -197,7 +190,9 @@ export const purchaseCredits = createServerFn({ method: "POST" })
         },
         success_url: `${origin}/dashboard?credits=success&pack=${data.pack}`,
         cancel_url: `${origin}/dashboard?credits=canceled`,
-      });
+        ...(customerId ? { customer: customerId } : { customer_email: email }),
+      };
+      const session = await stripe.checkout.sessions.create(params);
 
       return { url: session.url };
     } catch (error) {
@@ -226,7 +221,7 @@ export const openCustomerPortal = createServerFn({ method: "POST" })
 
       const origin = getOrigin();
       const portalSession = await stripe.billingPortal.sessions.create({
-        customer: customers.data[0].id,
+        customer: customers.data[0]!.id,
         return_url: `${origin}/dashboard`,
       });
 
@@ -260,7 +255,7 @@ export const syncPurchasedCredits = createServerFn({ method: "POST" })
 
       // Check for completed one-time payment sessions not yet credited
       const sessions = await stripe.checkout.sessions.list({
-        customer: customers.data[0].id,
+        customer: customers.data[0]!.id,
         status: "complete",
         limit: 100,
       });

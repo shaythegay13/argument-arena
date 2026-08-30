@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "@/lib/router-compat";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import { callDebateJson } from "@/lib/debateEndpoint";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Persona, DebateState, Round, RoundMessage } from "@/types/debate";
 import {
@@ -63,17 +64,15 @@ async function selectPanelForIdea(topic: string): Promise<Panel> {
       (p) => `${p.id}: "${p.name}" — Focus: ${p.focus}. ${p.description}`
     ).join("\n");
 
-    const { data, error } = await supabase.functions.invoke("debate-ai", {
-      body: {
-        systemPrompt: `You are a panel routing assistant. Given a startup idea, pick the single best panel. Respond with ONLY the panel id (one of: ${PANELS.map((p) => p.id).join(", ")}). Nothing else.`,
-        userPrompt: `Panels:\n${panelDescriptions}\n\nStartup idea: "${topic.slice(0, 500)}"\n\nWhich panel id is the best fit?`,
-        model: "google/gemini-2.5-flash-lite",
-        mode: "utility",
-      },
+    const { content, error } = await callDebateJson({
+      systemPrompt: `You are a panel routing assistant. Given a startup idea, pick the single best panel. Respond with ONLY the panel id (one of: ${PANELS.map((p) => p.id).join(", ")}). Nothing else.`,
+      userPrompt: `Panels:\n${panelDescriptions}\n\nStartup idea: "${topic.slice(0, 500)}"\n\nWhich panel id is the best fit?`,
+      model: "google/gemini-2.5-flash-lite",
+      mode: "utility",
     });
 
-    if (!error && data?.content) {
-      const chosen = data.content.trim().toLowerCase().replace(/[^a-z]/g, "");
+    if (!error && content) {
+      const chosen = content.trim().toLowerCase().replace(/[^a-z]/g, "");
       const match = PANELS.find((p) => p.id === chosen);
       if (match) return match;
     }
