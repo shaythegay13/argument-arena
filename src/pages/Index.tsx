@@ -133,6 +133,12 @@ const Index = () => {
   const [isRetryingFailed, setIsRetryingFailed] = useState(false);
   // Remembers the pitch response that drove each round, so failed jurors can be retried in context
   const roundResponsesRef = useRef<Record<number, string>>({});
+  // Panel-grades flow: single-flight guard, error surface, and final-statements review gate
+  const gradesInFlightRef = useRef(false);
+  const [gradesError, setGradesError] = useState<string | null>(null);
+  const [finalReviewAck, setFinalReviewAck] = useState(false);
+
+
 
 
   const setRoundGen = useCallback(
