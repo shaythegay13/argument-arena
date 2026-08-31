@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { DebateState } from "@/types/debate";
 import { PERSONAS } from "@/data/personas";
+import { fetchPanelists, panelistToPersona, resolvePhotoUrls } from "@/lib/panelists";
 
 /** Key holding the id of the debate currently in progress, so a refresh resumes it. */
 const ACTIVE_SESSION_KEY = "sj:active-session";
@@ -100,10 +101,30 @@ export function useSessionPersistence(userId: string | undefined) {
         return null;
       }
 
-      // Reconstruct the personas from the IDs
-      const selectedPersonas = PERSONAS.filter((p) =>
-        data.selected_persona_ids?.includes(p.id)
-      );
+      // Reconstruct the personas from the IDs. Real roster panelists are stored
+      // as `panelist:<uuid>`, so hydrate those from the founder's panelist database
+      // instead of dropping them (which would leave a resumed debate with no jury).
+      const savedIds: string[] = data.selected_persona_ids ?? [];
+      const selectedPersonas = PERSONAS.filter((p) => savedIds.includes(p.id));
+      const rosterIds = savedIds
+        .filter((id) => id.startsWith("panelist:"))
+        .map((id) => id.slice("panelist:".length));
+      if (rosterIds.length) {
+        try {
+          const roster = (await fetchPanelists(userId)).filter((r) => rosterIds.includes(r.id));
+          const photos = await resolvePhotoUrls(roster.map((r) => r.photo_url));
+          const hydrated = roster.map((r) =>
+            panelistToPersona(r, r.photo_url ? photos[r.photo_url] ?? null : null)
+          );
+          // Keep the original seating order from the saved session.
+          selectedPersonas.push(...hydrated);
+          selectedPersonas.sort(
+            (a, b) => savedIds.indexOf(a.id) - savedIds.indexOf(b.id)
+          );
+        } catch (err) {
+          console.warn("[useSessionPersistence] panelist hydration failed:", err);
+        }
+      }
 
       // Determine the current round number
       const rounds = (data.rounds || []) as any[];

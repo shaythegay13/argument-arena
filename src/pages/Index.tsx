@@ -65,6 +65,7 @@ import {
   resolvePhotoUrls,
   type Panelist,
 } from "@/lib/panelists";
+import { usePanelistSlots } from "@/hooks/usePanelistSlots";
 import {
   applyPanelistProfiles,
   fetchPanelistProfiles,
@@ -199,6 +200,9 @@ const Index = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+  const panelistSlots = usePanelistSlots(user?.id, roster.length);
+  /** Paid panelist slots unlock custom seating even without a Studio plan. */
+  const canUseCustomPanel = isStudio || (panelistSlots.slots?.purchasedSlots ?? 0) > 0;
 
   // Load the founder's saved panelist bios once their session resolves.
   useEffect(() => {
@@ -385,13 +389,8 @@ const Index = () => {
   }, [panelMode, selectedPanelId, state.phase]);
 
   const handleStartDebate = useCallback(async () => {
-    if (finishedCount >= FREE_LIMIT && !isPro) {
-      pendingCreditActionRef.current = { kind: "start" };
-      setUpgradeReason("out_of_credits");
-      setShowUpgrade(true);
-      return;
-    }
-    // Hard credit gate — a full jury run costs 1 credit, never start a partial run
+    // Credits are the single source of truth for free accounts: the starter
+    // allowance is granted as credits, so a positive balance always runs.
     if (!isPro) {
       let credits = subscription.credits;
       try {
@@ -1299,10 +1298,10 @@ const Index = () => {
                 ))}
                 <button
                   onClick={() => {
-                    if (!isStudio) { setUpgradeReason("default"); setShowUpgrade(true); return; }
+                    if (!canUseCustomPanel) { setUpgradeReason("default"); setShowUpgrade(true); return; }
                     setPanelMode("custom"); setSelectedPanelId(null); setState((prev) => ({ ...prev, selectedPersonas: [] }));
                   }}
-                  aria-label={isStudio ? "Build a custom panel" : "Custom panel — Studio feature"}
+                  aria-label={canUseCustomPanel ? "Build a custom panel" : "Custom panel — unlock with a paid panelist slot or Studio"}
                   className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-md text-sm font-medium border transition-all ${
                     panelMode === "custom"
                       ? "bg-primary/20 text-primary border-primary/40"
@@ -1310,14 +1309,14 @@ const Index = () => {
                   }`}
                 >
                   Custom
-                  {!isStudio && <Lock className="w-3 h-3 opacity-70" />}
+                  {!canUseCustomPanel && <Lock className="w-3 h-3 opacity-70" />}
                 </button>
               </div>
               {!isStudio && (
                 <p className="text-[11px] text-muted-foreground mb-3">
                   {isPro
                     ? "Curated panels are unlocked on your Pro plan. Building a fully custom panel is a Studio feature."
-                    : "Curated panels unlock on Pro and custom panels on Studio — the free plan uses AI Auto-Select."}
+                    : "Curated panels unlock on Pro. Custom panels unlock with a purchased panelist slot or Studio — the free plan uses AI Auto-Select."}
                 </p>
               )}
               {isPro && (

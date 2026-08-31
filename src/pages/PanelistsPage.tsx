@@ -34,6 +34,8 @@ import {
   type Panelist,
   type PanelistDraft,
 } from "@/lib/panelists";
+import PanelistLibraryPanel from "@/components/PanelistLibraryPanel";
+import { usePanelistSlots } from "@/hooks/usePanelistSlots";
 
 export default function PanelistsPage() {
   const { user } = useAuth();
@@ -71,6 +73,8 @@ export default function PanelistsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  const slotState = usePanelistSlots(user?.id, panelists.length);
+
   const draftPhotoUrl = useMemo(() => {
     if (!draft?.photo_url) return null;
     return photoUrls[draft.photo_url] ?? null;
@@ -79,6 +83,14 @@ export default function PanelistsPage() {
   const baseArchetype = draft ? PERSONA_MAP[draft.base_persona_id] ?? PERSONAS[0]! : null;
 
   const startNew = () => {
+    if (slotState.atLimit) {
+      toast({
+        title: "No panelist slots left",
+        description: `Your plan includes ${slotState.totalSlots} panelist slot${slotState.totalSlots === 1 ? "" : "s"}. Buy a slot or upgrade to add more.`,
+        variant: "destructive",
+      });
+      return;
+    }
     setDraft(emptyPanelist());
     setExpertiseInput("");
   };
@@ -122,6 +134,14 @@ export default function PanelistsPage() {
 
   const handleSave = async () => {
     if (!user?.id || !draft) return;
+    if (!draft.id && slotState.atLimit) {
+      toast({
+        title: "No panelist slots left",
+        description: "Buy a custom panelist slot or upgrade your plan to save another panelist.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSaving(true);
     try {
       const saved = await savePanelist(user.id, draft);
@@ -136,6 +156,7 @@ export default function PanelistsPage() {
         setPhotoUrls((prev) => ({ ...prev, ...urls }));
       }
       setDraft(null);
+      void slotState.refresh();
       toast({ title: "Panelist saved", description: `${saved.name} is ready to seat on a jury.` });
     } catch (err) {
       toast({
@@ -154,6 +175,7 @@ export default function PanelistsPage() {
       await deletePanelist(user.id, p.id);
       setPanelists((prev) => prev.filter((x) => x.id !== p.id));
       if (draft?.id === p.id) setDraft(null);
+      void slotState.refresh();
       toast({ title: "Panelist removed", description: `${p.name} is off your roster.` });
     } catch (err) {
       toast({
@@ -199,6 +221,38 @@ export default function PanelistsPage() {
           <div className="rounded-[14px] border border-border bg-card p-6 text-sm text-muted-foreground">
             Sign in to build your panelist roster.
           </div>
+        )}
+
+        {user && (
+          <PanelistLibraryPanel
+            userId={user.id}
+            existingNames={panelists.map((p) => p.name)}
+            totalSlots={slotState.totalSlots}
+            usedSlots={slotState.usedSlots}
+            remaining={slotState.remaining}
+            atLimit={slotState.atLimit}
+            tier={slotState.slots?.tier ?? "free"}
+            slotsLoading={slotState.loading}
+            purchasing={slotState.purchasing}
+            onPurchase={async (qty) => {
+              try {
+                await slotState.purchase(qty ?? 1);
+              } catch (err) {
+                toast({
+                  title: "Checkout failed",
+                  description: err instanceof Error ? err.message : "Please try again.",
+                  variant: "destructive",
+                });
+              }
+            }}
+            onImported={async (created) => {
+              if (created.length) {
+                setPanelists((prev) => [...prev, ...created]);
+                setPhotoUrls(await resolvePhotoUrls([...panelists, ...created].map((p) => p.photo_url)));
+              }
+              void slotState.refresh();
+            }}
+          />
         )}
 
         {/* Editor */}
