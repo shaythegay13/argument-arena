@@ -208,8 +208,8 @@ export default function PanelistsPage() {
               <Users className="w-6 h-6 text-primary" /> Panelist Database
             </h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-              Profiles of real investors you add — name, firm, credentials, track record, headshot.
-              Seat them by name on a custom jury and the AI debates in their voice.
+              Custom investor profiles you author — name, firm, credentials, track record, headshot.
+              Seat one on a custom jury and the AI debates as that character, in the voice you wrote.
             </p>
           </div>
           <Button onClick={startNew} className="font-semibold">
