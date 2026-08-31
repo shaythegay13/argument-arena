@@ -20,11 +20,13 @@ export default defineMcp({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
+  // exactOptionalPropertyTypes: the SDK declares `outputSchema?: T` without `| undefined`.
   tools: [
     listDebatesTool,
     getDebateTool,
     listPanelistsTool,
     createPanelistTool,
     getCreditBalanceTool,
-  ],
+  ] as unknown as never[],
+
 });
