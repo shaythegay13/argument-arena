@@ -133,6 +133,14 @@
                 "type": "string"
               }
             },
+            "photo_url": {
+              "description": "Public URL of a headshot.",
+              "type": "string"
+            },
+            "linkedin_url": {
+              "description": "LinkedIn profile URL.",
+              "type": "string"
+            },
             "base_persona_id": {
               "description": "Built-in archetype id this panelist is based on.",
               "type": "string"
