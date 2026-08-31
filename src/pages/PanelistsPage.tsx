@@ -208,13 +208,37 @@ export default function PanelistsPage() {
               <Users className="w-6 h-6 text-primary" /> Panelist Database
             </h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-              Real people, real credentials, real headshots. Anyone on this roster can be seated on a
-              jury by name in the director console.
+              Profiles of real investors you add — name, firm, credentials, track record, headshot.
+              Seat them by name on a custom jury and the AI debates in their voice.
             </p>
           </div>
           <Button onClick={startNew} className="font-semibold">
             <Plus className="w-4 h-4 mr-2" /> New panelist
           </Button>
+        </div>
+
+        <div className="rounded-[12px] border border-primary/30 bg-primary/5 p-4 text-sm text-foreground space-y-2">
+          <p className="font-semibold flex items-center gap-2">
+            <span className="text-primary">ℹ️</span> What is this, and how is it different from the AI jury?
+          </p>
+          <p className="text-muted-foreground">
+            By default every debate runs on our <strong>built-in AI jury</strong> — 16 expert
+            archetypes where Gemini auto-selects the 8 best fit for your pitch. You don't touch this
+            database for that.
+          </p>
+          <p className="text-muted-foreground">
+            This database is an <strong>optional override layer</strong>. The records here are
+            <strong> profiles you create</strong> — virtual stand-ins for real people. If you know
+            an investor's public background (Maya Ellison at Northbound Capital, ex-CFO, 14 years in
+            fintech), you add that as a profile here. When you seat her on a custom panel, the AI
+            speaks <em>as her</em>: her credentials, her track record, her voice — instead of a
+            generic archetype.
+          </p>
+          <p className="text-[12px] text-muted-foreground">
+            These are not live people and Startup Jury does not scrape or import anyone's private
+            data — you author each profile from information you already have. They never appear in a
+            debate unless you choose the <strong>Custom</strong> panel mode in the director console.
+          </p>
         </div>
 
         {!user && (
