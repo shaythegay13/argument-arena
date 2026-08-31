@@ -8,6 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Zap, Loader2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+/** Only allow same-origin relative paths as post-login redirect targets. */
+const safeNext = (): string | null => {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("next");
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+};
+
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -19,13 +27,18 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const next = safeNext();
 
     try {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth` },
+          options: {
+            emailRedirectTo: next
+              ? `${window.location.origin}/auth?next=${encodeURIComponent(next)}`
+              : `${window.location.origin}/auth`,
+          },
         });
         if (error) throw error;
         toast({
@@ -35,7 +48,11 @@ const Auth = () => {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/debate");
+        if (next) {
+          window.location.href = next;
+        } else {
+          navigate("/debate");
+        }
       }
     } catch (err: any) {
       toast({
@@ -47,6 +64,7 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -141,9 +159,13 @@ const Auth = () => {
             variant="outline"
             className="w-full border-border text-foreground hover:bg-muted/50"
             onClick={async () => {
+              const next = safeNext();
               const { error } = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+                redirect_uri: next
+                  ? `${window.location.origin}${next}`
+                  : window.location.origin,
               });
+
               if (error) {
                 toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
               }
@@ -163,9 +185,13 @@ const Auth = () => {
             variant="outline"
             className="w-full border-border text-foreground hover:bg-muted/50"
             onClick={async () => {
+              const next = safeNext();
               const { error } = await lovable.auth.signInWithOAuth("apple", {
-                redirect_uri: window.location.origin,
+                redirect_uri: next
+                  ? `${window.location.origin}${next}`
+                  : window.location.origin,
               });
+
               if (error) {
                 toast({ title: "Apple sign-in failed", description: error.message, variant: "destructive" });
               }

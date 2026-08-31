@@ -41,7 +41,7 @@ export default function ContactPage() {
     const result = contactSchema.safeParse({ name, email: email || user?.email || "", message });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err: { path: (string | number | symbol)[]; message: string }) => {
         if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
       });
       setErrors(fieldErrors);

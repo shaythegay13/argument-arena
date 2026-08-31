@@ -18,17 +18,22 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DebateRouteImport } from './routes/debate'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PanelistsRouteImport } from './routes/panelists'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiDebateAiRouteImport } from './routes/api/debate-ai'
 import { Route as ApiElevenlabsTtsRouteImport } from './routes/api/elevenlabs-tts'
 import { Route as AppContactRouteImport } from './routes/app/contact'
 import { Route as AppPrivacyRouteImport } from './routes/app/privacy'
 import { Route as AppTermsRouteImport } from './routes/app/terms'
 import { Route as ResultIdRouteImport } from './routes/result/$id'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiHealthMetadataRouteImport } from './routes/api/health/metadata'
 
 const IndexRoute = IndexRouteImport.update({
@@ -76,6 +81,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PanelistsRoute = PanelistsRouteImport.update({
   id: '/panelists',
   path: '/panelists',
@@ -101,6 +111,18 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDebateAiRoute = ApiDebateAiRouteImport.update({
   id: '/api/debate-ai',
   path: '/api/debate-ai',
@@ -131,6 +153,17 @@ const ResultIdRoute = ResultIdRouteImport.update({
   path: '/result/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiHealthMetadataRoute = ApiHealthMetadataRouteImport.update({
   id: '/api/health/metadata',
   path: '/api/health/metadata',
@@ -147,17 +180,22 @@ export interface FileRoutesByFullPath {
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/mcp': typeof McpRoute
   '/panelists': typeof PanelistsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/debate-ai': typeof ApiDebateAiRoute
   '/api/elevenlabs-tts': typeof ApiElevenlabsTtsRoute
   '/app/contact': typeof AppContactRoute
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRoutesByTo {
@@ -170,17 +208,22 @@ export interface FileRoutesByTo {
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/mcp': typeof McpRoute
   '/panelists': typeof PanelistsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/debate-ai': typeof ApiDebateAiRoute
   '/api/elevenlabs-tts': typeof ApiElevenlabsTtsRoute
   '/app/contact': typeof AppContactRoute
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRoutesById {
@@ -194,17 +237,22 @@ export interface FileRoutesById {
   '/debate': typeof DebateRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/mcp': typeof McpRoute
   '/panelists': typeof PanelistsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/debate-ai': typeof ApiDebateAiRoute
   '/api/elevenlabs-tts': typeof ApiElevenlabsTtsRoute
   '/app/contact': typeof AppContactRoute
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRouteTypes {
@@ -219,17 +267,22 @@ export interface FileRouteTypes {
     | '/debate'
     | '/forgot-password'
     | '/leaderboard'
+    | '/mcp'
     | '/panelists'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/api/debate-ai'
     | '/api/elevenlabs-tts'
     | '/app/contact'
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/health/metadata'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -242,17 +295,22 @@ export interface FileRouteTypes {
     | '/debate'
     | '/forgot-password'
     | '/leaderboard'
+    | '/mcp'
     | '/panelists'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/api/debate-ai'
     | '/api/elevenlabs-tts'
     | '/app/contact'
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/health/metadata'
   id:
     | '__root__'
@@ -265,17 +323,22 @@ export interface FileRouteTypes {
     | '/debate'
     | '/forgot-password'
     | '/leaderboard'
+    | '/mcp'
     | '/panelists'
     | '/pricing'
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/api/debate-ai'
     | '/api/elevenlabs-tts'
     | '/app/contact'
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/health/metadata'
   fileRoutesById: FileRoutesById
 }
@@ -289,17 +352,22 @@ export interface RootRouteChildren {
   DebateRoute: typeof DebateRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  McpRoute: typeof McpRoute
   PanelistsRoute: typeof PanelistsRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiDebateAiRoute: typeof ApiDebateAiRoute
   ApiElevenlabsTtsRoute: typeof ApiElevenlabsTtsRoute
   AppContactRoute: typeof AppContactRoute
   AppPrivacyRoute: typeof AppPrivacyRoute
   AppTermsRoute: typeof AppTermsRoute
   ResultIdRoute: typeof ResultIdRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiHealthMetadataRoute: typeof ApiHealthMetadataRoute
 }
 
@@ -368,6 +436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/panelists': {
       id: '/panelists'
       path: '/panelists'
@@ -401,6 +476,20 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/debate-ai': {
@@ -445,6 +534,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResultIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/health/metadata': {
       id: '/api/health/metadata'
       path: '/api/health/metadata'
@@ -465,17 +568,23 @@ const rootRouteChildren: RootRouteChildren = {
   DebateRoute: DebateRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LeaderboardRoute: LeaderboardRoute,
+  McpRoute: McpRoute,
   PanelistsRoute: PanelistsRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiDebateAiRoute: ApiDebateAiRoute,
   ApiElevenlabsTtsRoute: ApiElevenlabsTtsRoute,
   AppContactRoute: AppContactRoute,
   AppPrivacyRoute: AppPrivacyRoute,
   AppTermsRoute: AppTermsRoute,
   ResultIdRoute: ResultIdRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiHealthMetadataRoute: ApiHealthMetadataRoute,
 }
 export const routeTree = rootRouteImport
