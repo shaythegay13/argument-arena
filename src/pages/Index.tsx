@@ -50,6 +50,7 @@ import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
 import UpgradeModal from "@/components/UpgradeModal";
 import CreditsHelpModal from "@/components/CreditsHelpModal";
+import DebateDisclaimer from "@/components/DebateDisclaimer";
 import GenerationStatusPanel, { type GenStatus, type RoundGenStatus } from "@/components/GenerationStatusPanel";
 import ExportDebateButton from "@/components/ExportDebateButton";
 import SocialShareButton from "@/components/SocialShareButton";
@@ -1581,6 +1582,11 @@ const Index = () => {
               <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Idea</p>
               <p className="text-sm text-foreground/80 max-w-lg mx-auto">{state.topic}</p>
             </div>
+
+            <DebateDisclaimer
+              hasCustomPanelists={state.selectedPersonas.some((p) => !!p.photoUrl)}
+              className="max-w-2xl mx-auto"
+            />
 
             <RoundTimeline
               totalRounds={state.rounds.length}

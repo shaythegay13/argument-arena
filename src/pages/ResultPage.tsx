@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/analytics";
 import SiteFooter from "@/components/SiteFooter";
+import DebateDisclaimer from "@/components/DebateDisclaimer";
 
 const verdictConfig: Record<string, { emoji: string; color: string; bg: string; border: string; label: string; tagline: string }> = {
   GO: { emoji: "🚀", color: "text-verdict-go", bg: "bg-verdict-go/10", border: "border-verdict-go/30", label: "GO", tagline: "High Potential" },
@@ -211,6 +212,10 @@ export default function ResultPage() {
             Evaluated on {dateStr} · {personas.length} judges · {session.rounds.length} rounds
           </p>
         </motion.section>
+
+        <DebateDisclaimer hasCustomPanelists={personas.some((p) => !!p.photoUrl)} />
+
+
 
         {/* Verdict Hero */}
         {verdict && vConfig && (
