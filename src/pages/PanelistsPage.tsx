@@ -228,16 +228,16 @@ export default function PanelistsPage() {
           </p>
           <p className="text-muted-foreground">
             This database is an <strong>optional override layer</strong>. The records here are
-            <strong> profiles you create</strong> — virtual stand-ins for real people. If you know
-            an investor's public background (Maya Ellison at Northbound Capital, ex-CFO, 14 years in
-            fintech), you add that as a profile here. When you seat her on a custom panel, the AI
-            speaks <em>as her</em>: her credentials, her track record, her voice — instead of a
-            generic archetype.
+            <strong> profiles you create</strong> — fictional or composite investor characters you
+            author (name, firm, credentials, track record, voice). When you seat one on a custom
+            panel, the AI debates <em>as that character</em> using the background you wrote, instead
+            of a generic archetype. Think of it like writing a role for a fictional judge.
           </p>
           <p className="text-[12px] text-muted-foreground">
-            These are not live people and Startup Jury does not scrape or import anyone's private
-            data — you author each profile from information you already have. They never appear in a
-            debate unless you choose the <strong>Custom</strong> panel mode in the director console.
+            <strong className="text-foreground">Use responsibly:</strong> only model real, named
+            people if you have their permission. Do not use this feature to impersonate, defame, or
+            put words in a real person's mouth. You are solely responsible for the profiles you
+            create and any statements the AI generates from them.
           </p>
         </div>
 
