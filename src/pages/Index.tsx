@@ -326,11 +326,34 @@ const Index = () => {
           if (loadedState.rounds.length >= MAX_ROUNDS || loadedState.ratings.length > 0) {
             setFinalReviewAck(true);
           }
+          // Rebuild per-juror generation status from what was actually saved, so a
+          // round that was left incomplete can be finished with "Retry failed"
+          // instead of dead-ending before grading.
+          setGenRounds(
+            loadedState.rounds.map((round) => {
+              const personas = Object.fromEntries(
+                loadedState.selectedPersonas.map((p) => [
+                  p.id,
+                  (round.messages.some((m) => m.personaId === p.id && (m.text ?? "").trim().length > 0)
+                    ? "succeeded"
+                    : "failed") as GenStatus,
+                ])
+              );
+              const anyFailed = Object.values(personas).some((s) => s === "failed");
+              return {
+                roundNumber: round.roundNumber,
+                charged: round.roundNumber === 1,
+                overall: (anyFailed ? "failed" : "succeeded") as GenStatus,
+                personas,
+              };
+            })
+          );
           for (const round of loadedState.rounds) {
             if (round.messages.length === loadedState.selectedPersonas.length) {
               generateClip(round.roundNumber, loadedState.selectedPersonas, round);
             }
           }
+
           if (isRefreshResume) {
             toast({
               title: "Debate resumed",
