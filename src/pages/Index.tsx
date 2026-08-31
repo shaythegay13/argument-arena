@@ -50,6 +50,7 @@ import JudgeVerdictCard from "@/components/JudgeVerdictCard";
 import VoiceInputButton from "@/components/VoiceInputButton";
 import UpgradeModal from "@/components/UpgradeModal";
 import CreditsHelpModal from "@/components/CreditsHelpModal";
+import DebateDisclaimer from "@/components/DebateDisclaimer";
 import GenerationStatusPanel, { type GenStatus, type RoundGenStatus } from "@/components/GenerationStatusPanel";
 import ExportDebateButton from "@/components/ExportDebateButton";
 import SocialShareButton from "@/components/SocialShareButton";
@@ -1042,23 +1043,38 @@ const Index = () => {
 
   // Auto-debate: when responses are ready and it's not the last round, auto-generate and submit
   useEffect(() => {
-    if (!autoDebate || !showFollowUp || isAutoResponding) return;
+    if (!autoDebate || !showFollowUp) return;
+    if (autoRespondInFlightRef.current) return;
 
-    let cancelled = false;
+    autoRespondInFlightRef.current = true;
     setIsAutoResponding(true);
+    let cancelled = false;
 
     generateAutoResponse(state.topic, currentRound!, state.selectedPersonas)
       .then((autoResponse) => {
         if (cancelled) return;
         handleUserSubmit(autoResponse);
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err);
+        if (cancelled) return;
+        setAutoDebate(false);
+        toast({
+          title: "Auto-debate paused",
+          description: "Couldn't draft the founder response. Write your reply and continue manually.",
+          variant: "destructive",
+        });
+      })
       .finally(() => {
-        if (!cancelled) setIsAutoResponding(false);
+        // Always release the guard — a dependency change must never leave the
+        // effect permanently "in flight" with nothing running.
+        autoRespondInFlightRef.current = false;
+        setIsAutoResponding(false);
       });
 
     return () => { cancelled = true; };
-  }, [autoDebate, showFollowUp, isAutoResponding, state.topic, currentRound, state.selectedPersonas, handleUserSubmit]);
+  }, [autoDebate, showFollowUp, state.topic, currentRound, state.selectedPersonas, handleUserSubmit, toast]);
+
 
   // Auto-debate: auto-trigger ratings after round 4
   useEffect(() => {
@@ -1581,6 +1597,11 @@ const Index = () => {
               <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Idea</p>
               <p className="text-sm text-foreground/80 max-w-lg mx-auto">{state.topic}</p>
             </div>
+
+            <DebateDisclaimer
+              hasCustomPanelists={state.selectedPersonas.some((p) => !!p.photoUrl)}
+              className="max-w-2xl mx-auto"
+            />
 
             <RoundTimeline
               totalRounds={state.rounds.length}
