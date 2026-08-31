@@ -1397,6 +1397,12 @@ const Index = () => {
                       Manage database
                     </button>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    <strong className="text-foreground">Override layer:</strong> these are profiles of
+                    real investors you've added. Seat them here and the AI debates in their voice —
+                    their credentials, their track record, their style — instead of the built-in
+                    archetypes. You can mix your profiles with the archetypes below.
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {roster.map((panelist) => {
                       const persona = panelistToPersona(
@@ -1435,10 +1441,6 @@ const Index = () => {
                       );
                     })}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    Real panelists bring their own credentials and voice into every round. Mix them with the
-                    archetypes below.
-                  </p>
                 </div>
               )}
 
