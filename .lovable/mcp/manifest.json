@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://byjqpabkvddcjufbvwvc.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "startup-jury-ai",
+      "version": "0.1.0",
+      "title": "Startup Jury AI"
+    },
+    "tools": [
+      {
+        "name": "list_debates",
+        "title": "List my debates",
+        "description": "List the signed-in founder's Startup Jury debate sessions, newest first, with topic, phase and verdict summary.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "How many sessions to return (default 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_debate",
+        "title": "Get debate detail",
+        "description": "Fetch one Startup Jury debate session by id, including every round, the founder's responses, panel grades and the final verdict.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "The debate session id (uuid)."
+            }
+          },
+          "required": [
+            "session_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_panelists",
+        "title": "List my panelists",
+        "description": "List the signed-in user's saved jury panelists with their title, firm, expertise and bio.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "active_only": {
+              "description": "Only return panelists marked active (default true).",
+              "type": "boolean"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_panelist",
+        "title": "Create panelist",
+        "description": "Add a new jury panelist to the signed-in user's roster so it can be seated in a custom panel. Subject to the user's panelist slot allowance.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Panelist full name."
+            },
+            "title": {
+              "description": "Role, e.g. 'General Partner'.",
+              "type": "string"
+            },
+            "firm": {
+              "description": "Firm or company.",
+              "type": "string"
+            },
+            "credentials": {
+              "description": "Short credentials line.",
+              "type": "string"
+            },
+            "bio": {
+              "description": "Short biography.",
+              "type": "string"
+            },
+            "background": {
+              "description": "Investing/operating background.",
+              "type": "string"
+            },
+            "signature_style": {
+              "description": "How this panelist questions founders.",
+              "type": "string"
+            },
+            "expertise": {
+              "description": "Expertise tags, e.g. ['fintech','GTM'].",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "base_persona_id": {
+              "description": "Built-in archetype id this panelist is based on.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_credit_balance",
+        "title": "Get evaluation credits",
+        "description": "Return how many Startup Jury evaluation credits the signed-in user has left. One credit runs a full four-round jury evaluation.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

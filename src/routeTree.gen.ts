@@ -29,6 +29,7 @@ import { Route as AppContactRouteImport } from './routes/app/contact'
 import { Route as AppPrivacyRouteImport } from './routes/app/privacy'
 import { Route as AppTermsRouteImport } from './routes/app/terms'
 import { Route as ResultIdRouteImport } from './routes/result/$id'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiHealthMetadataRouteImport } from './routes/api/health/metadata'
 
 const IndexRoute = IndexRouteImport.update({
@@ -131,6 +132,11 @@ const ResultIdRoute = ResultIdRouteImport.update({
   path: '/result/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiHealthMetadataRoute = ApiHealthMetadataRouteImport.update({
   id: '/api/health/metadata',
   path: '/api/health/metadata',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRoutesByTo {
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRoutesById {
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/app/privacy': typeof AppPrivacyRoute
   '/app/terms': typeof AppTermsRoute
   '/result/$id': typeof ResultIdRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/health/metadata': typeof ApiHealthMetadataRoute
 }
 export interface FileRouteTypes {
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/.lovable/oauth/consent'
     | '/api/health/metadata'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/.lovable/oauth/consent'
     | '/api/health/metadata'
   id:
     | '__root__'
@@ -276,6 +287,7 @@ export interface FileRouteTypes {
     | '/app/privacy'
     | '/app/terms'
     | '/result/$id'
+    | '/.lovable/oauth/consent'
     | '/api/health/metadata'
   fileRoutesById: FileRoutesById
 }
@@ -300,6 +312,7 @@ export interface RootRouteChildren {
   AppPrivacyRoute: typeof AppPrivacyRoute
   AppTermsRoute: typeof AppTermsRoute
   ResultIdRoute: typeof ResultIdRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiHealthMetadataRoute: typeof ApiHealthMetadataRoute
 }
 
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResultIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/health/metadata': {
       id: '/api/health/metadata'
       path: '/api/health/metadata'
@@ -476,6 +496,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppPrivacyRoute: AppPrivacyRoute,
   AppTermsRoute: AppTermsRoute,
   ResultIdRoute: ResultIdRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiHealthMetadataRoute: ApiHealthMetadataRoute,
 }
 export const routeTree = rootRouteImport
