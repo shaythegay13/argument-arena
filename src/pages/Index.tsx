@@ -1352,7 +1352,9 @@ const Index = () => {
               {panelMode === "auto" && (
                 <div className="mb-3 space-y-1.5">
                   <p className="text-xs text-muted-foreground">
-                    AI reads your idea and selects the best-fit panel of 8 judges — adapting to your industry, stage, and business model.
+                    <strong className="text-foreground">Built-in AI jury:</strong> 16 expert
+                    archetypes — Gemini reads your pitch and auto-selects the 8 best fit. No setup
+                    required; this is the default.
                   </p>
                   <div className="flex items-center gap-1.5 text-[10px] font-mono text-primary/70">
                     <Zap className="w-3 h-3" />
