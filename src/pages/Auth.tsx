@@ -159,9 +159,13 @@ const Auth = () => {
             variant="outline"
             className="w-full border-border text-foreground hover:bg-muted/50"
             onClick={async () => {
+              const next = safeNext();
               const { error } = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+                redirect_uri: next
+                  ? `${window.location.origin}${next}`
+                  : window.location.origin,
               });
+
               if (error) {
                 toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
               }
@@ -181,9 +185,13 @@ const Auth = () => {
             variant="outline"
             className="w-full border-border text-foreground hover:bg-muted/50"
             onClick={async () => {
+              const next = safeNext();
               const { error } = await lovable.auth.signInWithOAuth("apple", {
-                redirect_uri: window.location.origin,
+                redirect_uri: next
+                  ? `${window.location.origin}${next}`
+                  : window.location.origin,
               });
+
               if (error) {
                 toast({ title: "Apple sign-in failed", description: error.message, variant: "destructive" });
               }
