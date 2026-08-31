@@ -120,14 +120,31 @@ export const Route = createFileRoute("/api/debate-ai")({
 
           let sessionAlreadyStarted = false;
           if (!isUtility && typeof sessionId === "string") {
+            // Ownership check: the session MUST belong to the caller, otherwise
+            // anyone could pass a public session id to skip the credit charge.
             const { data: sessionRow } = await supabaseAdmin
               .from("debate_sessions")
               .select("rounds")
               .eq("id", sessionId)
+              .eq("user_id", user.id)
               .maybeSingle();
-            const rounds = (sessionRow?.rounds as unknown[]) ?? [];
+
+            if (!sessionRow) {
+              return json(
+                {
+                  error: "MISSING_SESSION",
+                  code: "MISSING_SESSION",
+                  message:
+                    "This debate session was not found for your account. No credit was charged.",
+                },
+                403,
+              );
+            }
+
+            const rounds = (sessionRow.rounds as unknown[]) ?? [];
             sessionAlreadyStarted = rounds.length > 0;
           }
+
 
           // Idempotent billing: exactly one charge per session id, enforced in the DB.
           let chargedNow = false;

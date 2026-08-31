@@ -262,6 +262,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          included_slots: number
           purchased_slots: number
           updated_at: string
           user_id: string
@@ -269,6 +270,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          included_slots?: number
           purchased_slots?: number
           updated_at?: string
           user_id: string
@@ -276,6 +278,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          included_slots?: number
           purchased_slots?: number
           updated_at?: string
           user_id?: string

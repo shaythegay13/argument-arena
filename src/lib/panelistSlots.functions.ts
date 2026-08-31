@@ -144,6 +144,24 @@ export const getPanelistSlots = createServerFn({ method: "POST" })
     const includedSlots = TIER_INCLUDED_SLOTS[tier] ?? 1;
     const purchasedSlots = slotRow?.purchased_slots ?? 0;
 
+    // Mirror the tier allowance into the DB so the server-side insert guard on
+    // public.panelists enforces the same quota the UI shows.
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.from("panelist_slots").upsert(
+        {
+          user_id: userId,
+          purchased_slots: purchasedSlots,
+          included_slots: includedSlots,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
+    } catch (error) {
+      console.error("[getPanelistSlots] entitlement sync failed:", error);
+    }
+
+
     return {
       tier,
       includedSlots,

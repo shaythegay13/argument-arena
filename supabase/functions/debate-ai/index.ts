@@ -116,15 +116,32 @@ serve(async (req) => {
     // Check subscription status
     const isPro = isUtility ? true : (user.email ? await isUserSubscribed(user.email) : false);
 
-    // Check if this session has already started (paid its credit)
-    const { data: sessionRounds } = (!isUtility && sessionId) ? await serviceClient
-      .from("debate_sessions")
-      .select("rounds")
-      .eq("id", sessionId)
-      .single() : { data: null };
+    // Check if this session has already started (paid its credit).
+    // Scoped to the caller so a foreign/public session id can't waive billing.
+    let sessionAlreadyStarted = false;
+    if (!isUtility && sessionId) {
+      const { data: sessionRow } = await serviceClient
+        .from("debate_sessions")
+        .select("rounds")
+        .eq("id", sessionId)
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-    const rounds = (sessionRounds?.rounds as any[]) ?? [];
-    const sessionAlreadyStarted = rounds.length > 0;
+      if (!sessionRow) {
+        return new Response(
+          JSON.stringify({
+            error: "MISSING_SESSION",
+            code: "MISSING_SESSION",
+            message: "This debate session was not found for your account. No credit was charged.",
+          }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const rounds = (sessionRow.rounds as any[]) ?? [];
+      sessionAlreadyStarted = rounds.length > 0;
+    }
+
 
     // Idempotent billing: exactly one charge per session id, enforced in the DB.
     let chargedNow = false;
