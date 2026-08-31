@@ -1352,7 +1352,9 @@ const Index = () => {
               {panelMode === "auto" && (
                 <div className="mb-3 space-y-1.5">
                   <p className="text-xs text-muted-foreground">
-                    AI reads your idea and selects the best-fit panel of 8 judges — adapting to your industry, stage, and business model.
+                    <strong className="text-foreground">Built-in AI jury:</strong> 16 expert
+                    archetypes — Gemini reads your pitch and auto-selects the 8 best fit. No setup
+                    required; this is the default.
                   </p>
                   <div className="flex items-center gap-1.5 text-[10px] font-mono text-primary/70">
                     <Zap className="w-3 h-3" />
@@ -1395,6 +1397,13 @@ const Index = () => {
                       Manage database
                     </button>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    <strong className="text-foreground">Override layer:</strong> these are fictional
+                    or composite investor profiles you've created. Seat them here and the AI debates
+                    as that character — the credentials, track record and voice you wrote — instead
+                    of the built-in archetypes. Only model a real person with their permission; you
+                    are responsible for the profiles you create. Mix them with the archetypes below.
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {roster.map((panelist) => {
                       const persona = panelistToPersona(
@@ -1433,10 +1442,6 @@ const Index = () => {
                       );
                     })}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    Real panelists bring their own credentials and voice into every round. Mix them with the
-                    archetypes below.
-                  </p>
                 </div>
               )}
 

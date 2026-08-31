@@ -208,13 +208,37 @@ export default function PanelistsPage() {
               <Users className="w-6 h-6 text-primary" /> Panelist Database
             </h1>
             <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-              Real people, real credentials, real headshots. Anyone on this roster can be seated on a
-              jury by name in the director console.
+              Custom investor profiles you author — name, firm, credentials, track record, headshot.
+              Seat one on a custom jury and the AI debates as that character, in the voice you wrote.
             </p>
           </div>
           <Button onClick={startNew} className="font-semibold">
             <Plus className="w-4 h-4 mr-2" /> New panelist
           </Button>
+        </div>
+
+        <div className="rounded-[12px] border border-primary/30 bg-primary/5 p-4 text-sm text-foreground space-y-2">
+          <p className="font-semibold flex items-center gap-2">
+            <span className="text-primary">ℹ️</span> What is this, and how is it different from the AI jury?
+          </p>
+          <p className="text-muted-foreground">
+            By default every debate runs on our <strong>built-in AI jury</strong> — 16 expert
+            archetypes where Gemini auto-selects the 8 best fit for your pitch. You don't touch this
+            database for that.
+          </p>
+          <p className="text-muted-foreground">
+            This database is an <strong>optional override layer</strong>. The records here are
+            <strong> profiles you create</strong> — fictional or composite investor characters you
+            author (name, firm, credentials, track record, voice). When you seat one on a custom
+            panel, the AI debates <em>as that character</em> using the background you wrote, instead
+            of a generic archetype. Think of it like writing a role for a fictional judge.
+          </p>
+          <p className="text-[12px] text-muted-foreground">
+            <strong className="text-foreground">Use responsibly:</strong> only model real, named
+            people if you have their permission. Do not use this feature to impersonate, defame, or
+            put words in a real person's mouth. You are solely responsible for the profiles you
+            create and any statements the AI generates from them.
+          </p>
         </div>
 
         {!user && (
