@@ -234,6 +234,54 @@ export type Database = {
         }
         Relationships: []
       }
+      panelist_slot_purchases: {
+        Row: {
+          created_at: string
+          id: string
+          slots: number
+          stripe_session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          slots?: number
+          stripe_session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          slots?: number
+          stripe_session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      panelist_slots: {
+        Row: {
+          created_at: string
+          id: string
+          purchased_slots: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          purchased_slots?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          purchased_slots?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       panelists: {
         Row: {
           background: string | null

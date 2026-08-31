@@ -136,7 +136,8 @@ export async function uploadPanelistPhoto(userId: string, file: File): Promise<s
 /** Photos live in a private bucket, so display URLs are signed on demand. */
 export async function resolvePhotoUrl(path: string | null): Promise<string | null> {
   if (!path) return null;
-  if (path.startsWith("http")) return path;
+  // Bundled library headshots and any absolute URL are already displayable.
+  if (path.startsWith("http") || path.startsWith("/") || path.startsWith("data:")) return path;
   const { data, error } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrl(path, 60 * 60 * 24 * 7);
   if (error) {
     console.warn("[panelists] photo url failed:", error.message);
@@ -189,4 +190,23 @@ export function panelistToPersona(panelist: Panelist, photoUrl?: string | null):
     vibe: panelist.expertise.slice(0, 3).join(" · ") || base.vibe,
     systemPrompt: `${base.systemPrompt}\n\n${lines.join("\n")}`,
   };
+}
+
+/**
+ * Seats a batch of curated library panelists onto the caller's roster, skipping
+ * any name they already have so re-importing never creates duplicates.
+ */
+export async function importLibraryPanelists(
+  userId: string,
+  drafts: PanelistDraft[]
+): Promise<Panelist[]> {
+  const existing = await fetchPanelists(userId);
+  const taken = new Set(existing.map((p) => p.name.trim().toLowerCase()));
+  const pending = drafts.filter((d) => !taken.has((d.name ?? "").trim().toLowerCase()));
+  const created: Panelist[] = [];
+  for (const draft of pending) {
+    const { id: _ignored, ...fresh } = draft;
+    created.push(await savePanelist(userId, fresh));
+  }
+  return created;
 }
