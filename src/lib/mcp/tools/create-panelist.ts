@@ -23,6 +23,8 @@ export default defineTool({
       .array(z.string())
       .optional()
       .describe("Expertise tags, e.g. ['fintech','GTM']."),
+    photo_url: z.string().trim().optional().describe("Public URL of a headshot."),
+    linkedin_url: z.string().trim().optional().describe("LinkedIn profile URL."),
     base_persona_id: z
       .string()
       .trim()
@@ -46,6 +48,9 @@ export default defineTool({
         background: input.background ?? null,
         signature_style: input.signature_style ?? null,
         expertise: input.expertise ?? [],
+        photo_url: input.photo_url ?? null,
+        linkedin_url: input.linkedin_url ?? null,
+        is_active: true,
         ...(input.base_persona_id ? { base_persona_id: input.base_persona_id } : {}),
       })
       .select()
