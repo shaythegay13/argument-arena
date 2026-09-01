@@ -1054,18 +1054,25 @@ const Index = () => {
 
     generateAutoResponse(state.topic, currentRound!, state.selectedPersonas)
       .then((autoResponse) => {
+        autoRespondAttemptsRef.current = 0;
         if (cancelled) return;
         handleUserSubmit(autoResponse);
       })
       .catch((err) => {
         console.error(err);
-        if (cancelled) return;
-        setAutoDebate(false);
-        toast({
-          title: "Auto-debate paused",
-          description: "Couldn't draft the founder response. Write your reply and continue manually.",
-          variant: "destructive",
-        });
+        autoRespondAttemptsRef.current += 1;
+        // Pause regardless of `cancelled`: a re-render must never turn a failed
+        // draft into an endless retry loop against the AI rate limiter.
+        if (autoRespondAttemptsRef.current >= MAX_AUTO_RESPOND_ATTEMPTS) {
+          autoRespondAttemptsRef.current = 0;
+          setAutoDebate(false);
+          toast({
+            title: "Auto-debate paused",
+            description:
+              "Couldn't draft the founder response (the AI panel is busy). Write your reply and continue manually.",
+            variant: "destructive",
+          });
+        }
       })
       .finally(() => {
         // Always release the guard — a dependency change must never leave the
@@ -1076,6 +1083,7 @@ const Index = () => {
 
     return () => { cancelled = true; };
   }, [autoDebate, showFollowUp, state.topic, currentRound, state.selectedPersonas, handleUserSubmit, toast]);
+
 
 
   // Auto-debate: auto-trigger ratings after round 4
