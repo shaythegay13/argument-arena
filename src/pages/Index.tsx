@@ -155,6 +155,8 @@ const Index = () => {
   const roundResponsesRef = useRef<Record<number, string>>({});
   // Panel-grades flow: single-flight guard, error surface, and final-statements review gate
   const gradesInFlightRef = useRef(false);
+  const autoRespondInFlightRef = useRef(false);
+
   const [gradesError, setGradesError] = useState<string | null>(null);
   const [finalReviewAck, setFinalReviewAck] = useState(false);
 
