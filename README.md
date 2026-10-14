@@ -26,6 +26,8 @@ These are implemented in the source, not a wishlist.
 
 ![Static sample verdict on the homepage](docs/screenshots/sample-verdict.png)
 
+![About page](docs/screenshots/about.png)
+
 ![Built-in personas on the About page](docs/screenshots/judges.png)
 
 ### Pricing as shown in the app
