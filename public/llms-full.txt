@@ -56,7 +56,8 @@ Last updated: 2026-08-30
 
 - Free: 2 full evaluations. One evaluation = one complete four-round jury session.
 - Credit packs: pay-as-you-go credits for additional evaluations.
-- Pro subscription: unlimited evaluations plus transcript export and Pro-only extras.
+- Pro subscription: 15 evaluations a month. Unused Pro evaluations roll over for one month. Transcript export is included.
+- Studio subscription: unlimited evaluations.
 - Billing rule: a credit is charged once per session, at the start of round 1.
   Failed, empty, or cancelled generations are automatically refunded, and retrying a
   juror inside an already-paid session never charges again.

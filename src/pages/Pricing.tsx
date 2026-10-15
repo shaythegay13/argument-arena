@@ -101,7 +101,7 @@ const Pricing = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const { isPro, isStudio, tier, credits, startCheckout, purchaseCredits, manageSubscription } = useSubscription();
+  const { isPro, isStudio, tier, credits, monthlyRemaining, startCheckout, purchaseCredits, manageSubscription } = useSubscription();
   const [busy, setBusy] = useState<string | null>(null);
 
   const runPurchase = useCallback(
@@ -202,7 +202,7 @@ const Pricing = () => {
             </span>
             <span className="text-muted-foreground">·</span>
             <span className="text-muted-foreground">
-              Credits: <span className="font-semibold text-foreground">{isPro ? "Unlimited" : credits}</span>
+              Credits: <span className="font-semibold text-foreground">{isStudio ? "Unlimited" : isPro ? `${monthlyRemaining} this month · ${credits} balance` : credits}</span>
             </span>
           </div>
         )}

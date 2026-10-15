@@ -36,7 +36,8 @@ interface GenerationStatusPanelProps {
   personas: Persona[];
   rounds: RoundGenStatus[];
   maxRounds: number;
-  isPro?: boolean;
+  /** Studio evaluations are not charged. Pro spends the monthly allowance or a credit. */
+  unlimited?: boolean;
   failedCount?: number;
   isRetrying?: boolean;
   onRetryFailed?: () => void;
@@ -48,7 +49,7 @@ const GenerationStatusPanel = ({
   personas,
   rounds,
   maxRounds,
-  isPro,
+  unlimited,
   failedCount = 0,
   isRetrying = false,
   onRetryFailed,
@@ -76,7 +77,7 @@ const GenerationStatusPanel = ({
         </h2>
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-[10px] font-mono text-muted-foreground">
-            {isPro ? "Pro — 0 credits charged" : "1 credit charged once, on round 1"}
+            {unlimited ? "Studio — unlimited, 0 credits charged" : "1 credit charged once, on round 1"}
           </p>
           {failedCount > 0 && onRetryFailed && (
             <Button

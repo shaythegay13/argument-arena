@@ -5,6 +5,7 @@ import {
   createCheckout,
   purchaseCredits as purchaseCreditsFn,
   openCustomerPortal,
+  type CheckSubscriptionResult,
 } from "@/lib/billing.functions";
 
 interface SubscriptionState {
@@ -13,6 +14,7 @@ interface SubscriptionState {
   tier: string | null;
   subscriptionEnd: string | null;
   credits: number;
+  monthlyRemaining: number;
   loading: boolean;
 }
 
@@ -23,15 +25,16 @@ export function useSubscription() {
     tier: null,
     subscriptionEnd: null,
     credits: 0,
+    monthlyRemaining: 0,
     loading: true,
   });
 
-  const checkSubscription = useCallback(async () => {
+  const checkSubscription = useCallback(async (): Promise<CheckSubscriptionResult | null> => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setState({ isPro: false, isStudio: false, tier: null, subscriptionEnd: null, credits: 0, loading: false });
-        return;
+        setState({ isPro: false, isStudio: false, tier: null, subscriptionEnd: null, credits: 0, monthlyRemaining: 0, loading: false });
+        return null;
       }
 
       const data = await checkSubscriptionFn();
@@ -43,11 +46,14 @@ export function useSubscription() {
         tier,
         subscriptionEnd: data?.subscription_end ?? null,
         credits: data?.credits ?? 0,
+        monthlyRemaining: data?.monthlyRemaining ?? 0,
         loading: false,
       });
+      return data ?? null;
     } catch (err) {
       console.warn("[useSubscription]", err);
       setState(prev => ({ ...prev, loading: false }));
+      return null;
     }
   }, []);
 

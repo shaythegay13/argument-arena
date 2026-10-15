@@ -184,7 +184,6 @@ const Index = () => {
 
 
   const [visibility, setVisibility] = useState<"private" | "anonymous" | "public">("anonymous");
-  const [finishedCount, setFinishedCount] = useState(0);
   const subscription = useSubscription();
   const isPro = subscription.isPro;
   const isStudio = subscription.isStudio;
@@ -197,8 +196,6 @@ const Index = () => {
     panelistProfilesRef.current = panelistProfiles;
   }, [panelistProfiles]);
   const customBioCount = Object.values(panelistProfiles).filter((p) => isProfileFilled(p)).length;
-  const FREE_LIMIT = 2;
-  const PRO_LIMIT = 100;
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -249,21 +246,6 @@ const Index = () => {
 
   useDebateAgentState(state);
   console.log("[RedisMemory] Session:", sessionId, "| Mock:", usingMock);
-
-  // Count finished evaluations for paywall
-  useEffect(() => {
-    if (!user?.id) return;
-    supabase
-      .from("debate_sessions")
-      .select("id, phase, judge_verdict", { count: "exact", head: false })
-      .eq("user_id", user.id)
-      .then(({ data }) => {
-        const finished = (data ?? []).filter(
-          (s: any) => (s.phase === "judge" && s.judge_verdict) || s.phase === "final-ratings"
-        ).length;
-        setFinishedCount(finished);
-      });
-  }, [user?.id]);
 
   // Load session from URL parameter — or resume the in-progress debate after a refresh.
   // Waits for auth to resolve first so userId is available.
@@ -415,12 +397,16 @@ const Index = () => {
   }, [panelMode, selectedPanelId, state.phase]);
 
   const handleStartDebate = useCallback(async () => {
-    // Credits are the single source of truth for free accounts: the starter
-    // allowance is granted as credits, so a positive balance always runs.
-    if (!isPro) {
-      let credits = subscription.credits;
+    // Studio is unlimited. Pro spends this month's 15, then the credit balance.
+    if (!isStudio) {
+      let balance = subscription.credits;
+      let monthly = subscription.monthlyRemaining;
       try {
-        await subscription.checkSubscription();
+        const fresh = await subscription.checkSubscription();
+        if (fresh) {
+          balance = fresh.credits;
+          monthly = fresh.monthlyRemaining;
+        }
       } catch { /* fall back to cached balance */ }
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -429,24 +415,14 @@ const Index = () => {
           .select("credits")
           .eq("user_id", session.user.id)
           .maybeSingle();
-        if (creditRow) credits = creditRow.credits;
+        if (creditRow) balance = creditRow.credits;
       }
-      if (credits <= 0) {
+      if (balance + monthly <= 0) {
         pendingCreditActionRef.current = { kind: "start" };
         setUpgradeReason("out_of_credits");
         setShowUpgrade(true);
         return;
       }
-    }
-
-
-    if (isPro && finishedCount >= PRO_LIMIT) {
-      toast({
-        title: "Monthly limit reached",
-        description: `You've used all ${PRO_LIMIT} evaluations this month. Contact us if you need more.`,
-        variant: "destructive",
-      });
-      return;
     }
     let personas: Persona[];
     if (panelMode === "auto") {
@@ -510,7 +486,7 @@ const Index = () => {
     setGenRounds([
       {
         roundNumber: 1,
-        charged: !isPro,
+        charged: !isStudio,
         overall: "generating",
         personas: Object.fromEntries(personas.map((p) => [p.id, "generating" as GenStatus])),
       },
@@ -621,7 +597,7 @@ const Index = () => {
       toast({ title: "Generation failed", description: "Could not start the debate. Please try again. No credit was charged.", variant: "destructive" });
     }
 
-  }, [state, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isPro, finishedCount, subscription, setRoundGen, ensureSession]);
+  }, [state, panelMode, selectedPanelId, storeRoundMemories, generateClip, toast, isStudio, subscription, setRoundGen, ensureSession]);
 
 
 
@@ -982,8 +958,9 @@ const Index = () => {
           .select("credits")
           .eq("user_id", session.user.id)
           .maybeSingle();
-        await subscription.checkSubscription().catch(() => {});
-        if (!cancelled && ((creditRow?.credits ?? 0) > 0 || subscription.isPro)) resume();
+        const fresh = await subscription.checkSubscription().catch(() => null);
+        const spendable = (creditRow?.credits ?? 0) + (fresh?.monthlyRemaining ?? 0);
+        if (!cancelled && (spendable > 0 || fresh?.tier === "studio")) resume();
       } catch { /* keep polling */ }
     };
 
@@ -1535,12 +1512,16 @@ const Index = () => {
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-mono">
               <span className="text-muted-foreground">
                 Remaining credits:{" "}
-                <span className={`font-semibold ${isPro ? "text-primary" : subscription.credits > 0 ? "text-foreground" : "text-destructive"}`}>
-                  {isPro ? "Unlimited (Pro)" : subscription.credits}
+                <span className={`font-semibold ${isStudio || subscription.monthlyRemaining + subscription.credits > 0 ? "text-foreground" : "text-destructive"} ${isStudio ? "text-primary" : ""}`}>
+                  {isStudio
+                    ? "Unlimited (Studio)"
+                    : isPro
+                      ? `${subscription.monthlyRemaining} monthly · ${subscription.credits} balance`
+                      : subscription.credits}
                 </span>
               </span>
               <span className="text-muted-foreground">
-                Cost: <span className="font-semibold text-foreground">{isPro ? "0" : "1"} credit</span> for the full 4-round jury (0 per round)
+                Cost: <span className="font-semibold text-foreground">{isStudio ? "0" : "1"} credit</span> for the full 4-round jury (0 per round)
               </span>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1564,7 +1545,7 @@ const Index = () => {
                 </TooltipContent>
               </Tooltip>
 
-              {!isPro && subscription.credits <= 0 && (
+              {!isStudio && subscription.monthlyRemaining + subscription.credits <= 0 && (
                 <button
                   type="button"
                   onClick={() => { setUpgradeReason("out_of_credits"); setShowUpgrade(true); }}
@@ -1664,7 +1645,7 @@ const Index = () => {
                   personas={state.selectedPersonas}
                   rounds={genRounds}
                   maxRounds={MAX_ROUNDS}
-                  isPro={isPro}
+                  unlimited={isStudio}
                   failedCount={failedCount}
                   isRetrying={isRetryingFailed}
                   onRetryFailed={handleRetryFailed}
@@ -1826,7 +1807,9 @@ const Index = () => {
         open={showCreditsHelp}
         onOpenChange={setShowCreditsHelp}
         isPro={subscription.isPro}
+        isStudio={subscription.isStudio}
         credits={subscription.credits}
+        monthlyRemaining={subscription.monthlyRemaining}
         onBuyCredits={() => { setUpgradeReason("out_of_credits"); setShowUpgrade(true); }}
       />
       <UpgradeModal
@@ -1837,6 +1820,7 @@ const Index = () => {
         isStudio={subscription.isStudio}
         tier={subscription.tier}
         credits={subscription.credits}
+        monthlyRemaining={subscription.monthlyRemaining}
         subscriptionEnd={subscription.subscriptionEnd}
         reason={upgradeReason}
         onCheckout={async (plan?: string) => { await subscription.startCheckout(plan); setAwaitingCredits(true); }}

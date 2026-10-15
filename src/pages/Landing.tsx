@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Zap, Users, Star, ArrowRight, Shield, Brain, MessageSquare, BarChart3, Share2, CheckCircle2, ExternalLink } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
+import { HOMEPAGE_STATS, SAMPLE_VERDICT, formatJurorScore } from "@/data/sampleVerdict";
 
 // Set to a public result URL (e.g. "/result/your-demo-id") to enable the live example CTA
 const DEMO_RESULT_URL = "";
@@ -143,11 +144,7 @@ const Landing = () => {
 
         {/* Social proof strip */}
         <div className="flex items-center justify-center gap-8 sm:gap-12 pt-4 flex-wrap">
-          {[
-            { value: "2,400+", label: "Ideas Evaluated" },
-            { value: "< 5 min", label: "Per Verdict" },
-            { value: "8", label: "AI Judges" },
-          ].map((stat) => (
+          {HOMEPAGE_STATS.map((stat) => (
             <div key={stat.label} className="text-center">
               <div className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</div>
               <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{stat.label}</div>
@@ -157,27 +154,28 @@ const Landing = () => {
 
         {/* Mock verdict preview — shows users what output looks like before signing up */}
         <div className="mt-8 max-w-2xl mx-auto text-left">
-          <p className="text-center text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground mb-4">Sample Output</p>
+          <p className="text-center text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground mb-2">Sample Output</p>
+          <p className="text-center text-xs text-muted-foreground mb-4">{SAMPLE_VERDICT.disclosure}</p>
           <div className="rounded-[14px] border border-verdict-go/30 bg-verdict-go/5 p-5 sm:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-5">
               <span className="text-4xl">🚀</span>
               <div className="flex-1">
-                <div className="text-2xl font-bold text-verdict-go">GO</div>
-                <div className="text-xs text-muted-foreground">AI-powered onboarding tool for SaaS companies</div>
+                <div className="text-2xl font-bold text-verdict-go">{SAMPLE_VERDICT.verdict}</div>
+                <div className="text-xs text-muted-foreground">{SAMPLE_VERDICT.topic}</div>
               </div>
               <div className="rounded-[10px] border border-verdict-go/20 bg-card/50 px-4 py-2 text-center">
                 <div className="text-xs text-muted-foreground font-mono">Score</div>
-                <div className="text-2xl font-bold text-verdict-go">74<span className="text-sm text-muted-foreground">/100</span></div>
+                <div className="text-2xl font-bold text-verdict-go">{formatJurorScore(SAMPLE_VERDICT.score)}<span className="text-sm text-muted-foreground">/{SAMPLE_VERDICT.scoreScale}</span></div>
               </div>
             </div>
             <p className="text-sm text-foreground/80 leading-relaxed">
-              Strong market timing — SaaS churn is a $1.6T problem and onboarding is the #1 lever. The AI angle is differentiated. Main risk is enterprise sales cycle length vs. your runway.
+              {SAMPLE_VERDICT.summary}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-[10px] border border-verdict-go/20 bg-verdict-go/5 p-3">
                 <div className="text-[10px] font-mono uppercase text-verdict-go font-semibold mb-1.5">Strengths</div>
                 <ul className="space-y-1">
-                  {["Clear, quantifiable pain point", "Viral product-led growth loop", "Defensible data moat over time"].map(s => (
+                  {SAMPLE_VERDICT.strengths.map(s => (
                     <li key={s} className="flex items-start gap-1.5 text-xs text-foreground/75">
                       <span className="w-1 h-1 rounded-full bg-verdict-go mt-1.5 shrink-0" />{s}
                     </li>
@@ -187,7 +185,7 @@ const Landing = () => {
               <div className="rounded-[10px] border border-verdict-nogo/20 bg-verdict-nogo/5 p-3">
                 <div className="text-[10px] font-mono uppercase text-verdict-nogo font-semibold mb-1.5">Risks</div>
                 <ul className="space-y-1">
-                  {["Crowded market — Appcues, Pendo, Intercom", "High enterprise CAC vs. SMB LTV", "Integration complexity slows GTM"].map(r => (
+                  {SAMPLE_VERDICT.risks.map(r => (
                     <li key={r} className="flex items-start gap-1.5 text-xs text-foreground/75">
                       <span className="w-1 h-1 rounded-full bg-verdict-nogo mt-1.5 shrink-0" />{r}
                     </li>
@@ -196,14 +194,9 @@ const Landing = () => {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 pt-1">
-              {[
-                { name: "Elena Ramirez", role: "Angel", score: 82, color: "text-primary" },
-                { name: "Marcus Thornton", role: "VC", score: 74, color: "text-accent" },
-                { name: "Victor Volkov", role: "Skeptic", score: 61, color: "text-verdict-nogo" },
-                { name: "Priya Shah", role: "Analyst", score: 78, color: "text-muted-foreground" },
-              ].map(j => (
-                <div key={j.name} className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1">
-                  <span className={`text-xs font-semibold ${j.color}`}>{j.score}</span>
+              {SAMPLE_VERDICT.judges.map(j => (
+                <div key={j.role} className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1">
+                  <span className={`text-xs font-semibold ${j.color}`}>{formatJurorScore(j.score)}</span>
                   <span className="text-xs text-muted-foreground">{j.role}</span>
                 </div>
               ))}
