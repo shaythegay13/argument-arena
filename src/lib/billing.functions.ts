@@ -3,9 +3,6 @@ import { getRequest } from "@tanstack/react-start/server";
 import Stripe from "stripe";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const PRO_PRODUCT_ID = "prod_U7OtWtNsHfTIoU";
-const STUDIO_PRODUCT_ID = "prod_U85rRKfBRN9oEQ";
-
 const PLANS: Record<string, string> = {
   pro: "price_1T9A5NIN6aHiJNfpbFsvvKTr",
   studio: "price_1T9pg3IN6aHiJNfpZEArQYTJ",
@@ -17,13 +14,6 @@ const CREDIT_PACKS: Record<string, { price_id: string; credits: number }> = {
   starter: { price_id: "price_1T9ASKIN6aHiJNfpOaigNoJR", credits: 5 },
   builder: { price_id: "price_1T9AzaIN6aHiJNfp7y0yJW7k", credits: 15 },
   founder: { price_id: "price_1T9pIAIN6aHiJNfp3213kJyd", credits: 40 },
-};
-
-// Maps Stripe product IDs to credit amounts (one-time purchase products)
-const PRODUCT_CREDITS: Record<string, number> = {
-  prod_U7PGFSHKimigyy: 5, // Starter
-  prod_U7PppbYmYQ99wv: 20, // Builder
-  prod_U85Ttrs2dF7rwc: 50, // Founder
 };
 
 function getStripe(): Stripe {
@@ -52,6 +42,8 @@ export interface CheckSubscriptionResult {
   tier: string | null;
   subscription_end: string | null;
   credits: number;
+  /** Unexpired Pro evaluations for this billing period, including one month of rollover. */
+  monthlyRemaining: number;
 }
 
 export const checkSubscription = createServerFn({ method: "GET" })
@@ -69,52 +61,32 @@ export const checkSubscription = createServerFn({ method: "GET" })
         .eq("user_id", userId)
         .single();
 
-      let credits = 2;
       if (!creditRow) {
         await supabase.from("user_credits").insert({ user_id: userId, credits: 2 });
-      } else {
-        credits = creditRow.credits;
       }
 
-      const stripe = getStripe();
-      const customers = await stripe.customers.list({ email, limit: 1 });
-
-      if (customers.data.length === 0) {
-        return { subscribed: false, tier: null, subscription_end: null, credits };
+      const { lookupSubscription, ensureProAllowance, syncPurchasedCreditsForUser, readMonthlyRemaining } =
+        await import("@/lib/billingSync.server");
+      const subscription = await lookupSubscription(email);
+      if (subscription?.tier === "pro") {
+        await ensureProAllowance(userId, subscription);
       }
+      await syncPurchasedCreditsForUser(userId, email);
 
-      const customerId = customers.data[0]!.id;
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customerId,
-        status: "active",
-        limit: 10,
-      });
-
-      const hasActiveSub = subscriptions.data.length > 0;
-      let subscriptionEnd: string | null = null;
-      let tier: string | null = null;
-
-      if (hasActiveSub) {
-        for (const subscription of subscriptions.data) {
-          const item = subscription.items.data[0];
-          const productId = item?.price?.product;
-          if (productId === STUDIO_PRODUCT_ID) {
-            tier = "studio";
-            subscriptionEnd = item ? new Date(item.current_period_end * 1000).toISOString() : null;
-            break;
-          }
-          if (productId === PRO_PRODUCT_ID) {
-            tier = "pro";
-            subscriptionEnd = item ? new Date(item.current_period_end * 1000).toISOString() : null;
-          }
-        }
-      }
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: refreshed } = await supabaseAdmin
+        .from("user_credits")
+        .select("credits")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const monthlyRemaining = subscription?.tier === "pro" ? await readMonthlyRemaining(userId) : 0;
 
       return {
-        subscribed: !!tier,
-        tier,
-        subscription_end: subscriptionEnd,
-        credits,
+        subscribed: subscription != null,
+        tier: subscription?.tier ?? null,
+        subscription_end: subscription ? new Date(subscription.periodEnd * 1000).toISOString() : null,
+        credits: refreshed?.credits ?? creditRow?.credits ?? 2,
+        monthlyRemaining,
       };
     } catch (error) {
       console.error("[checkSubscription] Error:", error);
@@ -245,55 +217,18 @@ export const syncPurchasedCredits = createServerFn({ method: "POST" })
     if (!email) throw new Error("Request failed. Please try again.");
 
     try {
-      const stripe = getStripe();
-      const customers = await stripe.customers.list({ email, limit: 1 });
-      if (customers.data.length === 0) {
-        return { credits: 0, added: 0 };
-      }
-
+      const { syncPurchasedCreditsForUser } = await import("@/lib/billingSync.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-      // Check for completed one-time payment sessions not yet credited
-      const sessions = await stripe.checkout.sessions.list({
-        customer: customers.data[0]!.id,
-        status: "complete",
-        limit: 100,
-      });
-
-      let totalNewCredits = 0;
-      for (const session of sessions.data) {
-        if (session.mode !== "payment") continue;
-        if (!session.metadata?.["credits"]) continue;
-
-        const creditsToAdd = parseInt(session.metadata["credits"], 10);
-        if (isNaN(creditsToAdd) || creditsToAdd <= 0) continue;
-
-        // Use presence of a row as idempotency check
-        const { data: existing } = await supabaseAdmin
-          .from("user_credits")
-          .select("id")
-          .eq("user_id", userId)
-          .single();
-
-        if (!existing) {
-          await supabaseAdmin
-            .from("user_credits")
-            .insert({ user_id: userId, credits: 2 + creditsToAdd, updated_at: new Date().toISOString() });
-          totalNewCredits += creditsToAdd;
-        }
-        // For simplicity, we add all unprocessed credits in a single pass
-        break;
-      }
-
+      const { added } = await syncPurchasedCreditsForUser(userId, email);
       const { data: creditRow } = await supabaseAdmin
         .from("user_credits")
         .select("credits")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       return {
         credits: creditRow?.credits ?? 0,
-        added: totalNewCredits,
+        added,
       };
     } catch (error) {
       console.error("[syncPurchasedCredits] Error:", error);

@@ -6,10 +6,12 @@ interface CreditsHelpModalProps {
   onOpenChange: (open: boolean) => void;
   onBuyCredits?: () => void;
   isPro?: boolean;
+  isStudio?: boolean;
   credits?: number;
+  monthlyRemaining?: number;
 }
 
-const CreditsHelpModal = ({ open, onOpenChange, onBuyCredits, isPro, credits }: CreditsHelpModalProps) => {
+const CreditsHelpModal = ({ open, onOpenChange, onBuyCredits, isPro, isStudio, credits, monthlyRemaining = 0 }: CreditsHelpModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -26,9 +28,11 @@ const CreditsHelpModal = ({ open, onOpenChange, onBuyCredits, isPro, credits }: 
               Your balance
             </h3>
             <p className="text-foreground">
-              {isPro
-                ? "Pro subscription — unlimited evaluations, 0 credits charged."
-                : `${credits ?? 0} credit${(credits ?? 0) === 1 ? "" : "s"} remaining · 1 credit per full evaluation.`}
+              {isStudio
+                ? "Studio subscription — unlimited evaluations, 0 credits charged."
+                : isPro
+                  ? `Pro includes 15 evaluations each billing month. Unused ones roll over for one month, then your purchased balance is used. ${monthlyRemaining} monthly remaining · ${credits ?? 0} credit balance.`
+                  : `${credits ?? 0} credit${(credits ?? 0) === 1 ? "" : "s"} remaining · 1 credit per full evaluation.`}
             </p>
           </section>
 

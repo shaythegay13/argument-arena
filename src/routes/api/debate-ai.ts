@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import Stripe from "stripe";
+import { chargePolicy, isMissingMigrationError, type PlanTier } from "@/lib/billingRules";
 
 /**
  * Jury generation endpoint (ported from the standalone debate-ai function).
@@ -18,35 +18,12 @@ const ALLOWED_MODELS = [
 ];
 
 const MAX_PROMPT_LENGTH = 20000;
-const PRO_PRODUCT_ID = "prod_U7OtWtNsHfTIoU";
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
-}
-
-async function isUserSubscribed(email: string): Promise<boolean> {
-  const stripeKey = process.env["STRIPE_SECRET_KEY"];
-  if (!stripeKey) return false;
-  try {
-    const stripe = new Stripe(stripeKey);
-    const customers = await stripe.customers.list({ email, limit: 1 });
-    const customer = customers.data[0];
-    if (!customer) return false;
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customer.id,
-      status: "active",
-      limit: 1,
-    });
-    const sub = subscriptions.data[0];
-    if (!sub) return false;
-    return sub.items.data[0]?.price?.product === PRO_PRODUCT_ID;
-  } catch (e) {
-    console.error("[debate-ai] subscription check error:", e);
-    return false;
-  }
 }
 
 export const Route = createFileRoute("/api/debate-ai")({
@@ -116,7 +93,16 @@ export const Route = createFileRoute("/api/debate-ai")({
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-          const isPro = isUtility ? true : (user.email ? await isUserSubscribed(user.email) : false);
+          let tier: PlanTier = "free";
+          if (!isUtility && user.email) {
+            const { lookupSubscription, ensureProAllowance } = await import("@/lib/billingSync.server");
+            const subscription = await lookupSubscription(user.email);
+            if (subscription) {
+              tier = subscription.tier;
+              if (subscription.tier === "pro") await ensureProAllowance(user.id, subscription);
+            }
+          }
+          const policy = chargePolicy(tier, isUtility);
 
           let sessionAlreadyStarted = false;
           if (!isUtility && typeof sessionId === "string") {
@@ -148,11 +134,18 @@ export const Route = createFileRoute("/api/debate-ai")({
 
           // Idempotent billing: exactly one charge per session id, enforced in the DB.
           let chargedNow = false;
-          if (!isUtility && !isPro && !sessionAlreadyStarted) {
-            const { data: chargeResult, error: chargeError } = await supabaseAdmin.rpc(
-              "consume_evaluation_credit",
+          if (policy === "charge" && !sessionAlreadyStarted) {
+            const primary = await supabaseAdmin.rpc(
+              "consume_session_credit",
               { p_user_id: user.id, p_session_id: String(sessionId) } as never,
             );
+            const chargeCall = primary.error && isMissingMigrationError(primary.error)
+              ? await supabaseAdmin.rpc(
+                  "consume_evaluation_credit",
+                  { p_user_id: user.id, p_session_id: String(sessionId) } as never,
+                )
+              : primary;
+            const { data: chargeResult, error: chargeError } = chargeCall;
 
             if (chargeError) {
               console.error("credit charge failed:", chargeError.message);
@@ -168,7 +161,7 @@ export const Route = createFileRoute("/api/debate-ai")({
               return json(
                 {
                   error:
-                    "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
+                    "No evaluation credits remaining. Pro includes 15 a month; Studio is unlimited.",
                 },
                 429,
               );

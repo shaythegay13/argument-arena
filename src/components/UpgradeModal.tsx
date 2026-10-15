@@ -13,6 +13,7 @@ interface UpgradeModalProps {
   isStudio?: boolean;
   tier?: string | null;
   credits?: number;
+  monthlyRemaining?: number;
   subscriptionEnd?: string | null;
   reason?: "default" | "out_of_credits";
   onCheckout: (plan?: string) => Promise<void>;
@@ -40,7 +41,7 @@ const STUDIO_FEATURES = [
   "Early access to new features",
 ];
 
-export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, credits = 0, subscriptionEnd, reason = "default", onCheckout, onPurchaseCredits, onManage }: UpgradeModalProps) {
+export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, credits = 0, monthlyRemaining = 0, subscriptionEnd, reason = "default", onCheckout, onPurchaseCredits, onManage }: UpgradeModalProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
   const isMobile = useIsMobile();
@@ -143,7 +144,7 @@ export default function UpgradeModal({ open, onClose, isPro, isStudio, tier, cre
                   {outOfCredits && !hasSubscription
                     ? "The jury needs 1 credit to run a full 4-round evaluation. Buy credits below to continue."
                     : hasSubscription
-                    ? `Renews ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString() : "soon"} · ${isStudio ? "Unlimited" : `${credits} credits remaining`}`
+                    ? `Renews ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString() : "soon"} · ${isStudio ? "Unlimited" : `${monthlyRemaining} monthly · ${credits} balance`}`
                     : `You have ${credits} credit${credits !== 1 ? "s" : ""} remaining`}
                 </p>
 

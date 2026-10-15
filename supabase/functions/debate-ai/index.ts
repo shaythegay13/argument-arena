@@ -18,28 +18,49 @@ const ALLOWED_MODELS = [
 
 const MAX_PROMPT_LENGTH = 20000;
 const PRO_PRODUCT_ID = "prod_U7OtWtNsHfTIoU";
+const STUDIO_PRODUCT_ID = "prod_U85rRKfBRN9oEQ";
+const PRO_MONTHLY_EVALUATIONS = 15;
 
-async function isUserSubscribed(email: string): Promise<boolean> {
+type PaidTier = "pro" | "studio";
+
+async function lookupPlan(email: string): Promise<{
+  tier: PaidTier;
+  subscriptionId: string;
+  periodStart: number;
+  periodEnd: number;
+} | null> {
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  if (!stripeKey) return false;
+  if (!stripeKey) return null;
 
   try {
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email, limit: 1 });
-    if (customers.data.length === 0) return false;
+    if (customers.data.length === 0) return null;
 
     const subscriptions = await stripe.subscriptions.list({
       customer: customers.data[0].id,
-      status: "active",
-      limit: 1,
+      status: "all",
+      limit: 20,
     });
-    
-    if (subscriptions.data.length === 0) return false;
-    const productId = subscriptions.data[0].items.data[0]?.price?.product;
-    return productId === PRO_PRODUCT_ID;
+
+    const billable = subscriptions.data.filter((subscription) =>
+      subscription.status === "active" || subscription.status === "trialing"
+    );
+    const chosen =
+      billable.find((subscription) => subscription.items.data[0]?.price?.product === STUDIO_PRODUCT_ID) ??
+      billable.find((subscription) => subscription.items.data[0]?.price?.product === PRO_PRODUCT_ID);
+    const item = chosen?.items.data[0] as { current_period_start?: number; current_period_end?: number; price?: { product?: string } } | undefined;
+    if (!chosen || !item?.current_period_start || !item.current_period_end) return null;
+    const productId = item.price?.product;
+    return {
+      tier: productId === STUDIO_PRODUCT_ID ? "studio" : "pro",
+      subscriptionId: chosen.id,
+      periodStart: item.current_period_start,
+      periodEnd: item.current_period_end,
+    };
   } catch (e) {
     console.error("[debate-ai] Stripe check error:", e);
-    return false;
+    return null;
   }
 }
 
@@ -113,8 +134,19 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Check subscription status
-    const isPro = isUtility ? true : (user.email ? await isUserSubscribed(user.email) : false);
+    // Studio is unlimited. Pro spends the monthly allowance, then the credit balance.
+    const plan = isUtility || !user.email ? null : await lookupPlan(user.email);
+    if (plan?.tier === "pro") {
+      const { error: grantError } = await serviceClient.rpc("grant_pro_monthly_allowance", {
+        p_user_id: user.id,
+        p_stripe_subscription_id: plan.subscriptionId,
+        p_period_start: new Date(plan.periodStart * 1000).toISOString(),
+        p_period_end: new Date(plan.periodEnd * 1000).toISOString(),
+        p_credits: PRO_MONTHLY_EVALUATIONS,
+      });
+      if (grantError) console.error("[debate-ai] pro allowance grant failed:", grantError.message);
+    }
+    const waiveCharge = isUtility || plan?.tier === "studio";
 
     // Check if this session has already started (paid its credit).
     // Scoped to the caller so a foreign/public session id can't waive billing.
@@ -145,15 +177,20 @@ serve(async (req) => {
 
     // Idempotent billing: exactly one charge per session id, enforced in the DB.
     let chargedNow = false;
-    if (!isUtility && !isPro && !sessionAlreadyStarted) {
+    if (!waiveCharge && !sessionAlreadyStarted) {
 
 
 
 
-      const { data: chargeResult, error: chargeError } = await serviceClient.rpc(
-        "consume_evaluation_credit",
+      const primary = await serviceClient.rpc(
+        "consume_session_credit",
         { p_user_id: user.id, p_session_id: String(sessionId) }
       );
+      const missingMigration = primary.error && /does not exist|schema cache|could not find the function/i.test(primary.error.message ?? "");
+      const chargeCall = missingMigration
+        ? await serviceClient.rpc("consume_evaluation_credit", { p_user_id: user.id, p_session_id: String(sessionId) })
+        : primary;
+      const { data: chargeResult, error: chargeError } = chargeCall;
 
       if (chargeError) {
         console.error("credit charge failed:", chargeError.message);
@@ -169,7 +206,7 @@ serve(async (req) => {
       if (!charge.charged && !charge.already_charged) {
         return new Response(
           JSON.stringify({
-            error: "No evaluation credits remaining. Purchase credits or subscribe to Pro.",
+            error: "No evaluation credits remaining. Pro includes 15 a month; Studio is unlimited.",
           }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );

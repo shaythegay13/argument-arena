@@ -6,7 +6,7 @@ The live site is [https://www.startupjuryai.com](https://www.startupjuryai.com) 
 
 ![Homepage: Pitch Your Startup to the AI Jury](docs/screenshots/landing.png)
 
-The screenshots below are from this repository running locally (`bun run dev`) on 14 October 2026. The homepage “2,400+ ideas evaluated” figure and the sample verdict card are static copy in `src/pages/Landing.tsx`, not a count or a session loaded from the database.
+The screenshots below are from this repository running locally (`bun run dev`). The homepage sample verdict is labeled as an example and uses the same 0–10 juror scale as a real session. The “16 AI personas” figure is the size of the built-in roster in `src/data/personas.ts`.
 
 ## Features
 
@@ -42,9 +42,11 @@ These are implemented in the source, not a wishlist.
 | Builder pack | $29 | 15 credits |
 | Founder pack | $59 | 40 credits |
 
-Checkout and the customer portal are Stripe sessions created in `src/lib/billing.functions.ts`. A new account row is inserted with 2 credits. Round 1 spends one credit. If that generation fails, comes back empty, or is cancelled before it produces text, `/api/debate-ai` refunds it. Later rounds of the same session are not charged again.
+Checkout and the customer portal are Stripe sessions created in `src/lib/billing.functions.ts`. A new account row is inserted with 2 credits. Round 1 spends one credit from the Pro monthly allowance first, then from the purchased balance. Studio does not spend a credit. If that generation fails, comes back empty, or is cancelled before it produces text, the charge is refunded to the same place it came from. Later rounds of the same session are not charged again.
 
-The generation route skips the credit charge only when Stripe shows an active subscription on the **Pro** product. The Studio product is recognized by `checkSubscription` for the pricing UI, and it is not in that waiver. There is no code in this repo that adds 15 credits each month, and `syncPurchasedCredits` is never called from the UI. Treat the table above as the offer on the page. The charge path is the behavior above.
+Completed credit-pack payments are applied by `syncPurchasedCreditsForUser` whenever a signed-in user loads their balance, and by `POST /api/stripe/webhook` when `STRIPE_WEBHOOK_SECRET` is set. Each Stripe Checkout session id is stored once, so the same payment cannot be credited twice. Pro’s 15 evaluations are granted once per Stripe billing period and stay usable until one month after that period ends.
+
+Those writes use `supabase/migrations/20261015040000_credit_purchases_and_pro_allowance.sql`. That migration is in the repo and has not been applied to the hosted database. Apply it before expecting pack credits or the monthly allowance to land. Until then, Studio is still unlimited and Pro is still charged, but the new ledger calls are skipped.
 
 ![Pricing page: plans and credit packs](docs/screenshots/pricing.png)
 

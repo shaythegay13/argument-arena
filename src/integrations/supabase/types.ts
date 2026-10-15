@@ -392,8 +392,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_credit_purchase: {
+        Args: { p_credits: number; p_stripe_session_id: string; p_user_id: string }
+        Returns: Json
+      }
       consume_evaluation_credit: {
         Args: { p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
+      consume_session_credit: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
+      grant_pro_monthly_allowance: {
+        Args: {
+          p_credits: number
+          p_period_end: string
+          p_period_start: string
+          p_stripe_subscription_id: string
+          p_user_id: string
+        }
         Returns: Json
       }
       increment_view_count: { Args: { p_id: string }; Returns: undefined }
